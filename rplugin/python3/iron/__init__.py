@@ -17,4 +17,4 @@ class Iron(object):
 
     @neovim.function("IronOpenRepl")
     def open_repl(self, args):
-        self.__nvim.command("echo {}".format(args))
+        self.__nvim.call('termopen', args)
