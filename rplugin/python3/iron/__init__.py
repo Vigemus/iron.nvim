@@ -17,11 +17,21 @@ class Iron(object):
         self.__repl_templates = {
             'python': lambda: (
                 nvim.eval("executable('ipython')") and "ipython" or "python"
+            ),
+            'clojure': lambda: (
+                "lein repl"
             )
         }
         self.__current = -1
 
-        nvim.command("nmap <silent> str :set opfunc=IronSendToRepl<CR>g@")
+    def get_repl_template(self, ft):
+        ft_repl = "iron_{}_repl".format(ft)
+
+        if ft_repl in self.__nvim.vars:
+            return self.__nvim.vars[ft_repl]
+        else:
+            self.__repl_templates.get(ft)()
+
 
     @neovim.function("IronOpenRepl")
     def open_repl_for(self, args):
@@ -37,7 +47,7 @@ class Iron(object):
     @neovim.command("IronRepl")
     def get_repl(self):
         ft = self.__nvim.current.buffer.options["ft"]
-        repl_type = self.__repl_templates.get(ft, lambda: "")()
+        repl_type = self.get_repl_template(ft)
         if repl_type == "":
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
             return
