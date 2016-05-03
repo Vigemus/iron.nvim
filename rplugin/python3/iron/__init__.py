@@ -14,18 +14,32 @@ class Iron(object):
     def __init__(self, nvim):
         self.__nvim = nvim
         self.__repls = {}
+        self.__repl_templates = {
+            'python': lambda: (
+                nvim.eval("executable('ipython')") and "ipython" or "python"
+            )
+        }
         self.__current = -1
 
         nvim.command("nmap <silent> str :set opfunc=IronSendToRepl<CR>g@")
 
     @neovim.function("IronOpenRepl")
-    def open_repl(self, args):
+    def open_repl_for(self, args):
         self.__nvim.call('termopen', args)
         repl = args[0]
         repl_id = self.__nvim.call('termopen', repl)
 
         self.__repls[repl_id] = repl_id
         self.__current = repl_id
+
+    @neovim.command("IronRepl")
+    def get_repl(self):
+        ft = self.__nvim.current.buffer.options["ft"]
+        repl_type = self.__repl_templates.get(ft, lambda: "")()
+        if repl_type == "":
+            self.command("echoerr 'No repl found for {}'".format(ft))
+            return
+        self.open_repl_for(repl_type)
 
     @neovim.function("IronSendToRepl")
     def send_to_repl(self, args):
