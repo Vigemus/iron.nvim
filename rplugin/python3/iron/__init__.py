@@ -27,7 +27,9 @@ class Iron(object):
     def open_repl_for(self, args):
         self.__nvim.call('termopen', args)
         repl = args[0]
+        self.__nvim.command("vsp")
         repl_id = self.__nvim.call('termopen', repl)
+        self.__nvim.command("q")
 
         self.__repls[repl_id] = repl_id
         self.__current = repl_id
@@ -37,7 +39,7 @@ class Iron(object):
         ft = self.__nvim.current.buffer.options["ft"]
         repl_type = self.__repl_templates.get(ft, lambda: "")()
         if repl_type == "":
-            self.command("echoerr 'No repl found for {}'".format(ft))
+            self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
             return
         self.open_repl_for(repl_type)
 
