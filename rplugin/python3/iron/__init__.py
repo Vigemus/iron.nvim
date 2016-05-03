@@ -39,7 +39,6 @@ class Iron(object):
         repl = args[0]
         self.__nvim.command("vsp")
         repl_id = self.__nvim.call('termopen', repl)
-        self.__nvim.command("q")
 
         self.__repls[repl_id] = repl_id
         self.__current = repl_id
