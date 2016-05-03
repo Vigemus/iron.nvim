@@ -59,4 +59,10 @@ class Iron(object):
             self.__nvim.command("""normal! `[v`]"sy""")
 
         data = self.__nvim.funcs.getreg('s')
+
+        if any(map(lambda k: k.isspace(), data.split('\n'))):
+            data = "%cpaste\n{}\n--".format(data)
+
+        data += "\n"
+
         self.__nvim.call('jobsend', self.__current, data)
