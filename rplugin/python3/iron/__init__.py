@@ -51,7 +51,7 @@ class Iron(object):
         if repl_type == "":
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
             return
-        self.open_repl_for(repl_type)
+        self.open_repl_for([repl_type])
 
     @neovim.function("IronSendToRepl")
     def send_to_repl(self, args):
