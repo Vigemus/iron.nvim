@@ -60,8 +60,8 @@ class Iron(object):
 
         data = self.__nvim.funcs.getreg('s')
 
-        if any(map(lambda k: k.isspace(), data.split('\n'))):
-            data = "%cpaste\n{}\n--".format(data)
+        if any(map(lambda k: not k or k.isspace(), data.split('\n'))):
+            data = "{}\n{}\n{}".format("%cpaste", data, "--")
 
         data += "\n"
 
