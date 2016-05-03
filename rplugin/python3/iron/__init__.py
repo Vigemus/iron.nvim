@@ -36,7 +36,7 @@ class Iron(object):
     @neovim.function("IronOpenRepl")
     def open_repl_for(self, args):
         self.__nvim.command('vnew')
-        repl_id = self.__nvim.call('termopen', args)
+        repl_id = self.__nvim.call('termopen', args[0])
 
         self.__repls[repl_id] = repl_id
         self.__current = repl_id
@@ -49,7 +49,7 @@ class Iron(object):
         if repl_type == "":
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
         else:
-            self.open_repl_for(repl_type)
+            self.open_repl_for([repl_type])
 
     @neovim.function("IronSendToRepl")
     def send_to_repl(self, args):
