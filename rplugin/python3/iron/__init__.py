@@ -30,7 +30,7 @@ class Iron(object):
         if ft_repl in self.__nvim.vars:
             return self.__nvim.vars[ft_repl]
         else:
-            self.__repl_templates.get(ft, lambda: "")()
+            return self.__repl_templates.get(ft, lambda: "")()
 
 
     @neovim.function("IronOpenRepl")
@@ -45,10 +45,11 @@ class Iron(object):
     def get_repl(self):
         ft = self.__nvim.current.buffer.options["ft"]
         repl_type = self.get_repl_template(ft)
+
         if repl_type == "":
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
-            return
-        self.open_repl_for(repl_type)
+        else:
+            self.open_repl_for(repl_type)
 
     @neovim.function("IronSendToRepl")
     def send_to_repl(self, args):
