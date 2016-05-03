@@ -30,7 +30,7 @@ class Iron(object):
         if ft_repl in self.__nvim.vars:
             return self.__nvim.vars[ft_repl]
         else:
-            self.__repl_templates.get(ft)()
+            self.__repl_templates.get(ft, lambda: "")()
 
 
     @neovim.function("IronOpenRepl")
