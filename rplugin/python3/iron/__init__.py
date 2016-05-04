@@ -47,7 +47,7 @@ class Iron(object):
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
         else:
             repl_id = self.open_repl_for([repl_type])
-            repl_buffer_id = self.__nvim.call("bufnr('%')")
+            repl_buffer_id = self.__nvim.current.buffer.number
             self.__nvim.vars["iron_current_repl"] = repl_buffer_id
 
     @neovim.function("IronSendToRepl")
