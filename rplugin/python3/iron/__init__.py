@@ -22,18 +22,19 @@ class Iron(object):
         if ft_repl in self.__nvim.vars:
             return self.__nvim.vars[ft_repl]
         else:
-            repls = filter(lambda k: ft in k['languages'], available_repls)
+            repls = list(filter(lambda k: ft in k['languages'],
+                available_repls))
             # TODO Wiser choosing
             return len(repls) and repls[0]['command'] or ""
 
-
     @neovim.function("IronOpenRepl")
     def open_repl_for(self, args):
-        self.__nvim.command('vnew')
-        self.__nvim.command('echoerr "{}"'.format(args[0]))
+        self.__nvim.command('spl | wincmd j | enew')
         repl_id = self.__nvim.call('termopen', args[0])
 
-        self.__repls[repl_id] = repl_id
+        self.__repls[repl_id] = list(filter(lambda k: args[0] == k['command'],
+            available_repls))[0]
+
         self.__current = repl_id
 
     @neovim.command("IronRepl")
@@ -55,8 +56,12 @@ class Iron(object):
 
         data = self.__nvim.funcs.getreg('s')
 
-        if any(map(lambda k: not k or k.isspace(), data.split('\n'))):
-            data = "{}\n{}\n{}".format("%cpaste", data, "--")
+        multiline = 'multinine' in self.__repls[self.__current]
+
+        if multiline and\
+                any(map(lambda k: not k or k.isspace(), data.split('\n'))):
+            (pre, post) = self.__repls[self.__current]['multiline']
+            data = "{}\n{}\n{}".format(pre, data, post)
 
         data += "\n"
 

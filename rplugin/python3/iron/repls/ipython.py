@@ -4,5 +4,6 @@
 repl = {
     'command': 'ipython',
     'languages': ['python'],
+    'multiline': ('%cpaste', '--'),
 }
 
