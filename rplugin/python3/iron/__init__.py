@@ -31,6 +31,9 @@ class Iron(object):
     def open_repl_for(self, args):
         self.__nvim.command('spl | wincmd j | enew')
         repl_id = self.__nvim.call('termopen', args[0])
+        self.__nvim.current.buffer.vars['nvimux_buf_orientation'] = (
+            "botright horizontal split"
+        )
 
         self.__repls[repl_id] = list(filter(lambda k: args[0] == k['command'],
             available_repls))[0]
