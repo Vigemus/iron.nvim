@@ -1,0 +1,2 @@
+*.py[eco]
+__pycache__/
