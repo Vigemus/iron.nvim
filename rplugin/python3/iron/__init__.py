@@ -4,8 +4,8 @@
 `iron` is a plugin that allows better interactions with interactive repls
 using neovim's job-control and terminal.
 """
-
 import neovim
+from iron.repls import available_repls
 
 
 @neovim.plugin
@@ -14,14 +14,6 @@ class Iron(object):
     def __init__(self, nvim):
         self.__nvim = nvim
         self.__repls = {}
-        self.__repl_templates = {
-            'python': lambda: (
-                nvim.eval("executable('ipython')") and "ipython" or "python"
-            ),
-            'clojure': lambda: (
-                "lein repl"
-            )
-        }
         self.__current = -1
 
     def get_repl_template(self, ft):
@@ -30,12 +22,15 @@ class Iron(object):
         if ft_repl in self.__nvim.vars:
             return self.__nvim.vars[ft_repl]
         else:
-            return self.__repl_templates.get(ft, lambda: "")()
+            repls = filter(lambda k: ft in k['languages'], available_repls)
+            # TODO Wiser choosing
+            return len(repls) and repls[0]['command'] or ""
 
 
     @neovim.function("IronOpenRepl")
     def open_repl_for(self, args):
         self.__nvim.command('vnew')
+        self.__nvim.command('echoerr "{}"'.format(args[0]))
         repl_id = self.__nvim.call('termopen', args[0])
 
         self.__repls[repl_id] = repl_id
