@@ -28,10 +28,9 @@ class Iron(object):
     def open_repl_for(self, ft):
         self.__nvim.command('spl | wincmd j | enew')
         repl_id = self.__nvim.call(
-            'termopen', [
-                self.__repl[ft]['command'],
-                '{"on_stdout": "IronHandle_stdout"}'
-            ]
+            'termopen', 
+            self.__repl[ft]['command'],
+            opts='{"on_stdout": "IronHandle_stdout"}'
         )
 
         # TODO Make optional nvimux integration detached
