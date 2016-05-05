@@ -30,7 +30,7 @@ class Iron(object):
         repl_id = self.__nvim.call(
             'termopen',
             self.__repl[ft]['command'],
-            on_stdout='IronHandle_stdout'
+            '{"on_stdout": "IronHandle_stdout"}'
         )
 
         # TODO Make optional nvimux integration detached
