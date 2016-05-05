@@ -41,10 +41,6 @@ class Iron(object):
 
         return repl_id
 
-    @neovim.function("IronHandle_stdout")
-    def handle_stdout(self, args):
-        self.__nvim.command("echo '{}'".format(args))
-
     @neovim.command("IronRepl")
     def get_repl(self):
         ft = self.__nvim.current.buffer.options["ft"]
