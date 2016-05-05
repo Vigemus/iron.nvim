@@ -17,16 +17,23 @@ class Iron(object):
     def __init__(self, nvim):
         self.__nvim = nvim
         self.__repl = {}
+        self.__eval_mode = False
 
     def get_repl_template(self, ft):
-        repls = list(filter(lambda k: ft in k['languages'],
+        repls = list(filter(
+            lambda k: ft == k['language'],
             available_repls))
-        # TODO Wiser choosing
         return len(repls) and repls[0] or {}
 
     def open_repl_for(self, ft):
         self.__nvim.command('spl | wincmd j | enew')
-        repl_id = self.__nvim.call('termopen', self.__repl[ft]['command'])
+        repl_id = self.__nvim.call(
+            'termopen',
+            self.__repl[ft]['command'],
+            {
+                'on_stdout': 'IronHandle_stdout'
+            }
+        )
 
         # TODO Make optional nvimux integration detached
         self.__nvim.current.buffer.vars['nvimux_buf_orientation'] = (
@@ -36,6 +43,10 @@ class Iron(object):
         self.__repl[ft]['repl_id'] = repl_id
 
         return repl_id
+
+    @neovim.function("IronHandle_stdout")
+    def handle_stdout(self, args):
+        self.__nvim.command("echo '{}'".format(args))
 
     @neovim.command("IronRepl")
     def get_repl(self):
