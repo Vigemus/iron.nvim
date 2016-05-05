@@ -33,9 +33,8 @@ class Iron(object):
             "botright split"
         )
 
-        self.__repls[ft]['repl_id'] = repl_id
+        self.__repl[ft]['repl_id'] = repl_id
 
-        self.__current = repl_id
         return repl_id
 
     @neovim.command("IronRepl")
