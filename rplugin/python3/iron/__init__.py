@@ -15,8 +15,10 @@ from iron.repls import available_repls
 class Iron(object):
 
     def __init__(self, nvim):
+        sefl.log = Logger()
         self.__nvim = nvim
         self.__repl = {}
+        self.__functions = {}
         self.__eval_mode = False
 
     def get_repl_template(self, ft):
@@ -37,13 +39,19 @@ class Iron(object):
             "botright split"
         )
 
+        for k, c in self.__repl[ft].get('mappings', []):
+            self.__nvim.async_call(
+                'nnoremap {} :call IronSpecialSend("{}")'.format(k, k)
+            )
+            self.__functions[k] = c
+
         self.__repl[ft]['repl_id'] = repl_id
 
         return repl_id
 
-    @neovim.function("IronHandle_stdout")
-    def handle_stdout(self, args):
-        self.__nvim.command("echo '{}'".format(args))
+    @neovim.function("IronSpecialSend")
+    def mapping_send(self, args):
+        self.__functions[args[0]](self.__nvim)
 
     @neovim.command("IronRepl")
     def get_repl(self):
@@ -86,7 +94,7 @@ class Iron(object):
         multiline = 'multinine' in repl
 
         if multiline and any(map(
-                lambda k: not k or k.isspace(), data.split('\n'))):
+                lambda k: k.isspace(), data.split('\n'))):
             (pre, post) = repl['multiline']
             data = "{}\n{}\n{}".format(pre, data, post)
 

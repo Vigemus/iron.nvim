@@ -2,8 +2,9 @@
 """Leiningen repl definition for iron.nvim. """
 
 def send_object_to_repl(nvim):
-    pass
-
+    nvim.command("""normal! "sya]""")
+    data = "(require '{})\n".format(nvim.funcs.getreg('s'))
+    return nvim.call('jobsend', repl['repl_id'], data)
 
 repl = {
     'command': 'lein repl',
