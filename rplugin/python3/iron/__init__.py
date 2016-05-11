@@ -56,9 +56,6 @@ class Iron(object):
     def get_repl(self):
         ft = self.__nvim.current.buffer.options["ft"]
 
-        if ft in self.__repl:
-            return
-
         repl_type = self.__repl[ft] = self.get_repl_template(ft)
 
         if not repl_type:
