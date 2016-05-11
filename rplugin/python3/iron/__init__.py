@@ -40,7 +40,7 @@ class Iron(object):
 
         for k, c in self.__repl[ft].get('mappings', []):
             self.__nvim.command(
-                'nnoremap {} :call IronSpecialSend("{}")'.format(k, k)
+                'nnoremap {} :call IronSpecialSend("{}")<CR>'.format(k, k)
             )
             self.__functions[k] = c
 
