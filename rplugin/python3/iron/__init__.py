@@ -15,7 +15,6 @@ from iron.repls import available_repls
 class Iron(object):
 
     def __init__(self, nvim):
-        sefl.log = Logger()
         self.__nvim = nvim
         self.__repl = {}
         self.__functions = {}
