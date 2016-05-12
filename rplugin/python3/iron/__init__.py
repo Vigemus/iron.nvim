@@ -38,7 +38,7 @@ class Iron(object):
             "botright split"
         )
 
-        base_cmd = 'nnoremap {} <silent> :call IronSpecialSend("{}")<CR>'
+        base_cmd = 'nnoremap <silent> {} :call IronSpecialSend("{}")<CR>'
 
         for k, c in self.__repl[ft].get('mappings', []):
             self.__nvim.command(base_cmd.format(k, k))
@@ -93,9 +93,9 @@ class Iron(object):
 
         repl = self.__repl[ft] if ft in self.__repl else None
 
-        data = args[0]
-
         if 'multinine' in repl:
-            data = self.sanitize_multiline(data)
+            data = self.sanitize_multiline(args[0])
+        else:
+            data = args[0]
 
-        self.__nvim.call('jobsend', repl['repl_id'], data)
+        self.__nvim.call('jobsend', repl['repl_id'], "{}\n".format(data))
