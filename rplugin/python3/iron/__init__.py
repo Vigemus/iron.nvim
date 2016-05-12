@@ -28,6 +28,7 @@ class Iron(object):
 
     def open_repl_for(self, ft):
         self.__nvim.command('spl | wincmd j | enew')
+
         repl_id = self.__nvim.call(
             'termopen',
             self.__repl[ft]['command']
@@ -38,7 +39,7 @@ class Iron(object):
             "botright split"
         )
 
-        base_cmd = 'nnoremap <silent> {} :call IronSpecialSend("{}")<CR>'
+        base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, c in self.__repl[ft].get('mappings', []):
             self.__nvim.command(base_cmd.format(k, k))
@@ -69,11 +70,11 @@ class Iron(object):
             self.__nvim.vars["iron_current_repl_term"] = repl_buffer_id
             self.__nvim.vars["iron_current_repl"] = repl_buffer_id
 
-    @neovim.function("IronSpecialSend")
+    @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
         return self.__functions[args[0]](self.__nvim)
 
-    @neovim.function("IronSendMotionToRepl")
+    @neovim.function("IronSendMotion")
     def send_motion_to_repl(self, args):
         if args[0] == 'line':
             self.__nvim.command("""normal! '[V']"sy""")
@@ -82,7 +83,7 @@ class Iron(object):
 
         return self.send_to_repl([self.__nvim.funcs.getreg('s')])
 
-    @neovim.function("IronSendToRepl")
+    @neovim.function("IronSend")
     def send_to_repl(self, args):
         ft = (
             args[1]
