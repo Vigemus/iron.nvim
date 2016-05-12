@@ -21,6 +21,11 @@ def lein_send(nvim):
     data = "(import '[{}])\n".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
+def lein_load_facts(nvim):
+    nvim.command("""normal! ggf w"sy$""")
+    data = "(load-facts '{})\n".format(nvim.funcs.getreg('s'))
+    return nvim.call('IronSend', data, "clojure")
+
 repl = {
     'command': 'lein repl',
     'language': 'clojure',
@@ -29,5 +34,6 @@ repl = {
         ('<leader>si', 'import', lein_import),
         ('<leader>sr', 'require_file', lein_require_file),
         ('<leader>ss', 'send', lein_send),
+        ('<leader>sm', 'midje', lein_load_facts),
     ]
 }
