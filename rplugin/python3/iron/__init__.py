@@ -74,7 +74,7 @@ class Iron(object):
         else:
             self.__nvim.command("""normal! `[v`]"sy""")
 
-        return send_to_repl([self.__nvim.funcs.getreg('s')])
+        return self.send_to_repl([self.__nvim.funcs.getreg('s')])
 
     def sanitize_multiline(self, data):
         if any(map(lambda k: k.isspace() or not k, data.split('\n'))):
@@ -92,9 +92,6 @@ class Iron(object):
         )
 
         repl = self.__repl[ft] if ft in self.__repl else None
-
-        if not repl:
-            return
 
         data = args[0]
 
