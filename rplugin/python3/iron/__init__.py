@@ -38,10 +38,10 @@ class Iron(object):
             "botright split"
         )
 
+        base_cmd = 'nnoremap {} <silent> :call IronSpecialSend("{}")<CR>'
+
         for k, c in self.__repl[ft].get('mappings', []):
-            self.__nvim.command(
-                'nnoremap {} :call IronSpecialSend("{}")<CR>'.format(k, k)
-            )
+            self.__nvim.command(base_cmd.format(k, k))
             self.__functions[k] = c
 
         self.__repl[ft]['repl_id'] = repl_id
