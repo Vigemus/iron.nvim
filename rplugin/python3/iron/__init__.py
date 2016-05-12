@@ -40,9 +40,9 @@ class Iron(object):
 
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
-        for k, c in self.__repl[ft].get('mappings', []):
-            self.__nvim.command(base_cmd.format(k, k))
-            self.__functions[k] = c
+        for k, n, c in self.__repl[ft].get('mappings', []):
+            self.__nvim.command(base_cmd.format(k, n))
+            self.__functions[n] = c
 
         self.__repl[ft]['repl_id'] = repl_id
 

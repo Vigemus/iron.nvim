@@ -25,9 +25,9 @@ repl = {
     'command': 'lein repl',
     'language': 'clojure',
     'mappings': [
-        ('<leader>so', lein_require),
-        ('<leader>si', lein_import),
-        ('<leader>sr', lein_require_file),
-        ('<leader>ss', lein_send),
+        ('<leader>so', 'require', lein_require),
+        ('<leader>si', 'import', lein_import),
+        ('<leader>sr', 'require_file', lein_require_file),
+        ('<leader>ss', 'send', lein_send),
     ]
 }
