@@ -18,7 +18,6 @@ class Iron(object):
         self.__nvim = nvim
         self.__repl = {}
         self.__functions = {}
-        self.__eval_mode = False
 
     def get_repl_template(self, ft):
         repls = list(filter(
@@ -63,12 +62,11 @@ class Iron(object):
 
         if not repl_type:
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
+            return
 
-        else:
-            repl_id = self.open_repl_for(ft)
-            repl_buffer_id = self.__nvim.current.buffer.number
-            self.__nvim.vars["iron_current_repl_term"] = repl_buffer_id
-            self.__nvim.vars["iron_current_repl"] = repl_buffer_id
+        repl_id = self.open_repl_for(ft)
+        self.__nvim.vars["iron_{}_repl".format(ft)] = \
+            self.__nvim.current.buffer.number
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
