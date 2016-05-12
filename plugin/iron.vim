@@ -1,1 +1,1 @@
-nmap <silent> str :set opfunc=IronSendMotionToRepl<CR>g@
+nmap <silent> ctr :set opfunc=IronSendMotionToRepl<CR>g@
