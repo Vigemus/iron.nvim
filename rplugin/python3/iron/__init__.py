@@ -67,6 +67,22 @@ class Iron(object):
             self.__nvim.vars["iron_current_repl_term"] = repl_buffer_id
             self.__nvim.vars["iron_current_repl"] = repl_buffer_id
 
+    @neovim.function("IronSendMotionToRepl")
+    def send_motion_to_repl(self, args):
+        if args[0] == 'line':
+            self.__nvim.command("""normal! '[V']"sy""")
+        else:
+            self.__nvim.command("""normal! `[v`]"sy""")
+
+        return send_to_repl([self.__nvim.funcs.getreg('s')])
+
+    def sanitize_multiline(self, data):
+        if any(map(lambda k: k.isspace() or not k, data.split('\n'))):
+            (pre, post) = repl['multiline']
+            return "{}\n{}\n{}".format(pre, data, post)
+        return data
+
+
     @neovim.function("IronSendToRepl")
     def send_to_repl(self, args):
         ft = (
@@ -80,18 +96,9 @@ class Iron(object):
         if not repl:
             return
 
-        if args[0] == 'line':
-            self.__nvim.command("""normal! '[V']"sy""")
-        else:
-            self.__nvim.command("""normal! `[v`]"sy""")
+        data = args[0]
 
-        data = self.__nvim.funcs.getreg('s')
-
-        multiline = 'multinine' in repl
-
-        if multiline and any(map(
-                lambda k: k.isspace(), data.split('\n'))):
-            (pre, post) = repl['multiline']
-            data = "{}\n{}\n{}".format(pre, data, post)
+        if 'multinine' in repl:
+            data = self.sanitize_multiline(data)
 
         self.__nvim.call('jobsend', repl['repl_id'], data)
