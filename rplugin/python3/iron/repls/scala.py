@@ -21,11 +21,17 @@ def scala_send_block(nvim):
     data = "{}".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "scala")
 
+def scala_send_line(nvim):
+    nvim.command("""normal! 0"sy$""")
+    data = "{}".format(nvim.funcs.getreg('s'))
+    return nvim.call('IronSend', data, "scala")
+
 
 mappings = [
     ('<leader>sa', 'import_all', scala_import_all),
     ('<leader>si', 'import', scala_import),
     ('<leader>sb', 'block', scala_send_block),
+    ('<leader>sl', 'line', scala_send_line),
 ]
 
 sbt = {
