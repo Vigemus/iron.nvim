@@ -29,6 +29,7 @@ def lein_load_facts(nvim):
 repl = {
     'command': 'lein repl',
     'language': 'clojure',
+    'detect': lambda *args, **kwargs: True,
     'mappings': [
         ('<leader>so', 'require', lein_require),
         ('<leader>si', 'import', lein_import),

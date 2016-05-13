@@ -21,7 +21,7 @@ class Iron(object):
 
     def get_repl_template(self, ft):
         repls = list(filter(
-            lambda k: ft == k['language'],
+            lambda k: ft == k['language'] and k['detect'](),
             available_repls))
         return len(repls) and repls[0] or {}
 

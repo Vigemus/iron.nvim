@@ -4,5 +4,6 @@
 repl = {
     'command': 'lua',
     'language': 'lua',
+    'detect': lambda *args, **kwargs: True,
 }
 

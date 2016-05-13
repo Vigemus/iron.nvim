@@ -1,7 +1,14 @@
 # encoding:utf-8
-"""Python repl definition for iron.nvim. """
+"""Python repl definitions for iron.nvim. """
 
-repl = {
+python = {
     'command': 'python',
     'language': 'python',
+    'detect': lambda *args, **kwargs: True,
+}
+
+ipython = {
+    'command': 'ipython',
+    'language': 'python',
+    'multiline': ('%cpaste', '--'),
 }
