@@ -97,6 +97,6 @@ class Iron(object):
         if 'multinine' in repl:
             data = self.sanitize_multiline(args[0])
         else:
-            data = args[0]
+            data = "{}\n".format(args[0])
 
-        return self.__nvim.call('jobsend', repl['repl_id'], "{}\n".format(data))
+        return self.__nvim.call('jobsend', repl['repl_id'], "{}".format(data))
