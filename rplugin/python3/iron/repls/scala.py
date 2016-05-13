@@ -3,7 +3,7 @@
 
 def sbt_detect(*args, **kwargs):
     import os
-    return os.exists("build.sbt") or os.exists("project/build.sbt")
+    return os.path.exists("build.sbt") or os.path.exists("project/build.sbt")
 
 sbt = {
     'command': 'sbt console',
