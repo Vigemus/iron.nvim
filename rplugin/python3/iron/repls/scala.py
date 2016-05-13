@@ -25,16 +25,19 @@ def scala_send_block(nvim):
 mappings = [
     ('<leader>sa', 'import_all', scala_import_all),
     ('<leader>si', 'import', scala_import),
+    ('<leader>sb', 'block', scala_send_block),
 ]
 
 sbt = {
     'command': 'sbt console',
     'language': 'scala',
     'detect': sbt_detect,
+    'mappings': mappings,
 }
 
 scala = {
     'command': 'scala',
     'language': 'scala',
     'detect': lambda *args, **kwargs: not sbt_detect(*args, **kwargs),
+    'mappings': mappings,
 }
