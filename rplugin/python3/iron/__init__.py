@@ -49,7 +49,7 @@ class Iron(object):
         return repl_id
 
     def sanitize_multiline(self, data):
-        if any(map(lambda k: k.isspace() or not k, data.split('\n'))):
+        if "\n" in data:
             (pre, post) = repl['multiline']
             return "{}\n{}\n{}".format(pre, data, post)
         return data
