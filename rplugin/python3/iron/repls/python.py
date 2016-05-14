@@ -8,7 +8,7 @@ def detect_ipython(*args, **kwargs):
 python = {
     'command': 'python',
     'language': 'python',
-    'detect': not detect_ipython,
+    'detect': lambda *args, **kwargs: not detect_ipython(*args, **kwargs),
 }
 
 ipython = {
