@@ -3,19 +3,19 @@
 
 
 def lein_require(nvim):
-    nvim.command("""normal! mx%"sy%`x""")
+    nvim.command("""silent normal! mx%"sy%`x""")
     data = "(require '{})".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
 
 def lein_import(nvim):
-    nvim.command("""normal! mx%"sy%`x""")
+    nvim.command("""silent normal! mx%"sy%`x""")
     data = "(import '[{}])".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
 
 def lein_require_file(nvim):
-    nvim.command("""normal! mxggf w"sy$`x""")
+    nvim.command("""silent normal! mxggf w"sy$`x""")
     data = "(require '[{}] :reload)".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
@@ -30,7 +30,7 @@ nohl""".replace("\n", " | "))
 
 
 def lein_load_facts(nvim):
-    nvim.command("""normal! mxggf w"sy$`x""")
+    nvim.command("""silent normal! mxggf w"sy$`x""")
     data = "(load-facts '{})".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
