@@ -22,8 +22,7 @@ def lein_require_file(nvim):
 
 def lein_send(nvim):
     nvim.command("""normal! mx?^(<CR>"sya(`x""")
-    data = "(import '[{}])".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "clojure")
+    return nvim.call('IronSend', nvim.funcs.getreg('s'), "clojure")
 
 
 def lein_load_facts(nvim):
