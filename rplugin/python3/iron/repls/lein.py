@@ -20,6 +20,17 @@ def lein_require_file(nvim):
     return nvim.call('IronSend', data, "clojure")
 
 
+def lein_require_with_ns(nvim):
+    nvim.call("inputsave")
+    ns = nvim.call("input", "iron> with alias: ")
+    nvim.call("inputrestore")
+    nvim.command("""silent normal! mxggf w"sy$`x""")
+    data = "(require '[{} :as {}] :reload)".format(
+        nvim.funcs.getreg('s'), ns
+    )
+    return nvim.call('IronSend', data, "clojure")
+
+
 def lein_send(nvim):
     nvim.command("""
 exec "normal! mx"
@@ -42,6 +53,7 @@ repl = {
         ('<leader>so', 'require', lein_require),
         ('<leader>si', 'import', lein_import),
         ('<leader>sr', 'require_file', lein_require_file),
+        ('<leader>sR', 'require_with_ns', lein_require_with_ns),
         ('<leader>ss', 'send', lein_send),
         ('<leader>sm', 'midje', lein_load_facts),
     ]
