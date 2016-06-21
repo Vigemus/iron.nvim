@@ -10,7 +10,7 @@ def lein_require(nvim):
 
 def lein_import(nvim):
     nvim.command("""silent normal! mx%"sy%`x""")
-    data = "(import '[{}])".format(nvim.funcs.getreg('s'))
+    data = "(import '{})".format(nvim.funcs.getreg('s'))
     return nvim.call('IronSend', data, "clojure")
 
 
