@@ -35,7 +35,7 @@ mappings = [
 ]
 
 sbt = {
-    'command': 'sbt console',
+    'command': 'sbt',
     'language': 'scala',
     'detect': sbt_detect,
     'mappings': mappings,
