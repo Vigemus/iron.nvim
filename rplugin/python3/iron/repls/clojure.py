@@ -69,7 +69,7 @@ def nrepl_eval(iron, data):
         iron.call_cmd("echomsg 'Unable to eval - missing nREPL client lib'")
         return
 
-    vim_pwd = iron.call_cmd("pwd")
+    vim_pwd = iron.call("getcwd")
     with open(os.path.join(vim_pwd, ".nrepl-port")) as port:
         c = nrepl.connect("nrepl://localhost:{}".format(port.read()))
 
