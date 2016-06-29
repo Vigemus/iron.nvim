@@ -68,7 +68,7 @@ class Iron(object):
         repl = self.set_repl_for_ft(ft)
 
         if not repl:
-            self.call_cmd("echoerr 'No repl found for {}'".format(ft))
+            self.call_cmd("echomsg 'No repl found for {}'".format(ft))
             return
 
         self.call_cmd('spl | wincmd j | enew')

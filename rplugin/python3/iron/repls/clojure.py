@@ -1,5 +1,6 @@
 # encoding:utf-8
 """Leiningen repl definition for iron.nvim. """
+import os
 
 def get_current_parens(iron):
     iron.call_cmd("""silent normal! mx%"sy%`x""")
@@ -61,6 +62,31 @@ def lein_prompt_require_as(iron):
     return iron.send_to_repl((data, "clojure"))
 
 
+def nrepl_eval(iron, data):
+    try:
+        import nrepl
+    except:
+        iron.call_cmd("echomsg 'Unable to eval - missing nREPL client lib'")
+        return
+
+    vim_pwd = iron.call_cmd("pwd")
+    with open(os.path.join(vim_pwd, ".nrepl-port")) as port:
+        c = nrepl.connect("nrepl://localhost:{}".format(port.read()))
+
+    c.write({"op": "eval", "code": data})
+    r = c.read()
+    value = c.read()["value"] if "value" not in r else r["value"]
+
+    c.read()
+    c.close()
+    return value
+
+
+def lein_prompt_eval(iron):
+    cmd = iron.prompt("cmd")
+    ret = nrepl_eval(iron, cmd)
+    iron.call_cmd("echomsg '{}'".format(ret))
+
 repl = {
     'command': 'lein repl',
     'language': 'clojure',
@@ -74,5 +100,6 @@ repl = {
         ('<leader>s/', 'prompt_require_as', lein_prompt_require_with_ns),
         ('<leader>ss', 'send', lein_send),
         ('<leader>sm', 'midje', lein_load_facts),
+        ('<leader>ne', 'prompt_eval', lein_prompt_eval),
     ]
 }
