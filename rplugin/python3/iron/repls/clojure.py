@@ -100,6 +100,6 @@ repl = {
         ('<leader>s/', 'prompt_require_as', lein_prompt_require_with_ns),
         ('<leader>ss', 'send', lein_send),
         ('<leader>sm', 'midje', lein_load_facts),
-        ('<leader>ne', 'prompt_eval', lein_prompt_eval),
+        ('<leader>se', 'prompt_eval', lein_prompt_eval),
     ]
 }
