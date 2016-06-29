@@ -50,8 +50,8 @@ class Iron(object):
     def call_cmd(self, cmd):
         return self.__nvim.command(cmd)
 
-    def call(self, cmd):
-        return self.__nvim.call(cmd)
+    def call(self, cmd, *args):
+        return self.__nvim.call(cmd, *args)
 
     def register(self, reg):
         return self.__nvim.funcs.getreg(reg)
