@@ -97,7 +97,7 @@ repl = {
         ('<leader>sr', 'require_file', lein_require_file),
         ('<leader>sR', 'require_with_ns', lein_require_with_ns),
         ('<leader>s.', 'prompt_require', lein_prompt_require),
-        ('<leader>s/', 'prompt_require_as', lein_prompt_require_with_ns),
+        ('<leader>s/', 'prompt_require_as', lein_prompt_require_as),
         ('<leader>ss', 'send', lein_send),
         ('<leader>sm', 'midje', lein_load_facts),
         ('<leader>se', 'prompt_eval', lein_prompt_eval),
