@@ -49,10 +49,10 @@ class Iron(object):
 
     # Actual Fns
     def open_repl_for(self, ft):
-        repl = self.get_repl_template(ft)
+        repl = self.set_repl_for_ft(ft)
 
         if not repl:
-            self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
+            self.call_cmd("echoerr 'No repl found for {}'".format(ft))
             return
 
         self.call_cmd('spl | wincmd j | enew')
