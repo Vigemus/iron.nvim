@@ -27,10 +27,8 @@ def lein_require_file(iron):
 
 
 def lein_require_with_ns(iron):
-    iron.call("inputsave")
-    ns = iron.call("input", "iron> with alias: ")
-    iron.call("inputrestore")
-    data = "(require '[{} :as {}] :reload)".format(
+    ns = iron.prompt("with alias")
+    data = "(require '[{} :as {}])".format(
         get_current_ns(iron), ns
     )
     return iron.send_to_repl((data, "clojure"))
@@ -46,8 +44,22 @@ nohl""".replace("\n", " | "))
 
 
 def lein_load_facts(iron):
-    data = "(load-facts '{})".format(get_current_ns(iron))
+    data = "(load-facts '{}-test)".format(get_current_ns(iron))
     return iron.send_to_repl((data, "clojure"))
+
+
+def lein_prompt_require(iron):
+    require = iron.prompt("require file")
+    data = "(require '[{}])".format(require)
+    return iron.send_to_repl((data, "clojure"))
+
+
+def lein_prompt_require_as(iron):
+    require = iron.prompt("require file")
+    alias = iron.prompt("as")
+    data = "(require '[{} :as {}])".format(require, alias)
+    return iron.send_to_repl((data, "clojure"))
+
 
 repl = {
     'command': 'lein repl',
@@ -58,6 +70,8 @@ repl = {
         ('<leader>si', 'import', lein_import),
         ('<leader>sr', 'require_file', lein_require_file),
         ('<leader>sR', 'require_with_ns', lein_require_with_ns),
+        ('<leader>s.', 'prompt_require', lein_prompt_require),
+        ('<leader>s/', 'prompt_require_as', lein_prompt_require_with_ns),
         ('<leader>ss', 'send', lein_send),
         ('<leader>sm', 'midje', lein_load_facts),
     ]
