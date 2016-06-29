@@ -64,6 +64,7 @@ class Iron(object):
             "botright split"
         )
 
+        self.__repl[ft]['fns'] = {}
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, n, c in repl.get('mappings', []):
