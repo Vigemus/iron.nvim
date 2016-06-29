@@ -13,17 +13,17 @@ def get_current_ns(iron):
 
 def lein_require(iron):
     data = "(require '{})".format(get_current_parens(iron))
-    return iron.send_to_repl(data, "clojure")
+    return iron.send_to_repl((data, "clojure"))
 
 
 def lein_import(iron):
     data = "(import '{})".format(get_current_parens(iron))
-    return iron.send_to_repl(data, "clojure")
+    return iron.send_to_repl((data, "clojure"))
 
 
 def lein_require_file(iron):
     data = "(require '[{}] :reload)".format(get_current_ns(iron))
-    return iron.send_to_repl(data, "clojure")
+    return iron.send_to_repl((data, "clojure"))
 
 
 def lein_require_with_ns(iron):
@@ -33,7 +33,7 @@ def lein_require_with_ns(iron):
     data = "(require '[{} :as {}] :reload)".format(
         get_current_ns(iron), ns
     )
-    return iron.send_to_repl(data, "clojure")
+    return iron.send_to_repl((data, "clojure"))
 
 
 def lein_send(iron):
@@ -42,12 +42,12 @@ exec "normal! mx"
 exec "?^("
 exec 'silent normal! "sya(`x'
 nohl""".replace("\n", " | "))
-    return iron.send_to_repl(iron.register('s'), "clojure")
+    return iron.send_to_repl((iron.register('s'), "clojure"))
 
 
 def lein_load_facts(iron):
     data = "(load-facts '{})".format(get_current_ns(iron))
-    return iron.send_to_repl(data, "clojure")
+    return iron.send_to_repl((data, "clojure"))
 
 repl = {
     'command': 'lein repl',

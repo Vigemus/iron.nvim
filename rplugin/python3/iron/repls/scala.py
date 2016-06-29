@@ -9,22 +9,22 @@ def sbt_detect(*args, **kwargs):
 def scala_import_all(iron):
     iron.call_cmd("""normal! gg f w"sy$""")
     data = "import {}._".format(iron.register('s'))
-    return iron.send_to_repl(data, "scala")
+    return iron.send_to_repl((data, "scala"))
 
 def scala_import(iron):
     iron.call_cmd("""normal! gg f w"sy$""")
     data = "import {}".format(iron.register('s'))
-    return iron.send_to_repl(data, "scala")
+    return iron.send_to_repl((data, "scala"))
 
 def scala_send_block(iron):
     iron.call_cmd("""normal! Vi{"sy""")
     data = "{}".format(iron.register('s'))
-    return iron.send_to_repl(data, "scala")
+    return iron.send_to_repl((data, "scala"))
 
 def scala_send_line(iron):
     iron.call_cmd("""normal! 0"sy$""")
     data = "{}".format(iron.register('s'))
-    return iron.send_to_repl(data, "scala")
+    return iron.send_to_repl((data, "scala"))
 
 
 mappings = [
