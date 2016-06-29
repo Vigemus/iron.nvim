@@ -66,6 +66,16 @@ class Iron(object):
             return "{}\n{}\n{}".format(pre, data, post)
         return data
 
+    @neovim.command("IronPromptRepl")
+    def prompt_query(self):
+        self.__nvim.call("inputsave")
+        ft = self.__nvim.call("input", "iron> repl type: ")
+        self.__nvim.call("inputrestore")
+
+        self.open_repl_for(ft)
+        self.__nvim.vars["iron_{}_repl".format(ft)] = \
+            self.__nvim.current.buffer.number
+
     @neovim.command("IronRepl")
     def get_repl(self):
         ft = self.get_ft()
