@@ -34,6 +34,9 @@ class Iron(object):
     def get_current_repl(self):
         return self.__repl.get(self.get_ft())
 
+    def get_current_bindings(self):
+        return self.get_current_repl().get('fns', {})
+
     def send_data(self, data, repl=None):
         repl = repl or self.get_current_repl()
         self.__nvim.call('jobsend', repl["repl_id"], data)
@@ -98,7 +101,9 @@ class Iron(object):
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
-        return self.__repl['fns'][args[0]](self.__nvim)
+        fn = self.get_current_bindings().get(args[0])
+        if fn:
+            fn(self.__nvim)
 
     @neovim.function("IronSendMotion")
     def send_motion_to_repl(self, args):
