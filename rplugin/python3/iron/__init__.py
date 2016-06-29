@@ -7,7 +7,6 @@ using neovim's job-control and terminal.
 Currently it keeps track of a single repl instance per filetype.
 """
 import neovim
-from copy import deepcopy
 from iron.repls import available_repls
 
 
@@ -17,21 +16,33 @@ class Iron(object):
     def __init__(self, nvim):
         self.__nvim = nvim
         self.__repl = {}
-        self.__functions = {}
 
     def get_repl_template(self, ft):
         repls = list(filter(
             lambda k: ft == k['language'] and k['detect'](),
             available_repls))
+
         return len(repls) and repls[0] or {}
 
+    # Helper fns
+    def termopen(self, cmd):
+        return self.__nvim.call('termopen', cmd)
+
+    def get_ft(self):
+        return self.__nvim.current.buffer.options["ft"]
+
+    def get_current_repl(self):
+        return self.__repl.get(self.get_ft())
+
+    def send_data(self, data, repl=None):
+        repl = repl or self.get_current_repl()
+        self.__nvim.call('jobsend', repl["repl_id"], data)
+
+    # Actual Fns
     def open_repl_for(self, ft):
         self.__nvim.command('spl | wincmd j | enew')
 
-        repl_id = self.__nvim.call(
-            'termopen',
-            self.__repl[ft]['command']
-        )
+        repl_id = self.termopen(self.__repl[ft]['command'])
 
         # TODO Make optional nvimux integration detached
         self.__nvim.current.buffer.vars['nvimux_buf_orientation'] = (
@@ -42,21 +53,22 @@ class Iron(object):
 
         for k, n, c in self.__repl[ft].get('mappings', []):
             self.__nvim.command(base_cmd.format(k, n))
-            self.__functions[n] = c
+            self.__repl['fns'][n] = c
 
         self.__repl[ft]['repl_id'] = repl_id
 
         return repl_id
 
     def sanitize_multiline(self, data):
-        if "\n" in data:
+        repl = self.__repl.get(self.get_ft())
+        if "\n" in data and repl:
             (pre, post) = repl['multiline']
             return "{}\n{}\n{}".format(pre, data, post)
         return data
 
     @neovim.command("IronRepl")
     def get_repl(self):
-        ft = self.__nvim.current.buffer.options["ft"]
+        ft = self.get_ft()
 
         repl_type = self.__repl[ft] = self.get_repl_template(ft)
 
@@ -64,13 +76,13 @@ class Iron(object):
             self.__nvim.command("echoerr 'No repl found for {}'".format(ft))
             return
 
-        repl_id = self.open_repl_for(ft)
+        self.open_repl_for(ft)
         self.__nvim.vars["iron_{}_repl".format(ft)] = \
             self.__nvim.current.buffer.number
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
-        return self.__functions[args[0]](self.__nvim)
+        return self.__repl['fns'][args[0]](self.__nvim)
 
     @neovim.function("IronSendMotion")
     def send_motion_to_repl(self, args):
@@ -83,13 +95,8 @@ class Iron(object):
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
-        ft = (
-            args[1]
-            if len(args) > 1 else
-            self.__nvim.current.buffer.options['ft']
-        )
-
-        repl = self.__repl[ft] if ft in self.__repl else None
+        repl = self.__repl.get(args[1]) if len(args) > 1 else None
+        repl = repl or self.get_current_repl()
 
         if not repl:
             return None
@@ -99,4 +106,4 @@ class Iron(object):
         else:
             data = "{}\n".format(args[0])
 
-        return self.__nvim.call('jobsend', repl['repl_id'], "{}".format(data))
+        return self.send_data(data, repl)
