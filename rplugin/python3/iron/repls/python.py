@@ -1,6 +1,9 @@
 # encoding:utf-8
 """Python repl definitions for iron.nvim. """
 
+def set_pdb(nvim):
+
+
 def detect_ipython(*args, **kwargs):
     from distutils.spawn import find_executable
     return find_executable("ipython") is not None

@@ -6,25 +6,25 @@ def sbt_detect(*args, **kwargs):
     return os.path.exists("build.sbt") or os.path.exists("project/build.sbt")
 
 
-def scala_import_all(nvim):
-    nvim.command("""normal! gg f w"sy$""")
-    data = "import {}._".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "scala")
+def scala_import_all(iron):
+    iron.call_cmd("""normal! gg f w"sy$""")
+    data = "import {}._".format(iron.register('s'))
+    return iron.send_to_repl(data, "scala")
 
-def scala_import(nvim):
-    nvim.command("""normal! gg f w"sy$""")
-    data = "import {}".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "scala")
+def scala_import(iron):
+    iron.call_cmd("""normal! gg f w"sy$""")
+    data = "import {}".format(iron.register('s'))
+    return iron.send_to_repl(data, "scala")
 
-def scala_send_block(nvim):
-    nvim.command("""normal! Vi{"sy""")
-    data = "{}".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "scala")
+def scala_send_block(iron):
+    iron.call_cmd("""normal! Vi{"sy""")
+    data = "{}".format(iron.register('s'))
+    return iron.send_to_repl(data, "scala")
 
-def scala_send_line(nvim):
-    nvim.command("""normal! 0"sy$""")
-    data = "{}".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "scala")
+def scala_send_line(iron):
+    iron.call_cmd("""normal! 0"sy$""")
+    data = "{}".format(iron.register('s'))
+    return iron.send_to_repl(data, "scala")
 
 
 mappings = [
@@ -40,7 +40,14 @@ sbt = {
     'detect': sbt_detect,
     'mappings': mappings,
     'multiline': (':paste', '<C-D>'),
+}
 
+sbt_ = {
+    'command': 'sbt',
+    'language': 'sbt.scala',
+    'detect': sbt_detect,
+    'mappings': mappings,
+    'multiline': (':paste', '<C-D>'),
 }
 
 scala = {

@@ -1,49 +1,53 @@
 # encoding:utf-8
 """Leiningen repl definition for iron.nvim. """
 
-
-def lein_require(nvim):
-    nvim.command("""silent normal! mx%"sy%`x""")
-    data = "(require '{})".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "clojure")
+def get_current_parens(iron):
+    iron.call_cmd("""silent normal! mx%"sy%`x""")
+    return iron.register('s')
 
 
-def lein_import(nvim):
-    nvim.command("""silent normal! mx%"sy%`x""")
-    data = "(import '{})".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "clojure")
+def get_current_ns(iron):
+    iron.call_cmd("""silent normal! mxggf w"sy$`x""")
+    return iron.register('s')
 
 
-def lein_require_file(nvim):
-    nvim.command("""silent normal! mxggf w"sy$`x""")
-    data = "(require '[{}] :reload)".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "clojure")
+def lein_require(iron):
+    data = "(require '{})".format(get_current_parens(iron))
+    return iron.send_to_repl(data, "clojure")
 
 
-def lein_require_with_ns(nvim):
-    nvim.call("inputsave")
-    ns = nvim.call("input", "iron> with alias: ")
-    nvim.call("inputrestore")
-    nvim.command("""silent normal! mxggf w"sy$`x""")
+def lein_import(iron):
+    data = "(import '{})".format(get_current_parens(iron))
+    return iron.send_to_repl(data, "clojure")
+
+
+def lein_require_file(iron):
+    data = "(require '[{}] :reload)".format(get_current_ns(iron))
+    return iron.send_to_repl(data, "clojure")
+
+
+def lein_require_with_ns(iron):
+    iron.call("inputsave")
+    ns = iron.call("input", "iron> with alias: ")
+    iron.call("inputrestore")
     data = "(require '[{} :as {}] :reload)".format(
-        nvim.funcs.getreg('s'), ns
+        get_current_ns(iron), ns
     )
-    return nvim.call('IronSend', data, "clojure")
+    return iron.send_to_repl(data, "clojure")
 
 
-def lein_send(nvim):
-    nvim.command("""
+def lein_send(iron):
+    iron.call_cmd("""
 exec "normal! mx"
 exec "?^("
 exec 'silent normal! "sya(`x'
 nohl""".replace("\n", " | "))
-    return nvim.call('IronSend', nvim.funcs.getreg('s'), "clojure")
+    return iron.send_to_repl(iron.register('s'), "clojure")
 
 
-def lein_load_facts(nvim):
-    nvim.command("""silent normal! mxggf w"sy$`x""")
-    data = "(load-facts '{})".format(nvim.funcs.getreg('s'))
-    return nvim.call('IronSend', data, "clojure")
+def lein_load_facts(iron):
+    data = "(load-facts '{})".format(get_current_ns(iron)))
+    return iron.send_to_repl(data, "clojure")
 
 repl = {
     'command': 'lein repl',

@@ -53,6 +53,9 @@ class Iron(object):
     def call(self, cmd):
         return self.__nvim.call(cmd)
 
+    def register(self, reg):
+        return self.__nvim.funcs.getreg(reg)
+
     # Actual Fns
     def open_repl_for(self, ft):
         repl = self.set_repl_for_ft(ft)
@@ -106,7 +109,7 @@ class Iron(object):
     def mapping_send(self, args):
         fn = self.get_current_bindings().get(args[0])
         if fn:
-            fn(self.__nvim)
+            fn(self)
 
     @neovim.function("IronSendMotion")
     def send_motion_to_repl(self, args):
