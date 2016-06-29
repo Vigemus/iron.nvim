@@ -3,7 +3,7 @@
 
 sbt = {
     'command': 'sbt',
-    'language': 'sbt',
+    'language': 'sbt.scala',
     'detect': lambda *args, **kwargs: True,
     'multiline': (':paste', '<C-D>'),
 }
