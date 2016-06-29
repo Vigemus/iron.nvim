@@ -46,7 +46,7 @@ nohl""".replace("\n", " | "))
 
 
 def lein_load_facts(iron):
-    data = "(load-facts '{})".format(get_current_ns(iron)))
+    data = "(load-facts '{})".format(get_current_ns(iron))
     return iron.send_to_repl(data, "clojure")
 
 repl = {
