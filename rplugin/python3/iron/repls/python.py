@@ -2,7 +2,7 @@
 """Python repl definitions for iron.nvim. """
 
 def set_pdb(nvim):
-
+    pass
 
 def detect_ipython(*args, **kwargs):
     from distutils.spawn import find_executable

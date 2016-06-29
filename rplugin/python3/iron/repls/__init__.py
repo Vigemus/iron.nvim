@@ -1,12 +1,12 @@
 # encoding:utf-8
 """General repl definitions for iron.nvim. """
-import iron.repls.lein
+import iron.repls.clojure
 import iron.repls.python
 import iron.repls.scala
 import iron.repls.lua
 
 available_repls = [
-    lein.repl,
+    clojure.repl,
     python.python,
     python.ipython,
     lua.repl,
