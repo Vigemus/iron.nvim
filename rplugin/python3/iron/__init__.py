@@ -50,6 +50,9 @@ class Iron(object):
     def call_cmd(self, cmd):
         return self.__nvim.command(cmd)
 
+    def call(self, cmd):
+        return self.__nvim.call(cmd)
+
     # Actual Fns
     def open_repl_for(self, ft):
         repl = self.set_repl_for_ft(ft)
@@ -89,9 +92,9 @@ class Iron(object):
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
-        self.__nvim.call("inputsave")
-        ft = self.__nvim.call("input", "iron> repl type: ")
-        self.__nvim.call("inputrestore")
+        self.call("inputsave")
+        ft = self.call("input", "iron> repl type: ")
+        self.call("inputrestore")
 
         self.open_repl_for(ft)
 
