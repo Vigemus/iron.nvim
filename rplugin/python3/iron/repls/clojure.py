@@ -1,7 +1,10 @@
 # encoding:utf-8
 """Leiningen repl definition for iron.nvim. """
 import os
+from functools import partial
 
+
+# Get Data
 def get_current_parens(iron):
     iron.call_cmd("""silent normal! mx%"sy%`x""")
     return iron.register('s')
@@ -12,57 +15,60 @@ def get_current_ns(iron):
     return iron.register('s')
 
 
-def lein_require(iron):
+def lein_require(iron, send_fn):
     data = "(require '{})".format(get_current_parens(iron))
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_import(iron):
+def lein_import(iron, send_fn):
     data = "(import '{})".format(get_current_parens(iron))
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_require_file(iron):
+# Transform data
+def lein_require_file(iron, send_fn):
     data = "(require '[{}] :reload)".format(get_current_ns(iron))
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_require_with_ns(iron):
+def lein_require_with_ns(iron, send_fn):
     ns = iron.prompt("with alias")
     data = "(require '[{} :as {}])".format(
         get_current_ns(iron), ns
     )
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_send(iron):
+def lein_send(iron, send_fn):
     iron.call_cmd("""
 exec "normal! mx"
 exec "?^("
 exec 'silent normal! "sya(`x'
 nohl""".replace("\n", " | "))
-    return iron.send_to_repl((iron.register('s'), "clojure"))
+    return send_fn((iron.register('s'), "clojure"))
 
 
-def lein_load_facts(iron):
+def lein_load_facts(iron, send_fn):
     data = "(load-facts '{}-test)".format(get_current_ns(iron))
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_prompt_require(iron):
+def lein_prompt_require(iron, send_fn):
     require = iron.prompt("require file")
     data = "(require '[{}])".format(require)
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
-def lein_prompt_require_as(iron):
+def lein_prompt_require_as(iron, send_fn):
     require = iron.prompt("require file")
     alias = iron.prompt("as")
     data = "(require '[{} :as {}])".format(require, alias)
-    return iron.send_to_repl((data, "clojure"))
+    return send_fn((data, "clojure"))
 
 
+# send data
 def nrepl_eval(iron, data):
+    "requires nrepl-python-client"
     try:
         import nrepl
     except:
@@ -92,14 +98,54 @@ repl = {
     'language': 'clojure',
     'detect': lambda *args, **kwargs: True,
     'mappings': [
-        ('<leader>so', 'require', lein_require),
-        ('<leader>si', 'import', lein_import),
-        ('<leader>sr', 'require_file', lein_require_file),
-        ('<leader>sR', 'require_with_ns', lein_require_with_ns),
-        ('<leader>s.', 'prompt_require', lein_prompt_require),
-        ('<leader>s/', 'prompt_require_as', lein_prompt_require_as),
-        ('<leader>ss', 'send', lein_send),
-        ('<leader>sm', 'midje', lein_load_facts),
-        ('<leader>se', 'prompt_eval', lein_prompt_eval),
+        ('<leader>so', 'require',
+         lambda iron: lein_require(iron, iron.send_to_repl)),
+
+        ('<leader>si', 'import',
+         lambda iron: lein_import(iron, iron.send_to_repl)),
+
+        ('<leader>sr', 'require_file',
+         lambda iron: lein_require_file(iron, iron.send_to_repl)),
+
+        ('<leader>sR', 'require_with_ns',
+         lambda iron: lein_require_with_ns(iron, iron.send_to_repl)),
+
+        ('<leader>s.', 'prompt_require',
+         lambda iron: lein_prompt_require(iron, iron.send_to_repl)),
+
+        ('<leader>s/', 'prompt_require_as',
+         lambda iron: lein_prompt_require_as(iron, iron.send_to_repl)),
+
+        ('<leader>ss', 'send',
+         lambda iron: lein_send(iron, iron.send_to_repl)),
+
+        ('<leader>sm', 'eval-midje',
+         lambda iron: lein_load_facts(iron, iron.send_to_repl)),
+
+        ('<leader>eo', 'eval-require',
+         lambda iron: lein_require(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>ei', 'eval-import',
+         lambda iron: lein_import(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>er', 'eval-require_file',
+         lambda iron: lein_require_file(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>eR', 'eval-require_with_ns',
+         lambda iron: lein_require_with_ns(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>e.', 'eval-prompt_require',
+         lambda iron: lein_prompt_require(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>e/', 'eval-prompt_require_as',
+         lambda iron: lein_prompt_require_as(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>es', 'eval-send',
+         lambda iron: lein_send(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>em', 'eval-midje',
+         lambda iron: lein_load_facts(iron, partial(nrepl_eval, iron))),
+
+        ('<leader>ep', 'prompt_eval', lein_prompt_eval),
     ]
 }
