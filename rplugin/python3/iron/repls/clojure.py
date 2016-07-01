@@ -49,7 +49,7 @@ nohl""".replace("\n", " | "))
 
 
 def lein_load_facts(iron, send_fn):
-    data = "(load-facts '{}-test)".format(get_current_ns(iron))
+    data = "(load-facts '{})".format(get_current_ns(iron))
     return send_fn((data, "clojure"))
 
 
