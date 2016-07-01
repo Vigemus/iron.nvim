@@ -79,6 +79,7 @@ def nrepl_eval(iron, data):
     with open(os.path.join(vim_pwd, ".nrepl-port")) as port:
         c = nrepl.connect("nrepl://localhost:{}".format(port.read()))
 
+
     c.write({"op": "eval", "code": data})
     r = c.read()
     value = c.read()["value"] if "value" not in r else r["value"]
@@ -119,7 +120,7 @@ repl = {
         ('<leader>ss', 'send',
          lambda iron: lein_send(iron, iron.send_to_repl)),
 
-        ('<leader>sm', 'eval-midje',
+        ('<leader>sm', 'midje',
          lambda iron: lein_load_facts(iron, iron.send_to_repl)),
 
         ('<leader>eo', 'eval-require',
