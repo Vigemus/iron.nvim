@@ -103,7 +103,7 @@ def lein_prompt_eval(iron):
 def lein_update_data_with_fn(iron):
     cmd = iron.prompt("cmd")
     data = get_current_parens(iron)
-    ret = nrepl_eval(iron, "(-> {} {})".format(data, cmd))
+    ret = nrepl_eval(iron, "({} {})".format(cmd, data))
 
     if ret is None:
         iron.call_cmd("echo 'Error with eval, aborting.'")
