@@ -103,7 +103,7 @@ def lein_prompt_eval(iron):
 
 def lein_update_data_with_fn(iron):
     cmd = iron.prompt("cmd")
-    data = get_outermost_parens(iron)
+    data = get_current_parens(iron)
     ret = nrepl_eval(iron, "(-> {} {})".format(data, cmd))
     iron.set_register("s", ret)
     iron.call_cmd("""silent normal! mx%v%"sp`x""")
