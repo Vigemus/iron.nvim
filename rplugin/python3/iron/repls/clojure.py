@@ -74,13 +74,21 @@ def nrepl_eval(iron, data):
         return
 
     vim_pwd = iron.call("getcwd")
+
     with open(os.path.join(vim_pwd, ".nrepl-port")) as port:
         c = nrepl.connect("nrepl://localhost:{}".format(port.read()))
 
+    iron.call_cmd("echomsg 'exec -> {}'".format(data))
 
     c.write({"op": "eval", "code": data})
     r = c.read()
-    value = c.read()["value"] if "value" not in r else r["value"]
+
+    if 'out' in r:
+        value = r['out']
+        r = c.read()
+        value = value if r['value'] == u'nil' else r['value']
+    else:
+        value = r['value']
 
     c.close()
     return value
