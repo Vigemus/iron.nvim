@@ -130,5 +130,7 @@ repl = {
          lambda iron: lein_load_facts(iron, iron.send_to_repl)),
 
         ('<leader>ep', 'prompt_eval', lein_prompt_eval),
+
+        ('<leader>ee', 'update_eval', lein_update_data_with_fn),
     ]
 }
