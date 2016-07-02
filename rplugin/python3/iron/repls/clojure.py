@@ -14,6 +14,9 @@ def get_current_ns(iron):
     iron.call_cmd("""silent normal! mxggf w"sy$`x""")
     return iron.register('s')
 
+def get_outermost_parens(iron):
+    iron.call_cmd('''exec 'normal! mx?^("sya(`x' | nohl''')
+    return iron.register('s')
 
 def lein_require(iron, send_fn):
     data = "(require '{})".format(get_current_parens(iron))
@@ -40,12 +43,7 @@ def lein_require_with_ns(iron, send_fn):
 
 
 def lein_send(iron, send_fn):
-    iron.call_cmd("""
-exec "normal! mx"
-exec "?^("
-exec 'silent normal! "sya(`x'
-nohl""".replace("\n", " | "))
-    return send_fn((iron.register('s'), "clojure"))
+    return send_fn((get_outermost_parens(iron), "clojure"))
 
 
 def lein_load_facts(iron, send_fn):
@@ -84,15 +82,23 @@ def nrepl_eval(iron, data):
     r = c.read()
     value = c.read()["value"] if "value" not in r else r["value"]
 
-    c.read()
     c.close()
     return value
 
 
+# eval data
 def lein_prompt_eval(iron):
     cmd = iron.prompt("cmd")
     ret = nrepl_eval(iron, cmd)
     iron.call_cmd("echomsg '{}'".format(ret))
+
+def lein_update_data_with_fn(iron):
+    cmd = iron.prompt("cmd")
+    data = get_outermost_parens(iron)
+    ret = nrepl_eval(iron, "(-> {} {})".format(data, cmd))
+    iron.set_register("s", ret)
+    iron.call_cmd("""silent normal! mx%v%"sp`x""")
+
 
 repl = {
     'command': 'lein repl',
@@ -122,30 +128,6 @@ repl = {
 
         ('<leader>sm', 'midje',
          lambda iron: lein_load_facts(iron, iron.send_to_repl)),
-
-        ('<leader>eo', 'eval-require',
-         lambda iron: lein_require(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>ei', 'eval-import',
-         lambda iron: lein_import(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>er', 'eval-require_file',
-         lambda iron: lein_require_file(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>eR', 'eval-require_with_ns',
-         lambda iron: lein_require_with_ns(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>e.', 'eval-prompt_require',
-         lambda iron: lein_prompt_require(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>e/', 'eval-prompt_require_as',
-         lambda iron: lein_prompt_require_as(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>es', 'eval-send',
-         lambda iron: lein_send(iron, partial(nrepl_eval, iron))),
-
-        ('<leader>em', 'eval-midje',
-         lambda iron: lein_load_facts(iron, partial(nrepl_eval, iron))),
 
         ('<leader>ep', 'prompt_eval', lein_prompt_eval),
     ]

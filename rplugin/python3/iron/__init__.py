@@ -56,6 +56,9 @@ class Iron(object):
     def register(self, reg):
         return self.__nvim.funcs.getreg(reg)
 
+    def set_register(self, reg, data):
+        return self.__nvim.funcs.setreg(reg, data)
+
     def prompt(self, msg):
         self.call("inputsave")
         ret = self.call("input", "iron> {}: ".format(msg))
