@@ -78,10 +78,10 @@ def nrepl_eval(iron, data):
     with open(os.path.join(vim_pwd, ".nrepl-port")) as port:
         c = nrepl.connect("nrepl://localhost:{}".format(port.read()))
 
-    iron.call_cmd("echo 'exec -> {}'".format(data))
-
     c.write({"op": "eval", "code": data})
     r = c.read()
+
+    iron.call_cmd("echo '{}'".format(r))
 
     if 'out' in r:
         value = r['out']
@@ -107,7 +107,7 @@ def lein_update_data_with_fn(iron):
 
     if ret is None:
         iron.call_cmd("echo 'Error with eval, aborting.'")
-        return 
+        return
 
     iron.set_register("s", ret)
     iron.call_cmd("""silent normal! mx%v%"sp`x""")
