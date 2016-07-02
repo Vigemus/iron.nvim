@@ -87,6 +87,11 @@ def nrepl_eval(iron, data):
         value = r['out']
         r = c.read()
         value = value if r['value'] == u'nil' else r['value']
+    elif 'ex' in r:
+        iron.call_cmd("echomsg 'An error occurred: {}\n{}'".format(
+            r['ex'], c.read()['err']
+        )
+        value = None
     else:
         value = r.get('value', None)
 
