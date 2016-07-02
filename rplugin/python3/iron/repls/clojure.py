@@ -81,8 +81,6 @@ def nrepl_eval(iron, data):
     c.write({"op": "eval", "code": data})
     r = c.read()
 
-    iron.call_cmd("echo '{}'".format(r))
-
     if 'out' in r:
         value = r['out']
         r = c.read()
