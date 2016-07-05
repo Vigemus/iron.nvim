@@ -10,7 +10,7 @@ available_repls = [
     python.python,
     python.ipython,
     lua.repl,
-    scala.sbt,
-    scala.sbt_,
+    scala.sbt_file,
+    scala.sbt_cmd,
     scala.scala,
 ]

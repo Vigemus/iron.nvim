@@ -34,7 +34,15 @@ mappings = [
     ('<leader>sl', 'line', scala_send_line),
 ]
 
-sbt = {
+sbt_file = {
+    'command': 'sbt',
+    'language': 'sbt.scala',
+    'detect': lambda *args, **kwargs: True,
+    'mappings': mappings,
+    'multiline': (':paste', '<C-D>'),
+}
+
+sbt_cmd = {
     'command': 'sbt',
     'language': 'scala',
     'detect': sbt_detect,
@@ -42,13 +50,6 @@ sbt = {
     'multiline': (':paste', '<C-D>'),
 }
 
-sbt_ = {
-    'command': 'sbt',
-    'language': 'sbt.scala',
-    'detect': sbt_detect,
-    'mappings': mappings,
-    'multiline': (':paste', '<C-D>'),
-}
 
 scala = {
     'command': 'scala',
