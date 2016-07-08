@@ -6,4 +6,3 @@ repl = {
     'language': 'lua',
     'detect': lambda *args, **kwargs: True,
 }
-
