@@ -8,6 +8,7 @@ import iron.repls.python
 import iron.repls.node
 import iron.repls.ruby
 import iron.repls.scala
+import iron.repls.r
 
 available_repls = [
     clojure.repl,
@@ -21,4 +22,5 @@ available_repls = [
     scala.sbt_cmd,
     scala.sbt_file,
     scala.scala,
+    r.repl,
 ]
