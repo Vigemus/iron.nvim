@@ -6,52 +6,38 @@ def set_pdb(nvim):
     pass
 
 
-def detect_python_repl(*args, **kwargs):
-    """Detects python repls in this order:
-    - ptipython
-    - ipython
-    - ptpython
-    - python
-
+def detect_python_repl(repl):
+    """Checks whether a executable exists.
     :returns: True
-
     """
     from distutils.spawn import find_executable
-    if find_executable("ptipython") is not None:
-        return 'ptipython'
-    elif find_executable("ipython") is not None:
-        return 'ipython'
-    elif find_executable("ptpython") is not None:
-        return 'ptpython'
-    else:
-        return 'python'
-
+    return find_executable(repl) is not None
 
 python = {
     'command': 'python',
     'language': 'python',
-    'detect': lambda *args, **kwargs: detect_python_repl(*args, **kwargs) == 'python',
+    'detect': lambda *args, **kwargs: detect_python_repl('python'),
 }
 
 ipython = {
     'command':   'ipython',
     'language':  'python',
     'multiline': ('%cpaste', '--'),
-    'detect': lambda *args, **kwargs: detect_python_repl(*args, **kwargs) == 'ipython',
+    'detect': lambda *args, **kwargs: detect_python_repl('ipython'),
 }
 
 
 ptpython = {
     'command': 'ptpython',
     'language': 'python',
-    'multiline': ('%cpaste', '--'),
-    'detect': lambda *args, **kwargs: detect_python_repl(*args, **kwargs) == 'ptpython',
+    'multiline': ('\x1b[200~', '\x1b[201~'),
+    'detect': lambda *args, **kwargs: detect_python_repl('ptpython'),
 }
 
 
 ptipython = {
-    'command': 'ptipython',
+   'command': 'ptipython',
     'language': 'python',
-    'multiline': ('%cpaste', '--'),
-    'detect': lambda *args, **kwargs: detect_python_repl(*args, **kwargs) == 'ptipython',
+    'multiline': ('\x1b[200~', '\x1b[201~'),
+    'detect': lambda *args, **kwargs: detect_python_repl('ptipython'),
 }

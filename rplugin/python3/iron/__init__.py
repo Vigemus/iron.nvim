@@ -36,7 +36,9 @@ class Iron(object):
             lambda k: ft == k['language'] and k['detect'](),
             available_repls))
 
-        log.info('Got {} as repls for {}'.format(repls, ft))
+        log.info('Got {} as repls for {}'.format(
+            [i['command'] for i in repls], ft
+        ))
 
         return len(repls) and repls[0] or {}
 
@@ -131,7 +133,9 @@ class Iron(object):
         repl = self.__repl.get(self.get_ft())
         if "\n" in data and repl:
             (pre, post) = repl['multiline']
-            return "{}\n{}\n{}".format(pre, data, post)
+            log.info("Multinine string supplied.")
+            return "{}\n{}{}\n".format(pre, data, post)
+        log.info("String was not multiline. Continuing")
         return data
 
     @neovim.command("IronPromptRepl")
@@ -165,9 +169,13 @@ class Iron(object):
         if not repl:
             return None
 
-        if 'multinine' in repl:
+        log.info("Sending data to repl -> {}".format(repl))
+
+        if 'multiline' in repl:
+            log.info("Multiline statement allowed - wrapping")
             data = self.sanitize_multiline(args[0])
         else:
-            data = "{}\n".format(args[0])
+            log.info("Plain string - no multiline")
+            data = "{}\r".format(args[0])
 
         return self.send_data(data, repl)
