@@ -6,9 +6,12 @@ using neovim's job-control and terminal.
 
 Currently it keeps track of a single repl instance per filetype.
 """
+import logging
 import neovim
 from iron.repls import available_repls
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 @neovim.plugin
 class Iron(object):
@@ -17,10 +20,23 @@ class Iron(object):
         self.__nvim = nvim
         self.__repl = {}
 
+        debug_path = (
+            'iron_debug' in nvim.vars and './.iron_debug.log'
+            or nvim.vars.get('iron_debug_path')
+        )
+
+        if debug_path is not None:
+            fh = logging.FileHandler(debug_path)
+            fh.setLevel(logging.DEBUG)
+            log.addHandler(fh)
+
+
     def get_repl_template(self, ft):
         repls = list(filter(
             lambda k: ft == k['language'] and k['detect'](),
             available_repls))
+
+        log.info('Got {} as repls for {}'.format(repls, ft))
 
         return len(repls) and repls[0] or {}
 
@@ -39,6 +55,10 @@ class Iron(object):
 
     def send_data(self, data, repl=None):
         repl = repl or self.get_current_repl()
+        log.info('Sending data to repl ({}):\n{}'.format(
+            repl['repl_id'], data
+        ))
+
         self.__nvim.call('jobsend', repl["repl_id"], data)
 
     def set_repl_for_ft(self, ft):
@@ -57,7 +77,12 @@ class Iron(object):
         return self.__nvim.funcs.getreg(reg)
 
     def set_register(self, reg, data):
+        log.info("Setting register '{}' with value '{}'".format(reg, data))
         return self.__nvim.funcs.setreg(reg, data)
+
+    def set_variable(self, var, data):
+        log.info("Setting variable '{}' with value '{}'".format(var, data))
+        self.__nvim.vars[var] = data
 
     def prompt(self, msg):
         self.call("inputsave")
@@ -68,10 +93,13 @@ class Iron(object):
 
     # Actual Fns
     def open_repl_for(self, ft):
+        log.info("Opening repl for {}".format(ft))
         repl = self.set_repl_for_ft(ft)
 
         if not repl:
-            self.call_cmd("echomsg 'No repl found for {}'".format(ft))
+            msg = "No repl found for {}".format(ft)
+            log.info(msg)
+            self.call_cmd("echomsg '{}'".format(msg))
             return
 
         self.call_cmd('spl | wincmd j | enew')
@@ -87,12 +115,15 @@ class Iron(object):
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, n, c in repl.get('mappings', []):
+            log.info("Mapping '{}' to function '{}'".format(k, n))
+
             self.call_cmd(base_cmd.format(k, n))
             self.__repl[ft]['fns'][n] = c
 
         self.__repl[ft]['repl_id'] = repl_id
-        self.__nvim.vars["iron_{}_repl".format(ft)] = \
-            self.__nvim.current.buffer.number
+        self.set_variable(
+            "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
+        )
 
         return repl_id
 
