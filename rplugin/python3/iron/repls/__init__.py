@@ -4,6 +4,7 @@ import iron.repls.clojure
 import iron.repls.elixir
 import iron.repls.erlang
 import iron.repls.lua
+import iron.repls.ocaml
 import iron.repls.python
 import iron.repls.node
 import iron.repls.ruby
@@ -15,6 +16,8 @@ available_repls = [
     elixir.repl,
     erlang.repl,
     lua.repl,
+    ocaml.utop,
+    ocaml.ocamltop
     python.ptipython,
     python.ipython,
     python.ptpython,
