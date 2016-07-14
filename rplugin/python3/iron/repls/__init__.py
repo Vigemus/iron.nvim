@@ -17,7 +17,7 @@ available_repls = [
     erlang.repl,
     lua.repl,
     ocaml.utop,
-    ocaml.ocamltop
+    ocaml.ocamltop,
     python.ptipython,
     python.ipython,
     python.ptpython,
