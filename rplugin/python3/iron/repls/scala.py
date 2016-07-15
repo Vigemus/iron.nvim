@@ -39,7 +39,7 @@ sbt_file = {
     'language': 'sbt.scala',
     'detect': lambda *args, **kwargs: True,
     'mappings': mappings,
-    'multiline': (':paste', '<C-D>'),
+    'multiline': (':paste', '\x04'),
 }
 
 sbt_cmd = {
@@ -47,7 +47,7 @@ sbt_cmd = {
     'language': 'scala',
     'detect': sbt_detect,
     'mappings': mappings,
-    'multiline': (':paste', '<C-D>'),
+    'multiline': (':paste', '\x04'),
 }
 
 
@@ -56,5 +56,5 @@ scala = {
     'language': 'scala',
     'detect': lambda *args, **kwargs: not sbt_detect(*args, **kwargs),
     'mappings': mappings,
-    'multiline': (':paste', '<C-D>'),
+    'multiline': (':paste', '\x04'),
 }
