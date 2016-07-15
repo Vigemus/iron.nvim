@@ -36,7 +36,7 @@ ptpython = {
 
 
 ptipython = {
-   'command': 'ptipython',
+    'command': 'ptipython',
     'language': 'python',
     'multiline': ('\x1b[200~', '\x1b[201~'),
     'detect': lambda *args, **kwargs: detect_python_repl('ptipython'),
