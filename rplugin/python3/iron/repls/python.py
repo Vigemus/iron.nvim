@@ -30,7 +30,7 @@ ipython = {
 ptpython = {
     'command': 'ptpython',
     'language': 'python',
-    'multiline': ('\x1b[200~', '\x1b[201~'),
+    'multiline': ('\x1b[200~', '\x1b[201~', '\r'),
     'detect': lambda *args, **kwargs: detect_python_repl('ptpython'),
 }
 
@@ -38,6 +38,6 @@ ptpython = {
 ptipython = {
     'command': 'ptipython',
     'language': 'python',
-    'multiline': ('\x1b[200~', '\x1b[201~'),
+    'multiline': ('\x1b[200~', '\x1b[201~', '\r'),
     'detect': lambda *args, **kwargs: detect_python_repl('ptipython'),
 }

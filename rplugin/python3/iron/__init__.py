@@ -131,12 +131,19 @@ class Iron(object):
 
     def sanitize_multiline(self, data):
         repl = self.__repl.get(self.get_ft())
+        multiline = repl['multiline']
         if "\n" in data and repl:
-            (pre, post) = repl['multiline']
+            if len(multiline) == 3:
+                (pre, post, extra) = multiline
+            else:
+                (pre, post) = multiline
+                extra = None
+
             log.info("Multinine string supplied.")
-            return ("{}\n{}{}".format(pre, data, post), True)
+            return ("{}\n{}{}".format(pre, data, post), extra)
+
         log.info("String was not multiline. Continuing")
-        return (data, False)
+        return (data, None)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
@@ -173,13 +180,13 @@ class Iron(object):
 
         if 'multiline' in repl:
             log.info("Multiline statement allowed - wrapping")
-            data, multiline = self.sanitize_multiline(args[0])
+            data, extra = self.sanitize_multiline(args[0])
         else:
             log.info("Plain string - no multiline")
             data = "{}\n".format(args[0])
-            multiline = False
+            extra = None
 
         self.send_data(data, repl)
 
-        if multiline:
-            self.send_data("\r", repl)
+        if extra is not None:
+            self.send_data(extra, repl)
