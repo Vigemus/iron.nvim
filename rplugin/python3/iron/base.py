@@ -77,6 +77,9 @@ class BaseIron(object):
 
     def set_repl_id(self, ft, repl_id):
         self.__repl[ft]['repl_id'] = repl_id
+        self.set_variable(
+            "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
+        )
 
 
     def clear_repl_for_ft(self, ft):

@@ -37,9 +37,6 @@ class Iron(BaseIron):
         self.call_hooks(ft)
         self.set_repl_id(ft, repl_id)
 
-        self.set_variable(
-            "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
-        )
 
         return repl_id
 
@@ -87,7 +84,7 @@ class Iron(BaseIron):
         else:
             self.call_cmd("""normal! `[v`]"sy""")
 
-        return self.send_to_repl([self.__nvim.funcs.getreg('s')])
+        return self.send_to_repl([self.register('s')])
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
