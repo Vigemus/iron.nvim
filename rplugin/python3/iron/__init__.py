@@ -63,21 +63,33 @@ class Iron(object):
             repl['repl_id'], data
         ))
 
-        self.__nvim.call('jobsend', repl["repl_id"], data)
+        self.call('jobsend', repl["repl_id"], data)
 
     def set_repl_for_ft(self, ft):
         if ft not in self.__repl:
+            log.debug("Adding repl definition for {}".format(ft))
             self.__repl[ft] = self.get_repl_template(ft)
 
         return self.__repl[ft]
 
+    def clear_repl_for_ft(self, ft):
+        log.debug("clearing repl definitions for {}".format(ft))
+        for m in self.__repl[ft]['mappings']:
+            log.debug("unmapping keys {}".format(m))
+            self.call_cmd("umap {}".format(m))
+
+        del self.__repl[ft]
+
     def call_cmd(self, cmd):
+        log.debug("calling cmd {}".format(cmd))
         return self.__nvim.command(cmd)
 
     def call(self, cmd, *args):
+        log.debug("calling function {} with args {}".format(cmd, args))
         return self.__nvim.call(cmd, *args)
 
     def register(self, reg):
+        log.debug("getting register {}".format(reg))
         return self.__nvim.funcs.getreg(reg)
 
     def set_register(self, reg, data):
@@ -180,6 +192,14 @@ class Iron(object):
     @neovim.command("IronRepl")
     def get_repl(self):
         self.open_repl_for(self.get_ft())
+
+    @neovim.command("IronClearReplDefinition")
+    def clear_repl_definition(self):
+        self.clear_repl_for_ft(self.prompt("repl type"))
+
+    @neovim.command("IronClearReplDefinition")
+    def clear_repl_definition(self):
+        self.clear_repl_for_ft(self.get_ft())
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
