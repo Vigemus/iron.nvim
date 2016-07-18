@@ -35,7 +35,7 @@ class Iron(BaseIron):
 
         self.set_mappings(repl, ft)
         self.call_hooks(ft)
-        self.set_repl_id(repl_id)
+        self.set_repl_id(ft, repl_id)
 
         self.set_variable(
             "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
