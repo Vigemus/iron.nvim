@@ -51,8 +51,11 @@ class BaseIron(object):
     def get_ft(self):
         return self.__nvim.current.buffer.options["ft"]
 
+    def get_repl(self, ft):
+        return self.__repl.get(ft)
+
     def get_current_repl(self):
-        return self.__repl.get(self.get_ft())
+        return self.get_repl(self.get_ft())
 
     def get_current_bindings(self):
         return self.get_current_repl().get('fns', {})
@@ -71,6 +74,10 @@ class BaseIron(object):
             self.__repl[ft] = self.get_repl_template(ft)
 
         return self.__repl[ft]
+
+    def set_repl_id(self, ft, repl_id):
+        self.__repl[ft]['repl_id'] = repl_id
+
 
     def clear_repl_for_ft(self, ft):
         log.debug("clearing repl definitions for {}".format(ft))

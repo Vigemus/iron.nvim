@@ -35,16 +35,15 @@ class Iron(BaseIron):
 
         self.set_mappings(repl, ft)
         self.call_hooks(ft)
+        self.set_repl_id(repl_id)
 
-        self.__repl[ft]['repl_id'] = repl_id
         self.set_variable(
             "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
         )
 
         return repl_id
 
-    def sanitize_multiline(self, data):
-        repl = self.__repl.get(self.get_ft())
+    def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
         if "\n" in data and repl:
             if len(multiline) == 3:
@@ -92,7 +91,7 @@ class Iron(BaseIron):
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
-        repl = self.__repl.get(args[1]) if len(args) > 1 else None
+        repl = self.get_repl(args[1]) if len(args) > 1 else None
         repl = repl or self.get_current_repl()
 
         if not repl:
@@ -102,7 +101,7 @@ class Iron(BaseIron):
 
         if 'multiline' in repl:
             log.info("Multiline statement allowed - wrapping")
-            data, extra = self.sanitize_multiline(args[0])
+            data, extra = self.sanitize_multiline(args[0], repl)
         else:
             log.info("Plain string - no multiline")
             data = "{}\n".format(args[0])
