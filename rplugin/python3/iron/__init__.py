@@ -44,7 +44,9 @@ class Iron(object):
 
     # Helper fns
     def termopen(self, cmd):
-        return self.__nvim.call('termopen', cmd)
+        self.call_cmd('spl | wincmd j')
+
+        return self.call('termopen', cmd)
 
     def get_ft(self):
         return self.__nvim.current.buffer.options["ft"]
@@ -86,12 +88,51 @@ class Iron(object):
         log.info("Setting variable '{}' with value '{}'".format(var, data))
         self.__nvim.vars[var] = data
 
+    def has_variable(self, var):
+        return var in self.__nvim.vars
+
+    def get_variable(self, var):
+        return self.__nvim.vars.get(var)
+
+    def get_list_variable(self, var):
+        v = self.get_variable(var)
+
+        if var is None:
+            return []
+        elif not isinstance(var, list):
+            return [var]
+        else:
+            return var
+
+
     def prompt(self, msg):
         self.call("inputsave")
         ret = self.call("input", "iron> {}: ".format(msg))
         self.call("inputrestore")
         return ret
 
+    def set_mappings(self, repl, ft):
+        self.__repl[ft]['fns'] = {}
+        self.__repl[ft]['mappings'] = []
+        add_mappings = self.__repl[ft]['mappings'].append
+        base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
+
+        for k, n, c in repl.get('mappings', []):
+            log.info("Mapping '{}' to function '{}'".format(k, n))
+
+            self.call_cmd(base_cmd.format(k, n))
+            self.__repl[ft]['fns'][n] = c
+            add_mappings(k)
+
+    def call_hooks(self, ft):
+        curr_buf = self.__nvim.current.buffer.number
+
+        hooks = (
+            self.get_list_variable("iron_new_repl_hooks") +
+            self.has_variable('iron_new_{}_repl_hooks'.format(ft))
+        )
+
+        [self.call(i, curr_buf) for i in list()]
 
     # Actual Fns
     def open_repl_for(self, ft):
@@ -104,23 +145,10 @@ class Iron(object):
             self.call_cmd("echomsg '{}'".format(msg))
             return
 
-        self.call_cmd('spl | wincmd j | enew')
-
         repl_id = self.termopen(repl['command'])
 
-        # TODO Make optional nvimux integration detached
-        self.__nvim.current.buffer.vars['nvimux_buf_orientation'] = (
-            "botright split"
-        )
-
-        self.__repl[ft]['fns'] = {}
-        base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
-
-        for k, n, c in repl.get('mappings', []):
-            log.info("Mapping '{}' to function '{}'".format(k, n))
-
-            self.call_cmd(base_cmd.format(k, n))
-            self.__repl[ft]['fns'][n] = c
+        self.set_mappings(repl, ft)
+        self.call_hooks(ft)
 
         self.__repl[ft]['repl_id'] = repl_id
         self.set_variable(
