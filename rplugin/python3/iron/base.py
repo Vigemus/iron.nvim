@@ -83,23 +83,23 @@ class BaseIron(object):
 
 
     def clear_repl_for_ft(self, ft):
-        log.debug("clearing repl definitions for {}".format(ft))
+        log.debug("Clearing repl definitions for {}".format(ft))
         for m in self.__repl[ft]['mappings']:
-            log.debug("unmapping keys {}".format(m))
+            log.debug("Unmapping keys {}".format(m))
             self.call_cmd("umap {}".format(m))
 
         del self.__repl[ft]
 
     def call_cmd(self, cmd):
-        log.debug("calling cmd {}".format(cmd))
+        log.debug("Calling cmd {}".format(cmd))
         return self.__nvim.command(cmd)
 
     def call(self, cmd, *args):
-        log.debug("calling function {} with args {}".format(cmd, args))
+        log.debug("Calling function {} with args {}".format(cmd, args))
         return self.__nvim.call(cmd, *args)
 
     def register(self, reg):
-        log.debug("getting register {}".format(reg))
+        log.debug("Getting register {}".format(reg))
         return self.__nvim.funcs.getreg(reg)
 
     def set_register(self, reg, data):
@@ -143,6 +143,9 @@ class BaseIron(object):
         self.__repl[ft]['mappings'] = []
         add_mappings = self.__repl[ft]['mappings'].append
 
+        log.info("Mapping special functions for {}".format(ft))
+        log.debug("Available mappings are: {}".format(repl.get("mappings")))
+
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, n, c in repl.get('mappings', []):
@@ -160,7 +163,7 @@ class BaseIron(object):
             self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
         )
 
-        log.info("got this hook function list: {}".format(hooks))
+        log.info("Got this hook function list: {}".format(hooks))
 
         [self.call(i, curr_buf) for i in hooks]
 
