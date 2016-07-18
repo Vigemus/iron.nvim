@@ -44,7 +44,7 @@ class Iron(object):
 
     # Helper fns
     def termopen(self, cmd):
-        self.call_cmd('spl | wincmd j')
+        self.call_cmd('spl | wincmd j | enew')
 
         return self.call('termopen', cmd)
 
