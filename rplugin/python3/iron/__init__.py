@@ -144,6 +144,8 @@ class Iron(object):
             self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
         )
 
+        log.info("got this hook function list: {}".format(hooks))
+
         [self.call(i, curr_buf) for i in list()]
 
     # Actual Fns
