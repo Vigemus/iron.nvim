@@ -109,12 +109,12 @@ class Iron(object):
     def get_list_variable(self, var):
         v = self.get_variable(var)
 
-        if var is None:
+        if v is None:
             return []
-        elif not isinstance(var, list):
-            return [var]
+        elif not isinstance(v, list):
+            return [v]
         else:
-            return var
+            return v
 
 
     def prompt(self, msg):
