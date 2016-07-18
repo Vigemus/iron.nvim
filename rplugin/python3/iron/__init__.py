@@ -146,7 +146,7 @@ class Iron(object):
 
         log.info("got this hook function list: {}".format(hooks))
 
-        [self.call(i, curr_buf) for i in list()]
+        [self.call(i, curr_buf) for i in hooks]
 
     # Actual Fns
     def open_repl_for(self, ft):
