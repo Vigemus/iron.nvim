@@ -63,6 +63,10 @@ class Iron(BaseIron):
     def create_repl(self):
         self.open_repl_for(self.get_ft())
 
+    @neovim.command("IronDumpReplDefn")
+    def dump_repl_dict(self):
+        super().dump_repl_dict()
+
     @neovim.command("IronClearReplDefinition")
     def clear_repl_definition(self):
         self.clear_repl_for_ft(self.prompt("repl type"))

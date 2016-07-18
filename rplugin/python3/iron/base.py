@@ -133,10 +133,16 @@ class BaseIron(object):
         self.call("inputrestore")
         return ret
 
+    def dump_repl_dict(self):
+        log.warning("#-- Dumping repl definitions --#")
+        log.warning(self.__repl)
+        log.warning("#--   End of repl def dump   --#")
+
     def set_mappings(self, repl, ft):
         self.__repl[ft]['fns'] = {}
         self.__repl[ft]['mappings'] = []
         add_mappings = self.__repl[ft]['mappings'].append
+
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, n, c in repl.get('mappings', []):
