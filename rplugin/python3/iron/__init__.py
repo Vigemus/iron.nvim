@@ -141,7 +141,7 @@ class Iron(object):
 
         hooks = (
             self.get_list_variable("iron_new_repl_hooks") +
-            self.has_variable('iron_new_{}_repl_hooks'.format(ft))
+            self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
         )
 
         [self.call(i, curr_buf) for i in list()]
