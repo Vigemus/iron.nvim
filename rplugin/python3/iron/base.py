@@ -68,9 +68,9 @@ class BaseIron(object):
 
         self.call('jobsend', repl["repl_id"], data)
 
-    def set_repl_for_ft(self, ft):
+    def get_repl_for_ft(self, ft):
         if ft not in self.__repl:
-            log.debug("Adding repl definition for {}".format(ft))
+            log.debug("Getting repl definition for {}".format(ft))
             self.__repl[ft] = self.get_repl_template(ft)
 
         return self.__repl[ft]
@@ -84,7 +84,7 @@ class BaseIron(object):
 
     def clear_repl_for_ft(self, ft):
         log.debug("Clearing repl definitions for {}".format(ft))
-        for m in self.__repl[ft]['mappings']:
+        for m in self.__repl[ft]['mapped_keys']:
             log.debug("Unmapping keys {}".format(m))
             self.call_cmd("umap {}".format(m))
 
@@ -140,8 +140,8 @@ class BaseIron(object):
 
     def set_mappings(self, repl, ft):
         self.__repl[ft]['fns'] = {}
-        self.__repl[ft]['mappings'] = []
-        add_mappings = self.__repl[ft]['mappings'].append
+        self.__repl[ft]['mapped_keys'] = []
+        add_mappings = self.__repl[ft]['mapped_keys'].append
 
         log.info("Mapping special functions for {}".format(ft))
         log.debug("Available mappings are: {}".format(repl.get("mappings")))

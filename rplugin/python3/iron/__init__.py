@@ -23,7 +23,7 @@ class Iron(BaseIron):
     # Actual Fns
     def open_repl_for(self, ft):
         log.info("Opening repl for {}".format(ft))
-        repl = self.set_repl_for_ft(ft)
+        repl = self.get_repl_for_ft(ft)
 
         if not repl:
             msg = "No repl found for {}".format(ft)
