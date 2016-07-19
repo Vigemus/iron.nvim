@@ -10,8 +10,7 @@ import logging
 import neovim
 from iron.base import BaseIron
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 @neovim.plugin
@@ -22,12 +21,12 @@ class Iron(BaseIron):
 
     # Actual Fns
     def open_repl_for(self, ft):
-        log.info("Opening repl for {}".format(ft))
+        logger.info("Opening repl for {}".format(ft))
         repl = self.get_repl_for_ft(ft)
 
         if not repl:
             msg = "No repl found for {}".format(ft)
-            log.info(msg)
+            logger.info(msg)
             self.call_cmd("echomsg '{}'".format(msg))
             return
 
@@ -49,10 +48,10 @@ class Iron(BaseIron):
                 (pre, post) = multiline
                 extra = None
 
-            log.info("Multinine string supplied.")
+            logger.info("Multinine string supplied.")
             return ("{}\n{}{}".format(pre, data, post), extra)
 
-        log.info("String was not multiline. Continuing")
+        logger.info("String was not multiline. Continuing")
         return (data, None)
 
     @neovim.command("IronPromptRepl")
@@ -98,13 +97,13 @@ class Iron(BaseIron):
         if not repl:
             return None
 
-        log.info("Sending data to repl -> {}".format(repl))
+        logger.info("Sending data to repl -> {}".format(repl))
 
         if 'multiline' in repl:
-            log.info("Multiline statement allowed - wrapping")
+            logger.info("Multiline statement allowed - wrapping")
             data, extra = self.sanitize_multiline(args[0], repl)
         else:
-            log.info("Plain string - no multiline")
+            logger.info("Plain string - no multiline")
             data = "{}\n".format(args[0])
             extra = None
 

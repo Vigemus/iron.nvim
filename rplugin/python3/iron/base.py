@@ -8,10 +8,10 @@ Currently it keeps track of a single repl instance per filetype.
 """
 import logging
 import neovim
+import os
 from iron.repls import available_repls
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class BaseIron(object):
@@ -20,23 +20,12 @@ class BaseIron(object):
         self.__nvim = nvim
         self.__repl = {}
 
-        debug_path = (
-            'iron_debug' in nvim.vars and './.iron_debug.log'
-            or nvim.vars.get('iron_debug_path')
-        )
-
-        if debug_path is not None:
-            fh = logging.FileHandler(debug_path)
-            fh.setLevel(logging.DEBUG)
-            log.addHandler(fh)
-
-
     def get_repl_template(self, ft):
         repls = list(filter(
             lambda k: ft == k['language'] and k['detect'](),
             available_repls))
 
-        log.info('Got {} as repls for {}'.format(
+        logger.info('Got {} as repls for {}'.format(
             [i['command'] for i in repls], ft
         ))
 
@@ -62,7 +51,7 @@ class BaseIron(object):
 
     def send_data(self, data, repl=None):
         repl = repl or self.get_current_repl()
-        log.info('Sending data to repl ({}):\n{}'.format(
+        logger.info('Sending data to repl ({}):\n{}'.format(
             repl['repl_id'], data
         ))
 
@@ -70,7 +59,7 @@ class BaseIron(object):
 
     def get_repl_for_ft(self, ft):
         if ft not in self.__repl:
-            log.debug("Getting repl definition for {}".format(ft))
+            logger.debug("Getting repl definition for {}".format(ft))
             self.__repl[ft] = self.get_repl_template(ft)
 
         return self.__repl[ft]
@@ -83,31 +72,31 @@ class BaseIron(object):
 
 
     def clear_repl_for_ft(self, ft):
-        log.debug("Clearing repl definitions for {}".format(ft))
+        logger.debug("Clearing repl definitions for {}".format(ft))
         for m in self.__repl[ft]['mapped_keys']:
-            log.debug("Unmapping keys {}".format(m))
+            logger.debug("Unmapping keys {}".format(m))
             self.call_cmd("umap {}".format(m))
 
         del self.__repl[ft]
 
     def call_cmd(self, cmd):
-        log.debug("Calling cmd {}".format(cmd))
+        logger.debug("Calling cmd {}".format(cmd))
         return self.__nvim.command(cmd)
 
     def call(self, cmd, *args):
-        log.debug("Calling function {} with args {}".format(cmd, args))
+        logger.debug("Calling function {} with args {}".format(cmd, args))
         return self.__nvim.call(cmd, *args)
 
     def register(self, reg):
-        log.debug("Getting register {}".format(reg))
+        logger.debug("Getting register {}".format(reg))
         return self.__nvim.funcs.getreg(reg)
 
     def set_register(self, reg, data):
-        log.info("Setting register '{}' with value '{}'".format(reg, data))
+        logger.info("Setting register '{}' with value '{}'".format(reg, data))
         return self.__nvim.funcs.setreg(reg, data)
 
     def set_variable(self, var, data):
-        log.info("Setting variable '{}' with value '{}'".format(var, data))
+        logger.info("Setting variable '{}' with value '{}'".format(var, data))
         self.__nvim.vars[var] = data
 
     def has_variable(self, var):
@@ -134,22 +123,22 @@ class BaseIron(object):
         return ret
 
     def dump_repl_dict(self):
-        log.warning("#-- Dumping repl definitions --#")
-        log.warning(self.__repl)
-        log.warning("#--   End of repl def dump   --#")
+        logger.warning("#-- Dumping repl definitions --#")
+        logger.warning(self.__repl)
+        logger.warning("#--   End of repl def dump   --#")
 
     def set_mappings(self, repl, ft):
         self.__repl[ft]['fns'] = {}
         self.__repl[ft]['mapped_keys'] = []
         add_mappings = self.__repl[ft]['mapped_keys'].append
 
-        log.info("Mapping special functions for {}".format(ft))
-        log.debug("Available mappings are: {}".format(repl.get("mappings")))
+        logger.info("Mapping special functions for {}".format(ft))
+        logger.debug("Available mappings are: {}".format(repl.get("mappings")))
 
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
         for k, n, c in repl.get('mappings', []):
-            log.info("Mapping '{}' to function '{}'".format(k, n))
+            logger.info("Mapping '{}' to function '{}'".format(k, n))
 
             self.call_cmd(base_cmd.format(k, n))
             self.__repl[ft]['fns'][n] = c
@@ -163,7 +152,7 @@ class BaseIron(object):
             self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
         )
 
-        log.info("Got this hook function list: {}".format(hooks))
+        logger.info("Got this hook function list: {}".format(hooks))
 
         [self.call(i, curr_buf) for i in hooks]
 
