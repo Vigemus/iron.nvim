@@ -1,10 +1,7 @@
 # encoding:utf-8
 """ iron.nvim (Interactive Repls Over Neovim).
 
-`iron` is a plugin that allows better interactions with interactive repls
-using neovim's job-control and terminal.
-
-Currently it keeps track of a single repl instance per filetype.
+This is the base structure to allow iron to interact with neovim.
 """
 import logging
 import neovim
@@ -13,6 +10,11 @@ from iron.repls import available_repls
 
 logger = logging.getLogger(__name__)
 
+if 'NVIM_IRON_DEBUG_FILE' in os.environ:
+    logfile = os.environ['NVIM_IRON_DEBUG_FILE'].strip()
+    logger.addHandler(logging.FileHandler(logfile, 'w'))
+
+logger.level = logging.DEBUG
 
 class BaseIron(object):
 
@@ -20,18 +22,32 @@ class BaseIron(object):
         self.__nvim = nvim
         self.__repl = {}
 
-    def get_repl_template(self, ft):
-        repls = list(filter(
-            lambda k: ft == k['language'] and k['detect'](),
-            available_repls))
+    def _list_repl_templates(self, ft):
+        return list(filter(
+            lambda k: ft == k['language'] and
+            k['detect'](iron=self),
+            available_repls
+        ))
+
+    def _get_repl_template(self, ft):
+        logger.info("Trying to find a repl definition for ft {}".format(ft))
+
+        repls = self._list_repl_templates(ft)
 
         logger.info('Got {} as repls for {}'.format(
             [i['command'] for i in repls], ft
         ))
 
+        #TODO Prompt user to choose for a repl or open first if Cmd!
         return len(repls) and repls[0] or {}
 
     # Helper fns
+    def has_repl_defined(self, ft):
+        return ft in self.__repl
+
+    def has_repl_template(self, ft):
+        return bool(self._list_repl_templates(ft))
+
     def termopen(self, cmd):
         self.call_cmd('spl | wincmd j | enew')
 
@@ -60,11 +76,19 @@ class BaseIron(object):
     def get_repl_for_ft(self, ft):
         if ft not in self.__repl:
             logger.debug("Getting repl definition for {}".format(ft))
-            self.__repl[ft] = self.get_repl_template(ft)
+            repl = self._get_repl_template(ft)
+
+            if not repl:
+                logger.debug("echo 'No repl for {}'".format(ft))
+                return None
+
+            self.__repl[ft] = repl
 
         return self.__repl[ft]
 
-    def set_repl_id(self, ft, repl_id):
+    def set_repl_id(self, repl, repl_id):
+        ft = repl['language']
+        logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
         self.__repl[ft]['repl_id'] = repl_id
         self.set_variable(
             "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
@@ -75,13 +99,13 @@ class BaseIron(object):
         logger.debug("Clearing repl definitions for {}".format(ft))
         for m in self.__repl[ft]['mapped_keys']:
             logger.debug("Unmapping keys {}".format(m))
-            self.call_cmd("umap {}".format(m))
+            self.call_cmd("unmap {}".format(m))
 
         del self.__repl[ft]
 
     def call_cmd(self, cmd):
         logger.debug("Calling cmd {}".format(cmd))
-        return self.__nvim.command(cmd)
+        return self.__nvim.command_output(cmd)
 
     def call(self, cmd, *args):
         logger.debug("Calling function {} with args {}".format(cmd, args))
@@ -127,7 +151,8 @@ class BaseIron(object):
         logger.warning(self.__repl)
         logger.warning("#--   End of repl def dump   --#")
 
-    def set_mappings(self, repl, ft):
+    def set_mappings(self, repl):
+        ft = repl['language']
         self.__repl[ft]['fns'] = {}
         self.__repl[ft]['mapped_keys'] = []
         add_mappings = self.__repl[ft]['mapped_keys'].append
@@ -144,8 +169,9 @@ class BaseIron(object):
             self.__repl[ft]['fns'][n] = c
             add_mappings(k)
 
-    def call_hooks(self, ft):
+    def call_hooks(self, repl):
         curr_buf = self.__nvim.current.buffer.number
+        ft = repl['language']
 
         hooks = (
             self.get_list_variable("iron_new_repl_hooks") +
@@ -155,5 +181,3 @@ class BaseIron(object):
         logger.info("Got this hook function list: {}".format(hooks))
 
         [self.call(i, curr_buf) for i in hooks]
-
-

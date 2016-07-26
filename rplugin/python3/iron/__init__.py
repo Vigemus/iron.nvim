@@ -1,16 +1,20 @@
 # encoding:utf-8
 """ iron.nvim (Interactive Repls Over Neovim).
 
-`iron` is a plugin that allows better interactions with interactive repls
-using neovim's job-control and terminal.
-
-Currently it keeps track of a single repl instance per filetype.
+This is the actual plugin.
 """
 import logging
 import neovim
+import os
 from iron.base import BaseIron
 
 logger = logging.getLogger(__name__)
+
+if 'NVIM_IRON_DEBUG_FILE' in os.environ:
+    logfile = os.environ['NVIM_IRON_DEBUG_FILE'].strip()
+    logger.addHandler(logging.FileHandler(logfile, 'w'))
+
+logger.level = logging.DEBUG
 
 
 @neovim.plugin
@@ -20,22 +24,12 @@ class Iron(BaseIron):
         super().__init__(nvim)
 
     # Actual Fns
-    def open_repl_for(self, ft):
-        logger.info("Opening repl for {}".format(ft))
-        repl = self.get_repl_for_ft(ft)
-
-        if not repl:
-            msg = "No repl found for {}".format(ft)
-            logger.info(msg)
-            self.call_cmd("echomsg '{}'".format(msg))
-            return
-
+    def open_repl(self, repl):
         repl_id = self.termopen(repl['command'])
 
-        self.set_mappings(repl, ft)
-        self.call_hooks(ft)
-        self.set_repl_id(ft, repl_id)
-
+        self.set_mappings(repl)
+        self.call_hooks(repl)
+        self.set_repl_id(repl, repl_id)
 
         return repl_id
 
@@ -54,13 +48,53 @@ class Iron(BaseIron):
         logger.info("String was not multiline. Continuing")
         return (data, None)
 
+    def get_or_prompt_ft(self):
+        ft = self.get_ft()
+        return self.has_repl_template(ft) and ft or self.prompt("repl type")
+
+    @neovim.command("IronPromptCommand")
+    def prompt_command(self):
+        command = self.prompt("command")
+
+        if not command:
+            self.call_cmd("echo 'Closing without a command'")
+            return
+
+        repl = self.get_repl_for_ft(self.get_or_prompt_ft())
+        repl['command'] = command
+
+        self.open_repl(repl)
+
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
-        self.open_repl_for(self.prompt("repl type"))
+        ft = self.prompt("repl type")
+
+        if not ft:
+            self.call_cmd("echo 'Closing without a file type'")
+            return
+
+        repl = self.get_repl_for_ft(ft)
+
+        if not repl:
+            self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
+            return
+
+        self.open_repl(repl)
 
     @neovim.command("IronRepl")
     def create_repl(self):
-        self.open_repl_for(self.get_ft())
+        ft = self.get_ft()
+        repl = self.get_repl_for_ft(ft)
+
+
+        if not ft:
+            self.call_cmd("echo 'Closing without a file type'")
+            return
+        elif not repl:
+            self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
+            return
+
+        self.open_repl(repl)
 
     @neovim.command("IronDumpReplDefn")
     def dump_repl_dict(self):
@@ -68,11 +102,7 @@ class Iron(BaseIron):
 
     @neovim.command("IronClearReplDefinition")
     def clear_repl_definition(self):
-        self.clear_repl_for_ft(self.prompt("repl type"))
-
-    @neovim.command("IronClearReplDefinition")
-    def clear_repl_definition(self):
-        self.clear_repl_for_ft(self.get_ft())
+        self.clear_repl_for_ft(self.get_or_prompt_ft())
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):

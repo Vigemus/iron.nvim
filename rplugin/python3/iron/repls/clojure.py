@@ -1,6 +1,7 @@
 # encoding:utf-8
 """Leiningen repl definition for iron.nvim. """
 import os
+from iron.repls.utils.cmd import detect_fn
 from functools import partial
 
 
@@ -119,7 +120,7 @@ def lein_update_data_with_fn(iron):
 repl = {
     'command': 'lein repl',
     'language': 'clojure',
-    'detect': lambda *args, **kwargs: True,
+    'detect': detect_fn('lein'),
     'mappings': [
         ('<leader>so', 'require',
          lambda iron: lein_require(iron, iron.send_to_repl)),

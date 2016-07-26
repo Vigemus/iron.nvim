@@ -1,21 +1,15 @@
 # encoding:utf-8
 """OCaml repl definitions for iron.nvim. """
+from iron.repls.utils.cmd import detect_fn
 
-def detect_ocaml_repl(repl):
-    """Checks whether a executable exists.
-    :returns: True
-    """
-    from distutils.spawn import find_executable
-    return find_executable(repl) is not None
-    
 ocamltop = {
     'command': 'ocamltop',
     'language': 'ocaml',
-    'detect': lambda *args, **kwargs: detect_ocaml_repl('ocamltop')
+    'detect': detect_fn('ocamltop')
 }
 
 utop = {
     'command': 'utop',
     'language': 'ocaml',
-    'detect': lambda *args, **kwargs: detect_ocaml_repl('utop')
+    'detect': detect_fn('utop')
 }

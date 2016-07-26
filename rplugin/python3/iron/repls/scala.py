@@ -1,10 +1,6 @@
 # encoding:utf-8
 """Scala repl definitions for iron.nvim. """
-
-def sbt_detect(*args, **kwargs):
-    import os
-    return os.path.exists("build.sbt") or os.path.exists("project/build.sbt")
-
+from iron.repls.utils.cmd import detect_fn
 
 def scala_import_all(iron):
     iron.call_cmd("""normal! gg f w"sy$""")
@@ -37,7 +33,7 @@ mappings = [
 sbt_file = {
     'command': 'sbt',
     'language': 'sbt.scala',
-    'detect': lambda *args, **kwargs: True,
+    'detect': detect_fn('sbt'),
     'mappings': mappings,
     'multiline': (':paste', '\x04'),
 }
@@ -45,7 +41,7 @@ sbt_file = {
 sbt_cmd = {
     'command': 'sbt',
     'language': 'scala',
-    'detect': sbt_detect,
+    'detect': detect_fn('sbt', ['build.sbt', 'project/build.sbt']),
     'mappings': mappings,
     'multiline': (':paste', '\x04'),
 }
@@ -54,7 +50,7 @@ sbt_cmd = {
 scala = {
     'command': 'scala',
     'language': 'scala',
-    'detect': lambda *args, **kwargs: not sbt_detect(*args, **kwargs),
+    'detect': detect_fn('scala'),
     'mappings': mappings,
     'multiline': (':paste', '\x04'),
 }
