@@ -43,7 +43,7 @@ class Iron(BaseIron):
                 extra = None
 
             logger.info("Multinine string supplied.")
-            return ("{}\n{}{}".format(pre, data, post), extra)
+            return ("{}{}{}".format(pre, data, post), extra)
 
         logger.info("String was not multiline. Continuing")
         return (data, None)
