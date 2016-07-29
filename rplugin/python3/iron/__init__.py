@@ -127,6 +127,8 @@ class Iron(BaseIron):
         if not repl:
             return None
 
+        logger.debug("Supplied data: {}".format(args[0]))
+
         logger.info("Sending data to repl -> {}".format(repl))
 
         if 'multiline' in repl:
