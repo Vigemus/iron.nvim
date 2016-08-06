@@ -49,7 +49,11 @@ class BaseIron(object):
         return bool(self._list_repl_templates(ft))
 
     def termopen(self, cmd):
-        self.call_cmd('spl | wincmd j | enew')
+        repl_open_cmd = self.get_variable('iron_repl_open_cmd', 'botright spl')
+        self.call_cmd(
+            "{} | enew | exec bufwinnr(bufnr('$')).'wincmd w'".format(
+                repl_open_cmd
+            ))
 
         return self.call('termopen', cmd)
 
@@ -123,11 +127,15 @@ class BaseIron(object):
         logger.info("Setting variable '{}' with value '{}'".format(var, data))
         self.__nvim.vars[var] = data
 
+    def unset_variable(self, var):
+        logger.info("Unsetting variable '{}'".format(var))
+        del self.__nvim.vars[var]
+
     def has_variable(self, var):
         return var in self.__nvim.vars
 
-    def get_variable(self, var):
-        return self.__nvim.vars.get(var)
+    def get_variable(self, var, default=""):
+        return self.__nvim.vars.get(var) or default
 
     def get_list_variable(self, var):
         v = self.get_variable(var)
@@ -173,10 +181,10 @@ class BaseIron(object):
         curr_buf = self.__nvim.current.buffer.number
         ft = repl['language']
 
-        hooks = (
+        hooks = filter(None, (
             self.get_list_variable("iron_new_repl_hooks") +
             self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
-        )
+        ))
 
         logger.info("Got this hook function list: {}".format(hooks))
 
