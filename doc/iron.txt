@@ -1,0 +1,164 @@
+*iron.nvim* Interactive Repls Over Neovim
+
+===============================================================================
+CONTENTS                                                            *iron-help*
+
+  Introduction............................|iron-introduction|
+  Awesomeness.............................|iron-awesomeness|
+  Languages...............................|iron-languages|
+  Commands................................|iron-commands|
+  Functions...............................|iron-functions|
+  Customizing.............................|iron-customizing|
+  Mappings................................|iron-mappings|
+  Credits.................................|iron-credits|
+
+===============================================================================
+Introduction                                                *iron-introduction*
+
+Iron is a helper plugin for managing and interacting live repls on neovim,
+using terminal buffers. Iron mostly interacts with plugins via stdin/stdout,
+with few exceptions.
+
+===============================================================================
+Awesomeness                                                  *iron-awesomeness*
+
+Iron makes it very easy to focus on the code while interacting with the repl.
+It allows sending chunks of code directly into the repl whil still focusing
+on the code.
+
+Much more can still be done using iron. All it takes is extending the repls
+providers to add new functionality (such as running tests, evaluating
+expressions, adding new keybindings and much more).
+
+===============================================================================
+Languages                                                      *iron-languages*
+
+Currently, Iron has support for the following languages:
+
+  - clojure
+    - lein
+  - elixir
+  - erlang
+  - lua
+  - ocaml
+  - python
+    - python
+    - ipython
+    - ptpython
+    - ptipython
+  - r
+  - ruby
+  - scala
+    - scala
+    - sbt
+
+===============================================================================
+Commands                                                        *iron-commands*
+
+Iron provides the following commands for interacting with repls:
+
+IronPromptCommand
+  Prompts the user for wich repl to open for current ft or prompts for ft if
+  not found.
+
+IronPromptRepl
+  Prompts the user for the file type to open the repl accordingly.
+
+IronRepl
+  Open a repl for current file type.
+
+IronDumpReplDefinition
+  Dumps repl definitions on the log.
+
+IronClearReplDefinition
+  Clears current fts repl definition.
+
+===============================================================================
+Functions                                                      *iron-functions*
+
+Iron provides the following functions for interacting with repls:
+
+IronSendSpecial
+  Used by languages provider to send chunks of text specially to repl, such as
+  imports based on current word.
+
+IronSendMotion
+  Sends an object of text to repl.
+
+IronSend
+  Straightforward send to repl.
+
+===============================================================================
+Customizing                                                  *iron-customizing*
+
+To change irons behavior, change the following variables:
+
+g:iron_repl_open_cmd
+  Allows repl to be positioned differently.
+
+g:iron_new_repl_hooks
+  List of functions to be executed after any repl is opened.
+
+g:iron_new_`ft`_repl_hooks
+  Provide specific functions to be executed after a repl of given ft is opened.
+
+===============================================================================
+Mappings                                                        *iron-mappings*
+
+~all languages~
+ctr
+  send a chunk of text to repl. Works with motions.
+
+~clojure~
+<leader>so
+  Require namespace inside a list under cursor.
+  i.e. [clojure.string :as string] sends (require '[clojure.string :as string])
+
+<leader>si
+  Import namespace inside a list under cursor.
+  i.e. [java.time LocalDate] sends (import '[java.time LocalDate])
+
+<leader>sr
+  Require current file into the repl
+
+<leader>sR
+  Require current file into the repl, prompting for an alias.
+
+<leader>s.
+  Prompt namespace and require it into the repl
+
+<leader>s/
+  Prompt namespace and alias, requiring it into the repl
+
+<leader>ss
+  Send outermost parens group into the repl
+
+<leader>ep
+  Evaluate a command into the repl, echoing the result [experimental]
+
+<leader>ee
+  Evaluate a command into the repl, passing the data under the cursor and
+  updating it. [experimental]
+
+~scala~
+<leader>sa
+  Import all for namespace below
+
+<leader>si
+  Import namespace below
+
+<leader>sb
+  Send current braces block to repl linewise
+
+<leader>sl
+  Send current line to repl
+
+
+===============================================================================
+Credits                                                          *iron-credits*
+
+Plugin created by Henry Kupty <hkupty@gmail.com>.
+It is free to use and extend. Please consider opening a pull request if
+extended.
+
+Source at https://github.com/hkupty/iron.nvim
