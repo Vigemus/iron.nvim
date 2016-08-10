@@ -96,7 +96,7 @@ class Iron(BaseIron):
 
         self.open_repl(repl)
 
-    @neovim.command("IronDumpReplDefn")
+    @neovim.command("IronDumpReplDefinition")
     def dump_repl_dict(self):
         super().dump_repl_dict()
 
