@@ -3,7 +3,6 @@
 import os
 from iron.repls.utils.cmd import detect_fn
 from functools import partial
-from iron.base import EmptyPromptError
 
 
 # Get Data
@@ -56,7 +55,7 @@ def lein_load_facts(iron, send_fn):
 def lein_prompt_require(iron, send_fn):
     try:
         require = iron.prompt("require file")
-    except EmptyPromptError:
+    except:
         iron.call_cmd("echo 'Aborting'")
     else:
         data = "(require '[{}])".format(require)
@@ -67,7 +66,7 @@ def lein_prompt_require_as(iron, send_fn):
     try:
         require = iron.prompt("require file")
         alias = iron.prompt("as")
-    except EmptyPromptError:
+    except:
         iron.call_cmd("echo 'Aborting'")
     else:
         data = "(require '[{} :as {}])".format(require, alias)
@@ -111,7 +110,7 @@ def nrepl_eval(iron, data):
 def lein_prompt_eval(iron):
     try:
         cmd = iron.prompt("cmd")
-    except EmptyPromptError:
+    except:
         iron.call_cmd("echo 'Aborting'")
     else:
         ret = nrepl_eval(iron, cmd)
@@ -120,7 +119,7 @@ def lein_prompt_eval(iron):
 def lein_update_data_with_fn(iron):
     try:
         cmd = iron.prompt("cmd")
-    except EmptyPromptError:
+    except:
         iron.call_cmd("echo 'Aborting'")
     else:
         data = get_current_parens(iron)
