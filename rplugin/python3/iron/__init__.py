@@ -6,7 +6,7 @@ This is the actual plugin.
 import logging
 import neovim
 import os
-from iron.base import BaseIron
+from iron.base import BaseIron, EmptyPromptError
 
 logger = logging.getLogger(__name__)
 
@@ -54,38 +54,34 @@ class Iron(BaseIron):
 
     @neovim.command("IronPromptCommand")
     def prompt_command(self):
-        command = self.prompt("command")
-
-        if not command:
-            self.call_cmd("echo 'Closing without a command'")
-            return
-
-        repl = self.get_repl_for_ft(self.get_or_prompt_ft())
-        repl['command'] = command
-
-        self.open_repl(repl)
+        try:
+            command = self.prompt("command")
+            repl = self.get_repl_for_ft(self.get_or_prompt_ft())
+        except EmptyPromptError as err:
+            logger.warning("User aborted.")
+        else:
+            repl['command'] = command
+            self.open_repl(repl)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
-        ft = self.prompt("repl type")
+        try:
+            ft = self.prompt("repl type")
+        except:
+            logger.warning("User aborted.")
+        else:
+            repl = self.get_repl_for_ft(ft)
 
-        if not ft:
-            self.call_cmd("echo 'Closing without a file type'")
-            return
+            if not repl:
+                self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
+                return
 
-        repl = self.get_repl_for_ft(ft)
-
-        if not repl:
-            self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
-            return
-
-        self.open_repl(repl)
+            self.open_repl(repl)
 
     @neovim.command("IronRepl")
     def create_repl(self):
         ft = self.get_ft()
         repl = self.get_repl_for_ft(ft)
-
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
@@ -102,7 +98,10 @@ class Iron(BaseIron):
 
     @neovim.command("IronClearReplDefinition")
     def clear_repl_definition(self):
-        self.clear_repl_for_ft(self.get_or_prompt_ft())
+        try:
+            self.clear_repl_for_ft(self.get_or_prompt_ft())
+        except EmptyPromptError:
+            logger.warning("User aborted.")
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):

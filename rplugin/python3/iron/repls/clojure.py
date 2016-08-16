@@ -3,6 +3,7 @@
 import os
 from iron.repls.utils.cmd import detect_fn
 from functools import partial
+from iron.base import EmptyPromptError
 
 
 # Get Data
@@ -53,16 +54,24 @@ def lein_load_facts(iron, send_fn):
 
 
 def lein_prompt_require(iron, send_fn):
-    require = iron.prompt("require file")
-    data = "(require '[{}])".format(require)
-    return send_fn((data, "clojure"))
+    try:
+        require = iron.prompt("require file")
+    except EmptyPromptError:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        data = "(require '[{}])".format(require)
+        return send_fn((data, "clojure"))
 
 
 def lein_prompt_require_as(iron, send_fn):
-    require = iron.prompt("require file")
-    alias = iron.prompt("as")
-    data = "(require '[{} :as {}])".format(require, alias)
-    return send_fn((data, "clojure"))
+    try:
+        require = iron.prompt("require file")
+        alias = iron.prompt("as")
+    except EmptyPromptError:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        data = "(require '[{} :as {}])".format(require, alias)
+        return send_fn((data, "clojure"))
 
 
 # send data
@@ -100,21 +109,29 @@ def nrepl_eval(iron, data):
 
 # eval data
 def lein_prompt_eval(iron):
-    cmd = iron.prompt("cmd")
-    ret = nrepl_eval(iron, cmd)
-    iron.call_cmd("echomsg '{}'".format(ret))
+    try:
+        cmd = iron.prompt("cmd")
+    except EmptyPromptError:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        ret = nrepl_eval(iron, cmd)
+        iron.call_cmd("echomsg '{}'".format(ret))
 
 def lein_update_data_with_fn(iron):
-    cmd = iron.prompt("cmd")
-    data = get_current_parens(iron)
-    ret = nrepl_eval(iron, "({} {})".format(cmd, data))
+    try:
+        cmd = iron.prompt("cmd")
+    except EmptyPromptError:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        data = get_current_parens(iron)
+        ret = nrepl_eval(iron, "({} {})".format(cmd, data))
 
-    if ret is None:
-        iron.call_cmd("echo 'Error with eval, aborting.'")
-        return
+        if ret is None:
+            iron.call_cmd("echo 'Error with eval, aborting.'")
+            return
 
-    iron.set_register("s", ret)
-    iron.call_cmd("""silent normal! mx%v%"sp`x""")
+        iron.set_register("s", ret)
+        iron.call_cmd("""silent normal! mx%v%"sp`x""")
 
 
 repl = {
