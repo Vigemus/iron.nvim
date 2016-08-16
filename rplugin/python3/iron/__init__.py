@@ -6,7 +6,7 @@ This is the actual plugin.
 import logging
 import neovim
 import os
-from iron.base import BaseIron, EmptyPromptError
+from iron.base import BaseIron
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class Iron(BaseIron):
         try:
             command = self.prompt("command")
             repl = self.get_repl_for_ft(self.get_or_prompt_ft())
-        except EmptyPromptError as err:
+        except:
             logger.warning("User aborted.")
         else:
             repl['command'] = command
@@ -100,7 +100,7 @@ class Iron(BaseIron):
     def clear_repl_definition(self):
         try:
             self.clear_repl_for_ft(self.get_or_prompt_ft())
-        except EmptyPromptError:
+        except:
             logger.warning("User aborted.")
 
     @neovim.function("IronSendSpecial")
