@@ -10,15 +10,15 @@ from iron.repls import available_repls
 
 logger = logging.getLogger(__name__)
 
-class EmptyPromptError(Exception):
-    """ User aborted prompt. """
-    pass
-
 if 'NVIM_IRON_DEBUG_FILE' in os.environ:
     logfile = os.environ['NVIM_IRON_DEBUG_FILE'].strip()
     logger.addHandler(logging.FileHandler(logfile, 'w'))
 
 logger.level = logging.DEBUG
+
+class EmptyPromptError(Exception):
+    """ User aborted prompt. """
+    pass
 
 class BaseIron(object):
 
