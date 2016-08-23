@@ -46,7 +46,7 @@ class Iron(BaseIron):
             return ("{}{}{}".format(pre, data, post), extra)
 
         logger.info("String was not multiline. Continuing")
-        return (data, None)
+        return ("{}\n".format(data), None)
 
     def get_or_prompt_ft(self):
         ft = self.get_ft()
