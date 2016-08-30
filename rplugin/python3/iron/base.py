@@ -61,6 +61,7 @@ class BaseIron(object):
 
         return self.call('termopen', cmd)
 
+
     def get_ft(self):
         return self.__nvim.current.buffer.options["ft"]
 

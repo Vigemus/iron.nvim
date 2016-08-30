@@ -3,8 +3,14 @@
 from iron.repls.utils.cmd import detect_fn
 
 
-def set_pdb(nvim):
-    pass
+def set_pdb(iron):
+    iron.send_to_repl("pdb")
+
+
+
+mappings = [
+    ('<leader>pp', 'set_pdb', set_pdb),
+]
 
 
 python = {

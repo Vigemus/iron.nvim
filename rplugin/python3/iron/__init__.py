@@ -142,3 +142,7 @@ class Iron(BaseIron):
 
         if extra is not None:
             self.send_data(extra, repl)
+
+    @neovim.command("IronProtoRepl")
+    def proto_repl(self):
+        pass
