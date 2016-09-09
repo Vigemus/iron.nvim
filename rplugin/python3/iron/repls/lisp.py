@@ -1,9 +1,15 @@
 # encoding:utf-8
-"""SBCL repl definition for iron.nvim. """
+"""Lisp repl definition for iron.nvim. """
 from iron.repls.utils.cmd import detect_fn
 
-repl = {
+sbcl = {
     'command': 'sbcl',
     'language': 'lisp',
     'detect': detect_fn('sbcl')
+}
+
+clisp = {
+    'command': 'clisp',
+    'language': 'lisp',
+    'detect': detect_fn('clisp')
 }
