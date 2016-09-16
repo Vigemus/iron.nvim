@@ -1,4 +1,5 @@
 # encoding:utf-8
+""" Currently experimental code and unhooked. """
 import nrepl
 import asyncio
 

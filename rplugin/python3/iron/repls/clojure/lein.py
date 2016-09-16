@@ -46,14 +46,6 @@ def lein_send(iron):
     return iron.send_to_repl((get_outermost_parens(iron), "clojure"))
 
 
-def lein_load_facts(iron):
-    data = "(load-facts '{})".format(get_current_ns(iron))
-    return iron.send_to_repl((data, "clojure"))
-
-def midje_autotest(iron):
-    return iron.send_to_repl(("(autotest)", "clojure"))
-
-
 def lein_prompt_require(iron):
     try:
         require = iron.prompt("require file")
