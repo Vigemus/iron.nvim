@@ -8,7 +8,7 @@ repl = {
     'command': 'lein repl',
     'language': 'clojure',
     'detect': detect_fn('lein'),
-    'nrepl': {'protocol': 'file', 'uri': '.nrepl-port'}
+    'nrepl': {'protocol': 'file', 'uri': '.nrepl-port'},
     'mappings': [
         ('<leader>so', 'require', lein_require),
         ('<leader>si', 'import', lein_import),
