@@ -1,8 +1,5 @@
 # encoding:utf-8
-""" iron.nvim (Interactive Repls Over Neovim).
-
-This is the actual plugin.
-"""
+""" iron.nvim (Interactive Repls Over Neovim).  """
 import logging
 import neovim
 import os

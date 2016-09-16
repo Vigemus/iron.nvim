@@ -50,6 +50,9 @@ def lein_load_facts(iron):
     data = "(load-facts '{})".format(get_current_ns(iron))
     return iron.send_to_repl((data, "clojure"))
 
+def midje_autotest(iron):
+    return iron.send_to_repl(("(autotest)", "clojure"))
+
 
 def lein_prompt_require(iron):
     try:
@@ -130,5 +133,3 @@ def lein_update_data_with_fn(iron):
 
         iron.set_register("s", ret)
         iron.call_cmd("""silent normal! mx%v%"sp`x""")
-
-
