@@ -57,6 +57,32 @@ def handler(buf, queue):
     def handler_impl():
         val = yield from queue.get()
         buf.append(format_payload(val))
-        
 
     return handler_impl
+
+# eval data
+def lein_prompt_eval(iron):
+    try:
+        cmd = iron.prompt("cmd")
+    except:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        ret = nrepl_eval(iron, cmd)
+        iron.call_cmd("echomsg '{}'".format(ret))
+
+def lein_update_data_with_fn(iron):
+    try:
+        cmd = iron.prompt("cmd")
+    except:
+        iron.call_cmd("echo 'Aborting'")
+    else:
+        data = get_current_parens(iron)
+        ret = nrepl_eval(iron, "({} {})".format(cmd, data))
+
+        if ret is None:
+            iron.call_cmd("echo 'Error with eval, aborting.'")
+            return
+
+        iron.set_register("s", ret)
+        iron.call_cmd("""silent normal! mx%v%"sp`x""")
+
