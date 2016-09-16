@@ -23,7 +23,7 @@ It also provides the following functions:
 
 Iron allows that you add some commonly used tasks as special mappings for each
 language. Currently, only clojure has several of those implemented. Those
-mappings allow you the get chunks of text from the currenty buffer and issue
+mappings allow you the get chunks of text from the current buffer and issue
 commands specifically for the current ft, such as calling a test for that
 file/namespace, importing a dependency, toggling debugging state or whatever
 makes sense for the language/repl.
@@ -52,8 +52,8 @@ send text to it: `ctr`.
 `ctr` operates on text objects, so you can `ctr3j`, `ctrap`, `0ctr$`, and any
 other combination of commands/mappings you may need to send text to the repl.
 
-It also have 'special' commands defined for each language. Please refer to
-`./rplugin/python3/iron/repls/` to see what is defined for each language.
+Iron has also set conveniently a mapping for calling back the previous command:
+`cp` (remember as call previous).
 
 Iron also can have special, language/repl based mappings as defined per-repl.
 Refer to Language Special Mappings above for more information.
