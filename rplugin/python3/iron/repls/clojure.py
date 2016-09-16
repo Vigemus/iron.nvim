@@ -51,6 +51,9 @@ def lein_load_facts(iron, send_fn):
     data = "(load-facts '{})".format(get_current_ns(iron))
     return send_fn((data, "clojure"))
 
+def midje_autotest(iron, send_fn):
+    return send_fn(("(autotest)", "clojure"))
+
 
 def lein_prompt_require(iron, send_fn):
     try:
@@ -161,6 +164,9 @@ repl = {
 
         ('<leader>sm', 'midje',
          lambda iron: lein_load_facts(iron, iron.send_to_repl)),
+
+        ('<leader>sa', 'midje-autotest',
+         lambda iron: midje_autotest(iron, iron.send_to_repl)),
 
         ('<leader>ep', 'prompt_eval', lein_prompt_eval),
 
