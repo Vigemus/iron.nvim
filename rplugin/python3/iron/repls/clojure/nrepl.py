@@ -26,22 +26,24 @@ def send(queue, data):
     queue.put({"in": data})
 
     for out in ch:
-        print(out)
         queue.put(out)
 
 
 def format_payload(payload):
     ls = []
     for k, v in payload.items():
-        ls.append("[{: <9}] => {}".format(k.upper(), v))
+        key = k.upper()
+        if key not in {"SESSION", "NS"}:
+            ls.append("[{: <9}] => {}".format(key, v).strip())
     return ls
 
 def handler(buf, queue):
 
     @asyncio.coroutine
     def handler_impl():
-        val = yield from queue.get()
-        buf.append(format_payload(val))
+        while not queue.empty():
+            val = queue.get_nowait()
+            buf.append(format_payload(val))
 
     return handler_impl
 
