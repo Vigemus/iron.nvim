@@ -26,29 +26,14 @@ def send(queue, data):
     queue.put({"in": data})
 
     for out in ch:
-        payload = {}
         print(out)
-
-        if 'out' in out:
-            payload['out'] = out['out']
-
-        if 'value' in out:
-            payload['value'] = out['value']
-
-        if 'err' in out:
-            payload['error'] = out['err']
-
-        if 'ex' in out:
-            payload['ex'] = out['ex']
-
-
-        queue.put(payload)
+        queue.put(out)
 
 
 def format_payload(payload):
     ls = []
     for k, v in payload.items():
-        ls.append("[{: <6}] => {}".format(k.upper(), v))
+        ls.append("[{: <9}] => {}".format(k.upper(), v))
     return ls
 
 def handler(buf, queue):
