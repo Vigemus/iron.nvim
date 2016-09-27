@@ -15,25 +15,25 @@ CONTENTS                                                            *iron-help*
 ===============================================================================
 Introduction                                                *iron-introduction*
 
-Iron is a helper plugin for managing and interacting live repls on neovim,
-using terminal buffers. Iron mostly interacts with plugins via stdin/stdout,
-with few exceptions.
+Iron is a helper plugin that allows you to manage and interact with live
+Read-Eval-Print-Loops (REPLs) directly from Neovim, through terminal buffers.
+Iron mostly interacts with plugins via stdin/stdout, with few exceptions.
 
 ===============================================================================
 Awesomeness                                                  *iron-awesomeness*
 
-Iron makes it very easy to focus on the code while interacting with the repl.
-It allows sending chunks of code directly into the repl whil still focusing
-on the code.
+Iron makes it very easy to focus on the code while interacting with the REPL.
+It allows you to, seamlessly, send chunks of code directly into the REPL,
+without disrupting your coding workflow.
 
-Much more can still be done using iron. All it takes is extending the repls
-providers to add new functionality (such as running tests, evaluating
-expressions, adding new keybindings and much more).
+A lot more can be accomplished through Iron. In order to add new functionality
+(such as running tests, evaluating expressions, adding new keybindings, etc),
+all it takes is to extend the REPL providers.
 
 ===============================================================================
 Languages                                                      *iron-languages*
 
-Currently, Iron has support for the following languages:
+Currently, Iron has support for the following programming languages:
 
   - clojure
     - lein
@@ -55,59 +55,59 @@ Currently, Iron has support for the following languages:
 ===============================================================================
 Commands                                                        *iron-commands*
 
-Iron provides the following commands for interacting with repls:
+Iron provides the following commands for interacting with REPLs:
 
 IronPromptCommand
-  Prompts the user for wich repl to open for current ft or prompts for ft if
-  not found.
+  Prompts the user for which REPL to open for the current file type (ft) or
+  prompts for ft if not found.
 
 IronPromptRepl
-  Prompts the user for the file type to open the repl accordingly.
+  Prompts the user for the file type to open the REPL accordingly.
 
 IronRepl
-  Open a repl for current file type.
+  Open a REPL for current file type.
 
 IronDumpReplDefinition
-  Dumps repl definitions on the log.
+  Dumps REPL definitions to the log.
 
 IronClearReplDefinition
-  Clears current fts repl definition.
+  Clears current file type's REPL definition.
 
 ===============================================================================
 Functions                                                      *iron-functions*
 
-Iron provides the following functions for interacting with repls:
+Iron provides the following functions for interacting with REPLs:
 
 IronSendSpecial
-  Used by languages provider to send chunks of text specially to repl, such as
+  Used by languages providers to send chunks of text to the REPL, such as
   imports based on current word.
 
 IronSendMotion
-  Sends an object of text to repl.
+  Sends an object of text to REPL.
 
 IronSend
-  Straightforward send to repl.
+  Straightforward send to REPL.
 
 ===============================================================================
 Customizing                                                  *iron-customizing*
 
-To change irons behavior, change the following variables:
+To change iron's behavior, change the following variables:
 
-g:iron_repl_open_cmd
-  Allows repl to be positioned differently.
+g:iron_REPL_open_cmd
+  Allows REPL to be positioned differently.
 
-g:iron_new_repl_hooks
-  List of functions to be executed after any repl is opened.
+g:iron_new_REPL_hooks
+  List of functions to be executed after any REPL is opened.
 
-g:iron_new_`ft`_repl_hooks
-  Provide specific functions to be executed after a repl of given ft is opened.
+g:iron_new_`ft`_REPL_hooks
+  Provide specific functions to be executed after a REPL of given ft is opened.
 
 ===============================================================================
 Mappings                                                        *iron-mappings*
 
 ~all languages~
 ctr
-  send a chunk of text to repl. Works with motions.
+  send a chunk of text to REPL. Works with motions.
 
 ~clojure~
 <leader>so
@@ -119,39 +119,39 @@ ctr
   i.e. [java.time LocalDate] sends (import '[java.time LocalDate])
 
 <leader>sr
-  Require current file into the repl
+  Require current file into the REPL.
 
 <leader>sR
-  Require current file into the repl, prompting for an alias.
+  Require current file into the REPL, prompting for an alias.
 
 <leader>s.
-  Prompt namespace and require it into the repl
+  Prompt namespace and require it into the REPL.
 
 <leader>s/
-  Prompt namespace and alias, requiring it into the repl
+  Prompt namespace and alias, requiring it into the REPL.
 
 <leader>ss
-  Send outermost parens group into the repl
+  Send outermost parens group into the REPL.
 
 <leader>ep
-  Evaluate a command into the repl, echoing the result [experimental]
+  Evaluate a command into the REPL, echoing the result. [experimental]
 
 <leader>ee
-  Evaluate a command into the repl, passing the data under the cursor and
+  Evaluate a command into the REPL, passing the data under the cursor and
   updating it. [experimental]
 
 ~scala~
 <leader>sa
-  Import all for namespace below
+  Import all for namespace below.
 
 <leader>si
-  Import namespace below
+  Import namespace below.
 
 <leader>sb
-  Send current braces block to repl linewise
+  Send current braces block to REPL linewise.
 
 <leader>sl
-  Send current line to repl
+  Send current line to REPL.
 
 
 ===============================================================================
