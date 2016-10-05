@@ -10,6 +10,7 @@ import iron.repls.python
 import iron.repls.node
 import iron.repls.ruby
 import iron.repls.scala
+import iron.repls.sh
 import iron.repls.r
 import iron.repls.tcl
 
@@ -33,4 +34,8 @@ available_repls = [
     scala.scala,
     r.repl,
     tcl.repl,
+    sh.zsh_zsh,
+    sh.zsh_sh,
+    sh.bash_sh,
+    sh.sh_sh
 ]
