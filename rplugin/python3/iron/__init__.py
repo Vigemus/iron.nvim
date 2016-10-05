@@ -96,7 +96,7 @@ class Iron(BaseIron):
         ft = args[0]
         with_placement = bool(args[1]) if (len(args) > 2) else True
 
-        repl = self.get_repl_for_ft(ft, with_placement)
+        repl = self.get_repl_for_ft(ft)
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
@@ -105,7 +105,7 @@ class Iron(BaseIron):
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
-        self.open_repl(repl)
+        self.open_repl(repl, with_placement)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
