@@ -94,7 +94,7 @@ class Iron(BaseIron):
     @neovim.function("IronStartRepl")
     def iron_repl(self, args):
         ft = args[0]
-        repl = self.get_repl_for_ft()
+        repl = self.get_repl_for_ft(ft)
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
