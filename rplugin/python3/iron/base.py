@@ -69,13 +69,16 @@ class BaseIron(object):
         return self.__nvim.current.buffer.options["ft"]
 
     def get_repl(self, ft):
-        return self.__repl.get(ft)
+        return self.__repl.get(ft, {})
 
     def get_current_repl(self):
         return self.get_repl(self.get_ft())
 
     def get_current_bindings(self):
-        return self.get_current_repl().get('fns', {})
+        bindings = self.__repl.get('fns', {})
+        bindings.update(self.get_current_repl().get('fns', {}))
+
+        return bindings
 
     def send_data(self, data, repl=None):
         repl = repl or self.get_current_repl()
