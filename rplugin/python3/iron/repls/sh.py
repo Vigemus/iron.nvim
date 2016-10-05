@@ -10,7 +10,7 @@ def prompt_cmd(iron):
     else:
         return iron.send_to_repl((cmd, "sh"))
 
-mappings = [
+global_mappings = [
     ('<leader>sx', 'prompt_cmd', prompt_cmd),
 ]
 
@@ -18,7 +18,7 @@ zsh_sh = {
     'command': 'zsh',
     'language': 'sh',
     'detect': detect_fn('zsh'),
-    'mappings': mappings,
+    'global_mappings': global_mappings,
 }
 
 zsh_zsh = {
@@ -31,12 +31,12 @@ bash_sh = {
     'command': 'bash',
     'language': 'sh',
     'detect': detect_fn('bash'),
-    'mappings': mappings,
+    'global_mappings': global_mappings,
 }
 
 sh_sh = {
     'command': 'sh',
     'language': 'sh',
     'detect': detect_fn('sh'),
-    'mappings': mappings,
+    'global_mappings': global_mappings,
 }

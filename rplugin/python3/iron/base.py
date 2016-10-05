@@ -177,6 +177,10 @@ class BaseIron(object):
         self.__repl[ft]['mapped_keys'] = []
         add_mappings = self.__repl[ft]['mapped_keys'].append
 
+        self.__repl['fns'] = self.__repl.get('fns', {})
+        self.__repl['mapped_keys'] = []
+        add_global_mappings = self.__repl['mapped_keys'].append
+
         logger.info("Mapping special functions for {}".format(ft))
         logger.debug("Available mappings are: {}".format(repl.get("mappings")))
 
@@ -188,6 +192,14 @@ class BaseIron(object):
             self.call_cmd(base_cmd.format(k, n))
             self.__repl[ft]['fns'][n] = c
             add_mappings(k)
+
+        for k, n, c in repl.get('global_mappings', []):
+            logger.info("Mapping '{}' to function '{}'".format(k, n))
+
+            self.call_cmd(base_cmd.format(k, n))
+            self.__repl['fns'][n] = c
+            add_global_mappings(k)
+
 
     def call_hooks(self, repl):
         curr_buf = self.__nvim.current.buffer.number
