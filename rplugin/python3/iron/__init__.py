@@ -21,8 +21,8 @@ class Iron(BaseIron):
         super().__init__(nvim)
 
     # Actual Fns
-    def open_repl(self, repl):
-        repl_id = self.termopen(repl['command'])
+    def open_repl(self, repl, with_placement=True):
+        repl_id = self.termopen(repl['command'], with_placement)
 
         self.set_mappings(repl)
         self.call_hooks(repl)
