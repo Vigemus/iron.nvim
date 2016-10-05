@@ -94,7 +94,7 @@ class Iron(BaseIron):
     @neovim.function("IronStartRepl")
     def iron_repl(self, args):
         ft = args[0]
-        with_placement = args[1] if (len(args) > 2) else True
+        with_placement = bool(args[1]) if (len(args) > 2) else True
 
         repl = self.get_repl_for_ft(ft, with_placement)
 
