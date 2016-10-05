@@ -52,12 +52,15 @@ class BaseIron(object):
     def has_repl_template(self, ft):
         return bool(self._list_repl_templates(ft))
 
-    def termopen(self, cmd):
-        repl_open_cmd = self.get_variable('iron_repl_open_cmd', 'botright spl')
-        self.call_cmd(
-            "{} | enew | exec bufwinnr(bufnr('$')).'wincmd w'".format(
-                repl_open_cmd
-            ))
+    def termopen(self, cmd, with_placement=True):
+        if with_placement:
+            repl_open_cmd = self.get_variable(
+                'iron_repl_open_cmd', 'botright spl'
+            )
+            self.call_cmd(
+                "{} | enew | exec bufwinnr(bufnr('$')).'wincmd w'".format(
+                    repl_open_cmd
+                ))
 
         return self.call('termopen', cmd)
 
