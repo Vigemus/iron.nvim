@@ -91,9 +91,10 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
 
-    @neovim.function("IronRepl")
+    @neovim.function("IronStartRepl")
     def iron_repl(self, args):
-        repl = self.get_repl_for_ft(args[0])
+        ft = args[0]
+        repl = self.get_repl_for_ft()
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
