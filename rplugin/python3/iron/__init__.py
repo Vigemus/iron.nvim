@@ -21,15 +21,6 @@ class Iron(BaseIron):
         super().__init__(nvim)
 
     # Actual Fns
-    def open_repl(self, template, with_placement=True):
-        repl_id = self.termopen(template['command'], with_placement)
-
-        self.set_mappings(template)
-        self.call_hooks(template)
-        self.set_repl_metadata(template, repl_id)
-
-        return repl_id
-
     def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
         if "\n" in data and repl:
@@ -58,7 +49,7 @@ class Iron(BaseIron):
             logger.warning("User aborted.")
         else:
             repl['command'] = command
-            self.open_repl(template)
+            self.open_repl(template, command)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
@@ -99,7 +90,7 @@ class Iron(BaseIron):
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
-        self.open_repl(template, with_placement)
+        self.open_repl(template, with_placement=with_placement)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
