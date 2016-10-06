@@ -90,6 +90,8 @@ class BaseIron(object):
     def send_data(self, data, repl=None):
         ft = self.get_ft()
         repl = repl or self.get_repl(ft)
+        ft = repl['ft']
+
         repl_id = repl['instances'].get(self.get_pwd())
 
         if repl_id is None:
