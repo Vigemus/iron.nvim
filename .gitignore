@@ -1,2 +1,3 @@
 *.py[eco]
 __pycache__/
+Makefile

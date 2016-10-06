@@ -95,7 +95,7 @@ class Iron(BaseIron):
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
             return
-        elif not repl:
+        elif not template:
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
