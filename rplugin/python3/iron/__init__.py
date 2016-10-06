@@ -49,7 +49,7 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
         else:
-            repl['command'] = command
+            template['command'] = command
             self.open_repl(template, command)
 
     @neovim.command("IronPromptRepl")
@@ -118,7 +118,6 @@ class Iron(BaseIron):
     @neovim.function("IronSend")
     def send_to_repl(self, args):
         repl = self.get_repl(args[1]) if len(args) > 1 else None
-        repl = repl or self.get_current_repl()
 
         if not repl:
             return None

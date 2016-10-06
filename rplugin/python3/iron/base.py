@@ -248,13 +248,14 @@ class BaseIron(object):
 
 
     def build_from_template(self, template, command, with_placement):
-        ft = template['language']
         repl_definition = {
-            'ft': ft,
+            'ft': template['language'],
             'fns': {},
             'mapped_keys': [],
             'instances': {},
         }
+        if 'multiline' in template:
+            repl_definition['multiline'] = template['multiline']
 
         return self.set_mappings(template, repl_definition)
 
