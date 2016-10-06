@@ -90,13 +90,12 @@ class BaseIron(object):
     def send_data(self, data, repl=None):
         ft = self.get_ft()
         repl = repl or self.get_repl(ft)
+        repl_id = repl['instances'].get(self.get_pwd())
 
-        if repl is None:
+        if repl_id is None:
             repl_id = self.__nvim.current.tabpage.vars[
                 "iron_{}_repl_id".format(ft)
             ]
-        else:
-            repl_id = repl['instances'][self.get_pwd()]
 
         logger.info('Sending data to repl ({}):\n{}'.format(repl_id, data))
 
@@ -212,6 +211,7 @@ class BaseIron(object):
 
 
     def call_hooks(self, repl_definition):
+        ft = repl_definition['ft']
         curr_buf = self.__nvim.current.buffer.number
 
         hooks = filter(None, (
