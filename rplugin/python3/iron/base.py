@@ -25,6 +25,10 @@ class BaseIron(object):
     def __init__(self, nvim):
         self.__nvim = nvim
         self.__repl = {}
+        self.global_mappings = {
+            "fns": {},
+            "mapped_keys": [],
+        }
 
     def _list_repl_templates(self, ft):
         return list(filter(
@@ -52,16 +56,16 @@ class BaseIron(object):
     def has_repl_template(self, ft):
         return bool(self._list_repl_templates(ft))
 
+    def term_placement(self):
+        self.call_cmd(
+            "{} | enew | exec bufwinnr(bufnr('$')).'wincmd w'".format(
+                self.get_variable('iron_repl_open_cmd', 'botright spl')
+            ))
+
+
     def termopen(self, cmd, with_placement=True):
         if with_placement:
-            repl_open_cmd = self.get_variable(
-                'iron_repl_open_cmd', 'botright spl'
-            )
-            self.call_cmd(
-                "{} | enew | exec bufwinnr(bufnr('$')).'wincmd w'".format(
-                    repl_open_cmd
-                ))
-
+            self.term_placement()
         return self.call('termopen', cmd)
 
 
@@ -75,7 +79,7 @@ class BaseIron(object):
         return self.get_repl(self.get_ft())
 
     def get_current_bindings(self):
-        bindings = self.__repl.get('fns', {})
+        bindings = self.global_mappings['fns']
         bindings.update(self.get_current_repl().get('fns', {}))
 
         return bindings
@@ -97,15 +101,6 @@ class BaseIron(object):
             return None
 
         return repl
-
-    def set_repl_metadata(self, template, repl_id):
-        ft = template['language']
-        logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
-        self.__repl[ft]['repl_id'] = repl_id
-        self.set_variable(
-            "iron_{}_repl".format(ft), self.__nvim.current.buffer.number
-        )
-
 
     def clear_repl_for_ft(self, ft):
         logger.debug("Clearing repl definitions for {}".format(ft))
@@ -171,15 +166,8 @@ class BaseIron(object):
         logger.warning(self.__repl)
         logger.warning("#--   End of repl def dump   --#")
 
-    def set_mappings(self, template):
+    def set_mappings(self, template, repl_definition):
         ft = template['language']
-        self.__repl[ft]['fns'] = {}
-        self.__repl[ft]['mapped_keys'] = []
-        add_mappings = self.__repl[ft]['mapped_keys'].append
-
-        self.__repl['fns'] = self.__repl.get('fns', {})
-        self.__repl['mapped_keys'] = []
-        add_global_mappings = self.__repl['mapped_keys'].append
 
         logger.info("Mapping special functions for {}".format(ft))
         logger.debug(
@@ -187,13 +175,15 @@ class BaseIron(object):
         )
 
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
+        map_keys = lambda key, name: self.call_cmd(base_cmd.format(key, name))
 
         for k, n, c in template.get('mappings', []):
             logger.info("Mapping '{}' to function '{}'".format(k, n))
 
-            self.call_cmd(base_cmd.format(k, n))
-            self.__repl[ft]['fns'][n] = c
-            add_mappings(k)
+            map_keys(k, n)
+
+            repl_definition['fns'][n] = c
+            repl_definition['mapped_keys'].append(k)
 
         logger.info("Mapping global functions for {}".format(ft))
         logger.debug(
@@ -203,20 +193,73 @@ class BaseIron(object):
         for k, n, c in template.get('global_mappings', []):
             logger.info("Mapping '{}' to function '{}'".format(k, n))
 
-            self.call_cmd(base_cmd.format(k, n))
-            self.__repl['fns'][n] = c
-            add_global_mappings(k)
+            map_keys(k, n)
+
+            self.global_mappings['fns'][n] = c
+            self.global_mappings['mapped_keys'].append(k)
+
+        return repl_definition
 
 
-    def call_hooks(self, template):
+    def call_hooks(self, ft):
         curr_buf = self.__nvim.current.buffer.number
-        ft = template['language']
 
         hooks = filter(None, (
             self.get_list_variable("iron_new_repl_hooks") +
             self.get_list_variable('iron_new_{}_repl_hooks'.format(ft))
         ))
 
-        logger.info("Got this hook function list: {}".format(hooks))
+        logger.info("Got this list of hook functions: {}".format(hooks))
 
         [self.call(i, curr_buf) for i in hooks]
+
+    def set_repl_metadata(self, repl_definition, repl_id):
+        ft = repl_definition['ft']
+        pwd = self.__nvim.funcs.getcwd(-1, 0)
+
+        logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
+        repl_definition['instances'][pwd] = repl_id
+
+        self.__nvim.current.tabpage.vars[
+            "iron_{}_repl".format(ft)
+        ] = self.__nvim.current.buffer.number
+
+        return repl_definition
+
+
+    def build_from_template(self, template, command, with_placement=True):
+        repl_id = self.termopen(command, with_placement)
+        ft = template['language']
+
+        self.call_hooks(ft)
+
+        repl_definition = {
+            'ft': ft,
+            'fns': {},
+            'mapped_keys': [],
+            'instances': {},
+        }
+
+        repl_definition = self.set_mappings(template, repl_definition)
+        self.__repl[ft] = self.set_repl_metadata(repl_definition, repl_id)
+
+
+    def open_repl(self, template, command=None, with_placement=True):
+        ft = template['language']
+        pwd = self.__nvim.funcs.getcwd(-1, 0)
+        command = command or template['command']
+
+        if not self.has_repl_defined(ft):
+            self.build_from_template(template, command, with_placement)
+
+        elif not pwd in self.__repl[ft]['instances']:
+            repl_id = self.termopen(command, with_placement)
+            self.set_repl_metadata(self.__repl[ft], repl_id)
+
+        elif self.__nvim.funcs.bufwinnr(
+                self.__repl[ft]['instances'][pwd]) == -1:
+
+            if with_placement:
+                self.term_placement()
+
+            self.call_cmd("b {}".format(self.__repl[ft]['instances'][pwd]))
