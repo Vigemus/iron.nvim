@@ -67,13 +67,7 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
         else:
-            repl = self.get_repl_for_ft(ft)
-
-            if not repl:
-                self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
-                return
-
-            self.open_repl(repl)
+            self.iron_repl([ft])
 
     @neovim.command("IronRepl")
     def create_repl(self):
