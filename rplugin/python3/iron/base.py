@@ -88,21 +88,18 @@ class BaseIron(object):
 
         self.call('jobsend', repl["repl_id"], data)
 
-    def get_repl_for_ft(self, ft):
-        if ft not in self.__repl:
-            logger.debug("Getting repl definition for {}".format(ft))
-            repl = self._get_repl_template(ft)
+    def get_template_for_ft(self, ft):
+        logger.debug("Getting repl definition for {}".format(ft))
+        repl = self._get_repl_template(ft)
 
-            if not repl:
-                logger.debug("echo 'No repl for {}'".format(ft))
-                return None
+        if not repl:
+            logger.debug("echo 'No repl for {}'".format(ft))
+            return None
 
-            self.__repl[ft] = repl
+        return repl
 
-        return self.__repl[ft]
-
-    def set_repl_id(self, repl, repl_id):
-        ft = repl['language']
+    def set_repl_metadata(self, template, repl_id):
+        ft = template['language']
         logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
         self.__repl[ft]['repl_id'] = repl_id
         self.set_variable(
@@ -174,8 +171,8 @@ class BaseIron(object):
         logger.warning(self.__repl)
         logger.warning("#--   End of repl def dump   --#")
 
-    def set_mappings(self, repl):
-        ft = repl['language']
+    def set_mappings(self, template):
+        ft = template['language']
         self.__repl[ft]['fns'] = {}
         self.__repl[ft]['mapped_keys'] = []
         add_mappings = self.__repl[ft]['mapped_keys'].append
@@ -185,18 +182,25 @@ class BaseIron(object):
         add_global_mappings = self.__repl['mapped_keys'].append
 
         logger.info("Mapping special functions for {}".format(ft))
-        logger.debug("Available mappings are: {}".format(repl.get("mappings")))
+        logger.debug(
+            "Available mappings are: {}".format(template.get("mappings"))
+        )
 
         base_cmd = 'nnoremap <silent> {} :call IronSendSpecial("{}")<CR>'
 
-        for k, n, c in repl.get('mappings', []):
+        for k, n, c in template.get('mappings', []):
             logger.info("Mapping '{}' to function '{}'".format(k, n))
 
             self.call_cmd(base_cmd.format(k, n))
             self.__repl[ft]['fns'][n] = c
             add_mappings(k)
 
-        for k, n, c in repl.get('global_mappings', []):
+        logger.info("Mapping global functions for {}".format(ft))
+        logger.debug(
+            "Available mappings are: {}".format(template.get("global_mappings"))
+        )
+
+        for k, n, c in template.get('global_mappings', []):
             logger.info("Mapping '{}' to function '{}'".format(k, n))
 
             self.call_cmd(base_cmd.format(k, n))
@@ -204,9 +208,9 @@ class BaseIron(object):
             add_global_mappings(k)
 
 
-    def call_hooks(self, repl):
+    def call_hooks(self, template):
         curr_buf = self.__nvim.current.buffer.number
-        ft = repl['language']
+        ft = template['language']
 
         hooks = filter(None, (
             self.get_list_variable("iron_new_repl_hooks") +
