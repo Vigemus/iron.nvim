@@ -117,7 +117,12 @@ class Iron(BaseIron):
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
-        repl = self.get_repl(args[1]) if len(args) > 1 else None
+        repl = (
+            self.get_repl(args[1])
+            if len(args) > 1
+            else None
+            or self.get_repl(self.get_ft())
+        )
 
         logger.debug("Supplied data: {}".format(args[0]))
         logger.info("Sending data to repl -> {}".format(repl))
