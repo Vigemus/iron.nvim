@@ -258,7 +258,7 @@ class BaseIron(object):
 
     def open_repl(self, template, **kwargs):
         ft = template['language']
-        pwd = self.__nvim.funcs.getcwd(-1, 0)
+        pwd = self.get_pwd()
         command = kwargs.get('command', template['command'])
         with_placement = kwargs.get('with_placement', True)
         detached = kwargs.get('detached', False)
