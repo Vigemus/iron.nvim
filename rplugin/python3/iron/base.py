@@ -23,7 +23,7 @@ class EmptyPromptError(Exception):
 class BaseIron(object):
 
     def __init__(self, nvim):
-        self.__nvim = nvim
+        self.nvim = nvim
         self.__repl = {}
         self.global_mappings = {
             "fns": {},
@@ -70,10 +70,10 @@ class BaseIron(object):
 
 
     def get_ft(self):
-        return self.__nvim.current.buffer.options["ft"]
+        return self.nvim.current.buffer.options["ft"]
 
     def get_pwd(self):
-        return self.__nvim.funcs.getcwd(-1, 0)
+        return self.nvim.funcs.getcwd(-1, 0)
 
     def get_repl(self, ft):
         return self.__repl.get(ft, {})
@@ -95,7 +95,7 @@ class BaseIron(object):
         if repl_id is None:
             key = "iron_{}_repl_id".format(ft)
             logger.info('Finding target repl via `{}`'.format(key))
-            repl_id = self.__nvim.current.tabpage.vars[key]
+            repl_id = self.nvim.current.tabpage.vars[key]
 
         logger.info('Sending data to repl ({}):\n{}'.format(repl_id, data))
 
@@ -121,33 +121,33 @@ class BaseIron(object):
 
     def call_cmd(self, cmd):
         logger.debug("Calling cmd {}".format(cmd))
-        return self.__nvim.command_output(cmd)
+        return self.nvim.command_output(cmd)
 
     def call(self, cmd, *args):
         logger.debug("Calling function {} with args {}".format(cmd, args))
-        return self.__nvim.call(cmd, *args)
+        return self.nvim.call(cmd, *args)
 
     def register(self, reg):
         logger.debug("Getting register {}".format(reg))
-        return self.__nvim.funcs.getreg(reg)
+        return self.nvim.funcs.getreg(reg)
 
     def set_register(self, reg, data):
         logger.info("Setting register '{}' with value '{}'".format(reg, data))
-        return self.__nvim.funcs.setreg(reg, data)
+        return self.nvim.funcs.setreg(reg, data)
 
     def set_variable(self, var, data):
         logger.info("Setting variable '{}' with value '{}'".format(var, data))
-        self.__nvim.vars[var] = data
+        self.nvim.vars[var] = data
 
     def unset_variable(self, var):
         logger.info("Unsetting variable '{}'".format(var))
-        del self.__nvim.vars[var]
+        del self.nvim.vars[var]
 
     def has_variable(self, var):
-        return var in self.__nvim.vars
+        return var in self.nvim.vars
 
     def get_variable(self, var, default=""):
-        return self.__nvim.vars.get(var) or default
+        return self.nvim.vars.get(var) or default
 
     def get_list_variable(self, var):
         v = self.get_variable(var)
@@ -212,7 +212,7 @@ class BaseIron(object):
 
     def call_hooks(self, repl_definition):
         ft = repl_definition['ft']
-        curr_buf = self.__nvim.current.buffer.number
+        curr_buf = self.nvim.current.buffer.number
 
         hooks = list(filter(None, (
             self.get_list_variable("iron_new_repl_hooks") +
@@ -228,7 +228,7 @@ class BaseIron(object):
 
     def bind_repl(self, repl_definition, repl_id):
         ft = repl_definition['ft']
-        pwd = self.__nvim.funcs.getcwd(-1, 0)
+        pwd = self.nvim.funcs.getcwd(-1, 0)
 
         logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
         repl_definition['instances'][pwd] = repl_id
@@ -237,7 +237,7 @@ class BaseIron(object):
 
     def post_process(self, repl_definition, repl_id, detached=False):
         if detached:
-            self.__nvim.current.tabpage.vars[
+            self.nvim.current.tabpage.vars[
                 "iron_{}_repl_id".format(repl_definition['ft'])
             ] = repl_id
         else:
@@ -266,6 +266,8 @@ class BaseIron(object):
         command = kwargs.get('command', template['command'])
         with_placement = kwargs.get('with_placement', True)
         detached = kwargs.get('detached', False)
+        bufwinnr = self.nvim.funcs.bufwinnr
+        bufname = self.nvim.funcs.bufname
 
         if not self.has_repl_defined(ft):
             repl_id = self.termopen(command, with_placement)
@@ -283,8 +285,8 @@ class BaseIron(object):
                 self.__repl[ft], repl_id, detached
             )
 
-        elif self.__nvim.funcs.bufwinnr(
-                self.__repl[ft]['instances'][pwd]) == -1:
+        elif (bufwinnr(self.__repl[ft]['instances'][pwd]) != -1 and
+              bufname(self.__repl[ft]['instances'][pwd]) != ""):
 
             if with_placement:
                 self.term_placement()
