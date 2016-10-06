@@ -72,6 +72,9 @@ class BaseIron(object):
     def get_ft(self):
         return self.__nvim.current.buffer.options["ft"]
 
+    def get_pwd(self):
+        return self.__nvim.funcs.getcwd(-1, 0)
+
     def get_repl(self, ft):
         return self.__repl.get(ft, {})
 
@@ -85,12 +88,19 @@ class BaseIron(object):
         return bindings
 
     def send_data(self, data, repl=None):
-        repl = repl or self.get_current_repl()
-        logger.info('Sending data to repl ({}):\n{}'.format(
-            repl['repl_id'], data
-        ))
+        ft = self.get_ft()
+        repl = repl or self.get_repl(ft)
 
-        self.call('jobsend', repl["repl_id"], data)
+        if repl is None:
+            repl_id = self.__nvim.current.tabpage.vars[
+                "iron_{}_repl_id".format(ft)
+            ]
+        else:
+            repl_id = repl['instances'][self.get_pwd()]
+
+        logger.info('Sending data to repl ({}):\n{}'.format(repl_id, data))
+
+        self.call('jobsend', repl_id, data)
 
     def get_template_for_ft(self, ft):
         logger.debug("Getting repl definition for {}".format(ft))
@@ -201,7 +211,7 @@ class BaseIron(object):
         return repl_definition
 
 
-    def call_hooks(self, ft):
+    def call_hooks(self, repl_definition):
         curr_buf = self.__nvim.current.buffer.number
 
         hooks = filter(None, (
@@ -211,28 +221,32 @@ class BaseIron(object):
 
         logger.info("Got this list of hook functions: {}".format(hooks))
 
-        [self.call(i, curr_buf) for i in hooks]
+        [self.call(i, curr_buf, repl_definition) for i in hooks]
 
-    def set_repl_metadata(self, repl_definition, repl_id):
+    def bind_repl(self, repl_definition, repl_id):
         ft = repl_definition['ft']
         pwd = self.__nvim.funcs.getcwd(-1, 0)
 
         logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
         repl_definition['instances'][pwd] = repl_id
 
-        self.__nvim.current.tabpage.vars[
-            "iron_{}_repl".format(ft)
-        ] = self.__nvim.current.buffer.number
+        return repl_definition
+
+    def post_process(self, repl_definition, repl_id, detached=False):
+        if detached:
+            self.__nvim.current.tabpage.vars[
+                "iron_{}_repl_id".format(repl_definition['ft'])
+            ] = repl_id
+        else:
+            repl_definition = self.bind_repl(repl_definition, repl_id)
+
+        self.call_hooks(repl_definition)
 
         return repl_definition
 
 
-    def build_from_template(self, template, command, with_placement=True):
-        repl_id = self.termopen(command, with_placement)
+    def build_from_template(self, template, command, with_placement):
         ft = template['language']
-
-        self.call_hooks(ft)
-
         repl_definition = {
             'ft': ft,
             'fns': {},
@@ -240,21 +254,30 @@ class BaseIron(object):
             'instances': {},
         }
 
-        repl_definition = self.set_mappings(template, repl_definition)
-        self.__repl[ft] = self.set_repl_metadata(repl_definition, repl_id)
+        return self.set_mappings(template, repl_definition)
 
-
-    def open_repl(self, template, command=None, with_placement=True):
+    def open_repl(self, template, **kwargs):
         ft = template['language']
         pwd = self.__nvim.funcs.getcwd(-1, 0)
-        command = command or template['command']
+        command = kwargs.get('command', template['command'])
+        with_placement = kwargs.get('with_placement', True)
+        detached = kwargs.get('detached', False)
 
         if not self.has_repl_defined(ft):
-            self.build_from_template(template, command, with_placement)
+            repl_id = self.termopen(command, with_placement)
+            repl_definition = self.build_from_template(
+                template, command, with_placement
+            )
+            self.__repl[ft] = self.post_process(
+                repl_definition, repl_id, detached
+            )
+
 
         elif not pwd in self.__repl[ft]['instances']:
             repl_id = self.termopen(command, with_placement)
-            self.set_repl_metadata(self.__repl[ft], repl_id)
+            self.__repl[ft] = self.post_process(
+                self.__repl[ft], repl_id, detached
+            )
 
         elif self.__nvim.funcs.bufwinnr(
                 self.__repl[ft]['instances'][pwd]) == -1:
@@ -263,3 +286,4 @@ class BaseIron(object):
                 self.term_placement()
 
             self.call_cmd("b {}".format(self.__repl[ft]['instances'][pwd]))
+

@@ -20,6 +20,7 @@ class Iron(BaseIron):
     def __init__(self, nvim):
         super().__init__(nvim)
 
+
     # Actual Fns
     def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
@@ -79,7 +80,11 @@ class Iron(BaseIron):
     @neovim.function("IronStartRepl")
     def iron_repl(self, args):
         ft = args[0]
-        with_placement = bool(args[1]) if (len(args) > 1) else True
+        kwargs = {
+            "with_placement": bool(args[1]) if len(args) > 1 else True,
+            "detached": bool(args[2]) if len(args) > 2 else False
+        }
+
 
         template = self.get_template_for_ft(ft)
 
@@ -90,7 +95,7 @@ class Iron(BaseIron):
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
-        self.open_repl(template, with_placement=with_placement)
+        self.open_repl(template, **kwargs)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
