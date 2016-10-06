@@ -21,12 +21,12 @@ class Iron(BaseIron):
         super().__init__(nvim)
 
     # Actual Fns
-    def open_repl(self, repl, with_placement=True):
-        repl_id = self.termopen(repl['command'], with_placement)
+    def open_repl(self, template, with_placement=True):
+        repl_id = self.termopen(template['command'], with_placement)
 
-        self.set_mappings(repl)
-        self.call_hooks(repl)
-        self.set_repl_id(repl, repl_id)
+        self.set_mappings(template)
+        self.call_hooks(template)
+        self.set_repl_metadata(template, repl_id)
 
         return repl_id
 
@@ -53,12 +53,12 @@ class Iron(BaseIron):
     def prompt_command(self):
         try:
             command = self.prompt("command")
-            repl = self.get_repl_for_ft(self.get_or_prompt_ft())
+            template = self.get_template_for_ft(self.get_or_prompt_ft())
         except:
             logger.warning("User aborted.")
         else:
             repl['command'] = command
-            self.open_repl(repl)
+            self.open_repl(template)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
@@ -96,7 +96,7 @@ class Iron(BaseIron):
         ft = args[0]
         with_placement = bool(args[1]) if (len(args) > 1) else True
 
-        repl = self.get_repl_for_ft(ft)
+        template = self.get_template_for_ft(ft)
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
@@ -105,7 +105,7 @@ class Iron(BaseIron):
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
-        self.open_repl(repl, with_placement)
+        self.open_repl(template, with_placement)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
