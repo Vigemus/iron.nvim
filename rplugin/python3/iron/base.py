@@ -87,9 +87,7 @@ class BaseIron(object):
 
         return bindings
 
-    def send_data(self, data, repl=None):
-        ft = self.get_ft()
-        repl = repl or self.get_repl(ft)
+    def send_data(self, data, repl):
         ft = repl['ft']
 
         repl_id = repl['instances'].get(self.get_pwd())
