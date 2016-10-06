@@ -223,7 +223,7 @@ class BaseIron(object):
 
         logger.info("Got this list of hook functions: {}".format(hooks))
 
-        payload = repl_definition
+        payload = dict.copy(repl_definition)
         del payload['fns']
 
         [self.call(i, curr_buf, payload) for i in hooks]
