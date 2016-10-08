@@ -50,7 +50,7 @@ class Iron(BaseIron):
             logger.warning("User aborted.")
         else:
             template['command'] = command
-            self.open_repl(template, command)
+            self.open_repl(template, command=command)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
