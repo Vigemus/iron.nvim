@@ -212,7 +212,6 @@ class BaseIron(object):
 
     def call_hooks(self, repl_definition):
         ft = repl_definition['ft']
-        curr_buf = self.nvim.current.buffer.number
 
         hooks = list(filter(None, (
             self.get_list_variable("iron_new_repl_hooks") +
@@ -224,14 +223,17 @@ class BaseIron(object):
         payload = dict.copy(repl_definition)
         del payload['fns']
 
-        [self.call(i, curr_buf, payload) for i in hooks]
+        [self.call(i, payload) for i in hooks]
 
     def bind_repl(self, repl_definition, repl_id):
         ft = repl_definition['ft']
         pwd = self.nvim.funcs.getcwd(-1, 0)
 
         logger.info("Storing repl id {} for ft {}".format(repl_id, ft))
-        repl_definition['instances'][pwd] = repl_id
+        repl_definition['instances'][pwd] = {
+            'repl_id': repl_id,
+            'buf_id': self.nvim.current.buffer.number
+        }
 
         return repl_definition
 
@@ -285,11 +287,12 @@ class BaseIron(object):
                 self.__repl[ft], repl_id, detached
             )
 
-        elif (bufwinnr(self.__repl[ft]['instances'][pwd]) != -1 and
-              bufname(self.__repl[ft]['instances'][pwd]) != ""):
+        else:
+            buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
+            if (bufwinnr(buf_id) != -1 and bufname(buf_id) != ""):
+                if with_placement:
+                    self.term_placement()
 
-            if with_placement:
-                self.term_placement()
+                self.call_cmd("b {}".format(buf_id))
 
-            self.call_cmd("b {}".format(self.__repl[ft]['instances'][pwd]))
         logger.debug("Done! REPL for {} started".format(ft))
