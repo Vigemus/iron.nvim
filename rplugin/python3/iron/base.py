@@ -276,6 +276,7 @@ class BaseIron(object):
         bufname = self.nvim.funcs.bufname
 
         if not self.has_repl_defined(ft):
+            logger.debug("No REPL started for ft {}. Starting".format(ft))
             repl_id = self.termopen(command, with_placement)
             repl_definition = self.build_from_template(
                 template, command, with_placement
@@ -286,6 +287,9 @@ class BaseIron(object):
 
 
         elif not pwd in self.__repl[ft]['instances']:
+            logger.debug("No REPL for ft {} on path '{}'. Creating".format(
+                ft, pwd
+            ))
             repl_id = self.termopen(command, with_placement)
             self.__repl[ft] = self.post_process(
                 self.__repl[ft], repl_id, detached
@@ -293,11 +297,20 @@ class BaseIron(object):
 
         else:
             buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
+            logger.debug(
+                "REPL for ft {} exists on path {}. Buffer ID is {}".format(
+                    ft, pwd, buf_id
+                ))
+
             if (bufwinnr(buf_id) != -1 and bufname(buf_id) != ""):
                 if with_placement:
                     self.term_placement()
 
                 self.call_cmd("b {}".format(buf_id))
+            else:
+                repl_id = self.termopen(command, with_placement)
+                self.__repl[ft] = self.post_process(
+                    self.__repl[ft], repl_id, detached
+                )
 
-        logger.debug("Done! REPL for {} started".format(ft))
-        self.dump_repl_dict()
+        logger.debug("Done! REPL for {} running on {}".format(ft, pwd))
