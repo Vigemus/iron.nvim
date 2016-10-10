@@ -300,3 +300,4 @@ class BaseIron(object):
                 self.call_cmd("b {}".format(buf_id))
 
         logger.debug("Done! REPL for {} started".format(ft))
+        self.dump_repl_dict()
