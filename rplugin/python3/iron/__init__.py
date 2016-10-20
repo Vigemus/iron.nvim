@@ -89,12 +89,12 @@ class Iron(BaseIron):
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
-            return -1
+            return
         elif not template:
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
-            return -1
+            return
 
-        return self.open_repl(template, **kwargs)
+        self.open_repl(template, **kwargs)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
