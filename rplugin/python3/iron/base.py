@@ -296,9 +296,7 @@ class BaseIron(object):
             )
 
         else:
-            repl_instance = self.__repl[ft]['instances'][pwd]
-            repl_id = repl_instance['repl_id']
-            buf_id = repl_instance['buf_id']
+            buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
             logger.debug(
                 "REPL for ft {} exists on path {}. Buffer ID is {}".format(
                     ft, pwd, buf_id
@@ -318,4 +316,3 @@ class BaseIron(object):
                 )
 
         logger.debug("Done! REPL for {} running on {}".format(ft, pwd))
-        return repl_id
