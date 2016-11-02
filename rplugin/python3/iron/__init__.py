@@ -77,12 +77,12 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
 
-    @neovim.function("IronStartRepl", sync=False)
+    @neovim.function("IronStartRepl")
     def iron_repl(self, args):
         ft = args[0]
         kwargs = {
             "with_placement": bool(args[1]) if len(args) > 1 else True,
-            "detached": bool(args[2]) if len(args) > 2 else False
+            "detached": bool(args[2]) if len(args) > 2 else False,
         }
 
         template = self.get_template_for_ft(ft)
