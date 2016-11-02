@@ -61,10 +61,10 @@ class Iron(BaseIron):
         else:
             self.iron_repl([ft])
 
-    @neovim.command("IronRepl")
-    def create_repl(self):
+    @neovim.command("IronRepl", bang=True)
+    def create_repl(self, bang):
         ft = self.get_ft()
-        self.iron_repl([ft])
+        self.iron_repl([ft], bang=bang)
 
     @neovim.command("IronDumpReplDefinition")
     def dump_repl_dict(self):
@@ -78,11 +78,12 @@ class Iron(BaseIron):
             logger.warning("User aborted.")
 
     @neovim.function("IronStartRepl")
-    def iron_repl(self, args):
+    def iron_repl(self, args, bang=False):
         ft = args[0]
         kwargs = {
             "with_placement": bool(args[1]) if len(args) > 1 else True,
             "detached": bool(args[2]) if len(args) > 2 else False,
+            "bang": bang
         }
 
         template = self.get_template_for_ft(ft)
