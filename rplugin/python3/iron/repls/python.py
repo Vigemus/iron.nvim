@@ -39,5 +39,5 @@ ptipython = {
     'command': 'ptipython',
     'language': 'python',
     'multiline': ('\x1b[200~', '\x1b[201~', '\r'),
-    'detect': detect_fn('ptipython'),
+    'detect': detect_fn('ptipython') and detect_fn('ipython'),
 }
