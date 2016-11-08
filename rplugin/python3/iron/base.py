@@ -6,6 +6,9 @@ This is the base structure to allow iron to interact with neovim.
 import logging
 import neovim
 import os
+from iron.zen.ui import (
+    prompt, toggleable_buffer, build_window, EmptyPromptError
+)
 from iron.repls import available_repls
 
 logger = logging.getLogger(__name__)
@@ -164,13 +167,9 @@ class BaseIron(object):
 
 
     def prompt(self, msg):
-        self.call("inputsave")
-        ret = self.call("input", "iron> {}: ".format(msg))
-        self.call("inputrestore")
-
-        if not ret:
-            raise EmptyPromptError(msg)
-
+        logger.info('Calling {} prompt'.format(msg))
+        ret = prompt(self.nvim, 'iron> {}:'.format(msg))
+        logger.debug('Got {} back'.format(ret))
         return ret
 
     def dump_repl_dict(self):
@@ -298,23 +297,10 @@ class BaseIron(object):
 
         else:
             buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
-            win_nr = bufwinnr(buf_id)
-            logger.debug(
-                "REPL for ft {} exists on path {}. Buffer ID is {}".format(
-                    ft, pwd, buf_id
+            toggleable_buffer(
+                self.nvim, buf_id, create_new_repl,
+                orientation=self.get_variable(
+                    'iron_repl_open_cmd', 'botright spl'
                 ))
-
-            if (win_nr != -1 and bufname(buf_id) != ""):
-                logger.debug("REPL is still valid, toggling off.")
-                self.call_cmd('{} wincmd w | q | stopinsert'.format(win_nr))
-            elif bufname(buf_id == ""):
-                logger.debug("REPL has finished, creating new.")
-                create_new_repl()
-            elif not bang and with_placement:
-                self.term_placement(buf_id)
-            else:
-                logger.debug("Creating a new REPL since previous was closed.")
-                logger.debug("Shouldn't probably hit here.")
-                create_new_repl()
 
         logger.debug("Done! REPL for {} running on {}".format(ft, pwd))
