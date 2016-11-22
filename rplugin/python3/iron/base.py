@@ -7,7 +7,8 @@ import logging
 import neovim
 import os
 from iron.zen.ui import (
-    prompt, toggleable_buffer, build_window, EmptyPromptError
+    prompt, toggleable_buffer, build_window, EmptyPromptError,
+    open_term
 )
 from iron.repls import available_repls
 
@@ -61,16 +62,17 @@ class BaseIron(object):
 
     def term_placement(self, buf_id=None):
         self.call_cmd(
-            "{} | {} | exec bufwinnr(bufnr('$')).'wincmd w'".format(
+            " | ".join([
                 self.get_variable('iron_repl_open_cmd', 'botright spl'),
-                "b {}".format(buf_id) if buf_id is not None else 'enew'
-            ))
+                "b {}".format(buf_id) if buf_id is not None else 'enew',
+                "exec bufwinnr(bufnr('$')).'wincmd w'"
+            ]))
 
 
     def termopen(self, cmd, with_placement=True):
         if with_placement:
             self.term_placement()
-        return self.call('termopen', cmd)
+        return open_term(cmd)
 
 
     def get_ft(self):
