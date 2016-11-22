@@ -1,4 +1,5 @@
 from distutils.spawn import find_executable
+import collections
 from functools import partial
 import logging
 import os
@@ -16,6 +17,9 @@ def detect_repl_installed(repl):
     """Checks whether a executable exists.
     :returns: True
     """
+    if isinstance(repl, list):
+        return all(map(find_executable, repl))
+
     return find_executable(repl) is not None
 
 
