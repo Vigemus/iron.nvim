@@ -72,7 +72,7 @@ class BaseIron(object):
     def termopen(self, cmd, with_placement=True):
         if with_placement:
             self.term_placement()
-        return open_term(cmd)
+        return open_term(self.nvim, cmd)
 
 
     def get_ft(self):
