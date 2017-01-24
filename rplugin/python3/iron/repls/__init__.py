@@ -11,6 +11,7 @@ import iron.repls.python
 import iron.repls.node
 import iron.repls.ruby
 import iron.repls.scala
+import iron.repls.scheme
 import iron.repls.sh
 import iron.repls.r
 import iron.repls.tcl
@@ -34,6 +35,7 @@ available_repls = [
     scala.sbt_cmd,
     scala.sbt_file,
     scala.scala,
+    scheme.repl,
     r.repl,
     tcl.repl,
     sh.zsh_zsh,
