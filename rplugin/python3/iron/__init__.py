@@ -113,10 +113,13 @@ class Iron(BaseIron):
         if fn:
             fn(self)
 
-    @neovim.function("IronSendMotion")
-    def send_motion_to_repl(self, args):
+    @neovim.function("IronSendMotion", range=True)
+    def send_motion_to_repl(self, args, rng=None):
+        logger.debug("Supplied data: {}".format(", ".join(args)))
         if args[0] == 'line':
             self.call_cmd("""normal! '[V']"sy""")
+        if args[0] == 'visual':
+            self.call_cmd("""normal! `<v`>"sy""")
         else:
             self.call_cmd("""normal! `[v`]"sy""")
 
@@ -131,7 +134,6 @@ class Iron(BaseIron):
             return None
 
         logger.debug("Supplied data: {}".format(args[0]))
-
         logger.info("Sending data to repl -> {}".format(repl))
 
         if 'multiline' in repl:
