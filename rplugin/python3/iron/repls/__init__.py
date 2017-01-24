@@ -18,6 +18,7 @@ import iron.repls.tcl
 
 available_repls = [
     clojure.repl,
+    clojure.boot,
     elm.repl,
     elixir.repl,
     erlang.repl,
