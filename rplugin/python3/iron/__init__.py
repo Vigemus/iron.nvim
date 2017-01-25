@@ -20,16 +20,8 @@ class Iron(BaseIron):
     def __init__(self, nvim):
         super().__init__(nvim)
 
+
     # Actual Fns
-    def open_repl(self, repl, with_placement=True):
-        repl_id = self.termopen(repl['command'], with_placement)
-
-        self.set_mappings(repl)
-        self.call_hooks(repl)
-        self.set_repl_id(repl, repl_id)
-
-        return repl_id
-
     def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
         if "\n" in data and repl:
@@ -53,12 +45,12 @@ class Iron(BaseIron):
     def prompt_command(self):
         try:
             command = self.prompt("command")
-            repl = self.get_repl_for_ft(self.get_or_prompt_ft())
+            template = self.get_template_for_ft(self.get_or_prompt_ft())
         except:
             logger.warning("User aborted.")
         else:
-            repl['command'] = command
-            self.open_repl(repl)
+            template['command'] = command
+            self.open_repl(template, command=command)
 
     @neovim.command("IronPromptRepl")
     def prompt_query(self):
@@ -67,18 +59,12 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
         else:
-            repl = self.get_repl_for_ft(ft)
+            self.iron_repl([ft])
 
-            if not repl:
-                self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
-                return
-
-            self.open_repl(repl)
-
-    @neovim.command("IronRepl")
-    def create_repl(self):
+    @neovim.command("IronRepl", bang=True)
+    def create_repl(self, bang):
         ft = self.get_ft()
-        self.iron_repl([ft])
+        self.iron_repl([ft], bang=bang)
 
     @neovim.command("IronDumpReplDefinition")
     def dump_repl_dict(self):
@@ -92,20 +78,24 @@ class Iron(BaseIron):
             logger.warning("User aborted.")
 
     @neovim.function("IronStartRepl")
-    def iron_repl(self, args):
+    def iron_repl(self, args, bang=False):
         ft = args[0]
-        with_placement = bool(args[1]) if (len(args) > 1) else True
+        kwargs = {
+            "with_placement": bool(args[1]) if len(args) > 1 else True,
+            "detached": bool(args[2]) if len(args) > 2 else False,
+            "bang": bang
+        }
 
-        repl = self.get_repl_for_ft(ft)
+        template = self.get_template_for_ft(ft)
 
         if not ft:
             self.call_cmd("echo 'Closing without a file type'")
             return
-        elif not repl:
+        elif not template:
             self.call_cmd("echo 'Unable to find repl for {}'".format(ft))
             return
 
-        self.open_repl(repl, with_placement)
+        self.open_repl(template, **kwargs)
 
     @neovim.function("IronSendSpecial")
     def mapping_send(self, args):
@@ -127,13 +117,14 @@ class Iron(BaseIron):
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
-        repl = self.get_repl(args[1]) if len(args) > 1 else None
-        repl = repl or self.get_current_repl()
+        logger.debug("Supplied data: {}".format(", ".join(args)))
+        repl = (
+            self.get_repl(args[1])
+            if len(args) > 1
+            else None
+            or self.get_repl(self.get_ft())
+        )
 
-        if not repl:
-            return None
-
-        logger.debug("Supplied data: {}".format(args[0]))
         logger.info("Sending data to repl -> {}".format(repl))
 
         if 'multiline' in repl:
