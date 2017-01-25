@@ -27,6 +27,6 @@ repl = {
 boot = {
     'command': 'boot repl',
     'language': 'clojure',
-    'detect': detect_fn('boot'),
+    'detect': detect_fn('boot', ['build.boot']),
     'mappings': mappings
 }
