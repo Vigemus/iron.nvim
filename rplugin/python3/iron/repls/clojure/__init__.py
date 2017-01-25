@@ -24,6 +24,13 @@ repl = {
     'mappings': mappings
 }
 
+connect = {
+    'command': 'lein repl :connect',
+    'language': 'clojure',
+    'detect': detect_fn('lein', ['.nrepl-port']),
+    'mappings': mappings
+}
+
 boot = {
     'command': 'boot repl',
     'language': 'clojure',
