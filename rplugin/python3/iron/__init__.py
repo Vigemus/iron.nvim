@@ -41,7 +41,7 @@ class Iron(BaseIron):
         ft = self.get_ft()
         return self.has_repl_template(ft) and ft or self.prompt("repl type")
 
-    @neovim.command("IronPromptCommand")
+    @neovim.command("IronPromptCommand", sync=True)
     def prompt_command(self):
         try:
             command = self.prompt("command")
@@ -52,7 +52,7 @@ class Iron(BaseIron):
             template['command'] = command
             self.open_repl(template, command=command)
 
-    @neovim.command("IronPromptRepl")
+    @neovim.command("IronPromptRepl", sync=True)
     def prompt_query(self):
         try:
             ft = self.prompt("repl type")
@@ -61,7 +61,7 @@ class Iron(BaseIron):
         else:
             self.iron_repl([ft])
 
-    @neovim.command("IronRepl", bang=True)
+    @neovim.command("IronRepl", bang=True, sync=True)
     def create_repl(self, bang):
         ft = self.get_ft()
         self.iron_repl([ft], bang=bang)
@@ -77,7 +77,7 @@ class Iron(BaseIron):
         except:
             logger.warning("User aborted.")
 
-    @neovim.function("IronStartRepl")
+    @neovim.function("IronStartRepl", sync=True)
     def iron_repl(self, args, bang=False):
         ft = args[0]
         kwargs = {
