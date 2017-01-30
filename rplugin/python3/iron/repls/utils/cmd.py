@@ -34,7 +34,7 @@ def detect_fn(executable, required_files=None):
     def check(iron, *args, **kwargs):
 
         if required_files is not None:
-            pwd = iron.call_cmd('pwd').strip()
+            pwd = iron.get_pwd()
             logger.info("Running on {} path".format(pwd))
             join_pwd = partial(os.path.join, pwd)
 
