@@ -20,7 +20,6 @@ class Iron(BaseIron):
     def __init__(self, nvim):
         super().__init__(nvim)
 
-
     # Actual Fns
     def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
