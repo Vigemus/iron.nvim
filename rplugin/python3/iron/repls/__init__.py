@@ -8,6 +8,7 @@ import iron.repls.lua
 import iron.repls.lisp
 import iron.repls.ocaml
 import iron.repls.python
+import iron.repls.pure
 import iron.repls.node
 import iron.repls.ruby
 import iron.repls.scala
@@ -32,6 +33,7 @@ available_repls = [
     python.ipython,
     python.ptpython,
     python.python,
+    pure.repl,
     node.repl,
     ruby.repl,
     scala.sbt_cmd,
