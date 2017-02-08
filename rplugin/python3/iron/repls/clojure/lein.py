@@ -5,6 +5,10 @@ from functools import partial
 from iron.repls.clojure.utils import *
 
 
+def lein_switch_ns(iron):
+    data = "(in-ns '{})".format(get_current_ns(iron))
+    return iron.send_to_repl((data, "clojure"))
+
 def lein_require(iron):
     data = "(require '{})".format(get_current_parens(iron))
     return iron.send_to_repl((data, "clojure"))

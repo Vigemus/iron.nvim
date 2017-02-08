@@ -7,6 +7,7 @@ from iron.repls.clojure.midje import *
 mappings = [
     ('<leader>so', 'require', lein_require),
     ('<leader>si', 'import', lein_import),
+    ('<leader>sn', 'switch-ns', lein_switch_ns),
     ('<leader>sr', 'require-file', lein_require_file),
     ('<leader>sR', 'require-with-ns', lein_require_with_ns),
     ('<leader>s.', 'prompt-require', lein_prompt_require),
