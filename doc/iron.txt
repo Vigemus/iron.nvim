@@ -118,6 +118,9 @@ ctr
   Import namespace inside a list under cursor.
   i.e. [java.time LocalDate] sends (import '[java.time LocalDate])
 
+<leader>sn
+  Set REPL namespace to current file.
+
 <leader>sr
   Require current file into the REPL.
 
