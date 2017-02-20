@@ -24,14 +24,18 @@ class Iron(BaseIron):
     def sanitize_multiline(self, data, repl):
         multiline = repl['multiline']
         if "\n" in data and repl:
-            if len(multiline) == 3:
+            if len(multiline) == 4:
+                (pre, post, extra, nline) = multiline
+            elif len(multiline) == 3:
                 (pre, post, extra) = multiline
+                nline = '\n'
             else:
                 (pre, post) = multiline
+                nline = '\n'
                 extra = None
 
             logger.info("Multinine string supplied.")
-            return ("{}{}{}".format(pre, data, post), extra)
+            return ("{}{}{}".format(pre, data.replace('\n', nline), post), extra)
 
         logger.info("String was not multiline. Continuing")
         return ("{}\n".format(data), None)
