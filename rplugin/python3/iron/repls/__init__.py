@@ -4,6 +4,7 @@ import iron.repls.clojure
 import iron.repls.elm
 import iron.repls.elixir
 import iron.repls.erlang
+import iron.repls.haskell
 import iron.repls.lua
 import iron.repls.lisp
 import iron.repls.ocaml
@@ -24,6 +25,8 @@ available_repls = [
     elm.repl,
     elixir.repl,
     erlang.repl,
+    haskell.stackghci,
+    haskell.ghci,
     lua.repl,
     lisp.sbcl,
     lisp.clisp,
