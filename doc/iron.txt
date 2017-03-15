@@ -39,6 +39,9 @@ Currently, Iron has support for the following programming languages:
     - lein
   - elixir
   - erlang
+  - haskell
+    - stack ghci
+    - ghci
   - lua
   - ocaml
   - python
