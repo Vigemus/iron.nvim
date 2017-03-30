@@ -35,7 +35,7 @@ def detect_fn(executable, required_files=None):
 
         if required_files is not None:
             pwd = iron.get_pwd()
-            logger.info("Running on {} path".format(pwd))
+            logger.info("Running on {}".format(pwd))
             join_pwd = partial(os.path.join, pwd)
 
             files = list(required_files)
@@ -43,10 +43,10 @@ def detect_fn(executable, required_files=None):
             files.extend(list(map(join_pwd, required_files)))
 
             logger.info("Scanning for the following files:\n {}".format(
-                required_files
+                files
             ))
 
-            files = detect_any_of_exists(required_files)
+            files = detect_any_of_exists(files)
             logger.info("Found" if files else "Not Found")
         else:
             files = True
