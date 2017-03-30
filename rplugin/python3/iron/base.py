@@ -35,11 +35,11 @@ class BaseIron(object):
         }
 
     def _list_repl_templates(self, ft):
-        return list(filter(
+        return sorted(filter(
             lambda k: ft == k['language'] and
             k['detect'](iron=self),
             available_repls
-        ))
+        ), key=lambda k: k.get('priority', 0), reverse=True)
 
     def _get_repl_template(self, ft):
         logger.info("Trying to find a repl definition for ft {}".format(ft))
