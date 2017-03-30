@@ -21,6 +21,7 @@ mappings = [
 repl = {
     'command': 'lein repl',
     'language': 'clojure',
+    'priority': 0,
     'detect': detect_fn('lein'),
     'mappings': mappings
 }
@@ -28,6 +29,7 @@ repl = {
 connect = {
     'command': 'lein repl :connect',
     'language': 'clojure',
+    'priority': 10,
     'detect': detect_fn('lein', ['.nrepl-port']),
     'mappings': mappings
 }
@@ -35,6 +37,7 @@ connect = {
 boot = {
     'command': 'boot repl',
     'language': 'clojure',
+    'priority': 0,
     'detect': detect_fn('boot', ['build.boot']),
     'mappings': mappings
 }
