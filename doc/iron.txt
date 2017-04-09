@@ -111,6 +111,20 @@ Mappings                                                        *iron-mappings*
 ~all languages~
 ctr
   send a chunk of text to REPL. Works with motions.
+cp
+  repeat the previous command
+
+Those hereabove mappings can be redefined by the user, i.e: >
+
+  nmap <localleader>t <Plug>(iron-send-motion)
+<
+
+  -------------------------------------------------------------~
+   LHS(default)     RHS                                  MODE~
+  -------------------------------------------------------------~
+   ctr              |<Plug>(iron-send-motion)|              `nv`
+   cp               |<Plug>(iron-repeat-cmd|                `n`
+  -------------------------------------------------------------~
 
 ~clojure~
 <leader>so
