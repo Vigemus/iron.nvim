@@ -109,14 +109,29 @@ class Iron(BaseIron):
     @neovim.function("IronSendMotion", range=True)
     def send_motion_to_repl(self, args, rng=None):
         logger.debug("Supplied data: {}".format(", ".join(args)))
-        if args[0] == 'line':
-            self.call_cmd("""normal! '[V']"sy""")
-        elif args[0] == 'visual':
-            self.call_cmd("""normal! `<v`>"sy""")
-        else:
-            self.call_cmd("""normal! `[v`]"sy""")
 
-        return self.send_to_repl([self.register('s')])
+        if args[0] == 'visual':
+            init = self.nvim.current.buffer.mark('<')
+            end = self.nvim.current.buffer.mark('>')
+        else:
+            init = self.nvim.current.buffer.mark('[')
+            end = self.nvim.current.buffer.mark(']')
+
+        text = self.nvim.current.buffer[init[0]-1:end[0]]
+
+        logger.debug("Gathered: {} - {}: {}".format(
+            init, end, "\n".join(text)))
+
+        if args[0] != 'line':
+            if init[0] == end[0]:
+                text[0] = text[0][init[1]:end[1]]
+            else:
+                text[0] = text[0][init[1]:]
+                text[-1] = text[-1][:end[1]]
+
+            logger.debug("Stripped: {}".format("\n".join(text)))
+
+        return self.send_to_repl(["\n".join(text)])
 
     @neovim.function("IronSend")
     def send_to_repl(self, args):
