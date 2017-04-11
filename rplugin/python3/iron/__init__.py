@@ -111,7 +111,7 @@ class Iron(BaseIron):
         logger.debug("Supplied data: {}".format(", ".join(args)))
         if args[0] == 'line':
             self.call_cmd("""normal! '[V']"sy""")
-        if args[0] == 'visual':
+        elif args[0] == 'visual':
             self.call_cmd("""normal! `<v`>"sy""")
         else:
             self.call_cmd("""normal! `[v`]"sy""")
