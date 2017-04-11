@@ -117,6 +117,10 @@ class Iron(BaseIron):
             init = self.nvim.current.buffer.mark('[')
             end = self.nvim.current.buffer.mark(']')
 
+        prev = self.nvim.current.buffer.mark("x")
+        end[1] += 1
+        prev[1] += 1
+
         text = self.nvim.current.buffer[init[0]-1:end[0]]
 
         logger.debug("Gathered: {} - {}: {}".format(
@@ -130,6 +134,8 @@ class Iron(BaseIron):
                 text[-1] = text[-1][:end[1]]
 
             logger.debug("Stripped: {}".format("\n".join(text)))
+
+        self.nvim.funcs.cursor(prev)
 
         return self.send_to_repl(["\n".join(text)])
 
