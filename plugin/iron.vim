@@ -1,7 +1,7 @@
 nnoremap <silent> <Plug>(iron-send-motion)
-      \ mx:<c-u>set opfunc=IronSendMotion<CR>g@
+      \ :<c-u>let b:iron_cursor_pos = winsaveview()<CR>:<c-u>set opfunc=IronSendMotion<CR>g@
 vnoremap <silent> <Plug>(iron-send-motion)
-      \ mx:<c-u>call IronSendMotion('visual')<CR>
+      \ :<c-u>let b:iron_cursor_pos = winsaveview()<CR>:<c-u>call IronSendMotion('visual')<CR>
 "Call previous command again
 nnoremap <silent> <Plug>(iron-repeat-cmd)
       \ :<c-u>call IronSend("\u001b\u005b\u0041")<CR>

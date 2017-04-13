@@ -117,9 +117,7 @@ class Iron(BaseIron):
             init = self.nvim.current.buffer.mark('[')
             end = self.nvim.current.buffer.mark(']')
 
-        prev = self.nvim.current.buffer.mark("x")
         end[1] += 1
-        prev[1] += 1
 
         text = self.nvim.current.buffer[init[0]-1:end[0]]
 
@@ -135,7 +133,11 @@ class Iron(BaseIron):
 
             logger.debug("Stripped: {}".format("\n".join(text)))
 
-        self.nvim.funcs.cursor(prev)
+        try:
+          self.nvim.call('winrestview', self.nvim.eval('b:iron_cursor_pos'))
+        # in case key not found
+        except NvimError:
+            pass
 
         return self.send_to_repl(["\n".join(text)])
 
