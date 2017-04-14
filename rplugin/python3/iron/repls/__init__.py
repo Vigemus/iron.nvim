@@ -25,6 +25,7 @@ available_repls = [
     elm.repl,
     elixir.repl,
     erlang.repl,
+    haskell.intero,
     haskell.stackghci,
     haskell.ghci,
     lua.repl,

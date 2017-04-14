@@ -13,3 +13,9 @@ stackghci = {
     'language': 'haskell',
     'detect': detect_fn('stack'),
 }
+
+intero = {
+    'command': 'stack ghci --with-ghc intero',
+    'language': 'haskell',
+    'detect': detect_fn('intero'),
+}
