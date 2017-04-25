@@ -2,9 +2,14 @@
 """Scheme repl definitions for iron.nvim. """
 from iron.repls.utils.cmd import detect_fn
 
-repl = {
+guile = {
     'command': 'guile',
     'language': 'scheme',
     'detect': detect_fn('guile')
 }
 
+chicken = {
+    'command': 'csi',
+    'language': 'scheme',
+    'detect': detect_fn('csi')
+}
