@@ -38,23 +38,39 @@ Currently, Iron has support for the following programming languages:
   - clojure
     - lein
   - elixir
+  - elm
   - erlang
   - haskell
     - intero
     - stack ghci
     - ghci
+  - lisp
+    - sbcl
+    - clisp
   - lua
+  - javascript
+    - node
   - ocaml
+    - ocamltop
+    - utop
+  - pure-lang
   - python
     - python
     - ipython
     - ptpython
     - ptipython
   - r
+  - racket
   - ruby
   - scala
     - scala
     - sbt
+  - scheme
+    - guile
+    - csi
+  - sh
+  - tcl
+
 
 ===============================================================================
 Commands                                                        *iron-commands*
