@@ -5,6 +5,7 @@ vnoremap <silent> <Plug>(iron-send-motion)
 
 "Call previous command again
 nnoremap <silent> <Plug>(iron-repeat-cmd) :call IronSend("\u001b\u005b\u0041")<CR>
+nnoremap <silent> <Plug>(iron-cr)         :call IronSend("")<CR>
 nnoremap <silent> <Plug>(iron-interrupt)  :call IronSend("\u0003")<CR>
 nnoremap <silent> <Plug>(iron-exit)       :call IronSend("\u0004")<CR>
 
