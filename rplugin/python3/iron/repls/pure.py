@@ -1,6 +1,5 @@
 # encoding:utf-8
 """Pure-lang repl definitions for iron.nvim. """
-from iron.repls.utils.cmd import detect_fn
 
 def pure_send_block(iron):
     iron.call_cmd("""normal! Vi{"sy""")
@@ -20,7 +19,6 @@ mappings = [
 repl = {
     'command': 'pure',
     'language': 'pure',
-    'detect': detect_fn('pure'),
     'mappings': mappings,
     'multiline': (':paste\n', '\x04'),
 }

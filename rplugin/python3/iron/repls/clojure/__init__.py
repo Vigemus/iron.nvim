@@ -22,7 +22,6 @@ repl = {
     'command': 'lein repl',
     'language': 'clojure',
     'priority': 0,
-    'detect': detect_fn('lein'),
     'mappings': mappings
 }
 
