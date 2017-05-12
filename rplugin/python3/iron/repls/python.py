@@ -16,14 +16,12 @@ mappings = [
 python = {
     'command': 'python',
     'language': 'python',
-    'detect': detect_fn('python'),
 }
 
 ipython = {
     'command':   'ipython',
     'language':  'python',
     'multiline': ('\x1b[200~', '\x1b[201~', '\r'),
-    'detect': detect_fn('ipython'),
 }
 
 
@@ -31,7 +29,6 @@ ptpython = {
     'command': 'ptpython',
     'language': 'python',
     'multiline': ('\x1b[200~', '\x1b[201~', '\r'),
-    'detect': detect_fn('ptpython'),
 }
 
 

@@ -6,11 +6,13 @@ This is the base structure to allow iron to interact with neovim.
 import logging
 import neovim
 import os
+import shlex
 from iron.zen.ui import (
     prompt, toggleable_buffer, build_window, EmptyPromptError,
     open_term
 )
 from iron.repls import available_repls
+from iron.repls.utils.cmd import detect_fn
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +36,27 @@ class BaseIron(object):
             "mapped_keys": [],
         }
 
+    @staticmethod
+    def _fill_in_detect_key(repls):
+        """Fill in missing "detect" keys in the available_repls list
+
+        This will only work correctly if the only thing that needs to be
+        detected is the command given in the 'command' key.  For more complex
+        cases the detect key has to be given explicitly.
+        """
+        for repl in repls:
+            if 'detect' not in repl:
+                new = repl.copy()
+                new['detect'] = detect_fn(shlex.split(repl['command'])[0])
+                yield new
+            else:
+                yield repl
+
     def _list_repl_templates(self, ft):
         return sorted(filter(
             lambda k: ft == k['language'] and
             k['detect'](iron=self),
-            available_repls
+            self._fill_in_detect_key(available_repls)
         ), key=lambda k: k.get('priority', 0), reverse=True)
 
     def _get_repl_template(self, ft):
