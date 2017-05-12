@@ -53,6 +53,9 @@ Currently, Iron has support for the following programming languages:
   - ocaml
     - ocamltop
     - utop
+  - php
+    - php
+    - psysh
   - pure-lang
   - python
     - python
