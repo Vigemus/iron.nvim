@@ -53,7 +53,6 @@ mappings = [
 sbt_file = {
     'command': 'sbt',
     'language': 'sbt.scala',
-    'detect': detect_fn('sbt'),
     'mappings': mappings,
     'multiline': (':paste\n', '\x04'),
 }
@@ -69,7 +68,6 @@ sbt_cmd = {
 scala = {
     'command': 'scala',
     'language': 'scala',
-    'detect': detect_fn('scala'),
     'mappings': mappings,
     'multiline': (':paste\n', '\x04'),
 }
