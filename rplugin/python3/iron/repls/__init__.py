@@ -9,6 +9,7 @@ import iron.repls.lisp
 import iron.repls.lua
 import iron.repls.node
 import iron.repls.ocaml
+import iron.repls.php
 import iron.repls.pure
 import iron.repls.python
 import iron.repls.r
@@ -34,6 +35,8 @@ available_repls = [
     lisp.clisp,
     ocaml.utop,
     ocaml.ocamltop,
+    php.psyshell,
+    php.php,
     python.ptipython,
     python.ipython,
     python.ptpython,
