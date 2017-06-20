@@ -19,3 +19,16 @@ if g:iron_map_defaults
     vmap ctr <Plug>(iron-send-motion)
     nmap cp <Plug>(iron-repeat-cmd)
 endif
+
+function! IronWatchFile(fname, command) abort
+  augroup IronWatch
+    exec "autocmd BufWritePost ".a:fname." call IronSend('".a:command."')"
+  augroup END
+endfunction
+
+function! IronUnwatchFile(fname) abort
+  exec "autocmd! IronWatch BufWritePost" . a:fname
+endfunction
+
+command! -nargs=* IronWatchCurrentFile call IronWatchFile(expand('%'), <q-args>)
+command! -nargs=* IronUnwatchCurrentFile call IronUnwatchFile(expand('%'))
