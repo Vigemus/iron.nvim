@@ -15,7 +15,7 @@ if !exists('g:iron_map_defaults')
 endif
 
 if g:iron_map_defaults
-    nnoremap ctr <Plug>(iron-send-motion)
-    vnoremap ctr <Plug>(iron-send-motion)
-    nnoremap cp <Plug>(iron-repeat-cmd)
+    nmap ctr <Plug>(iron-send-motion)
+    vmap ctr <Plug>(iron-send-motion)
+    nmap cp <Plug>(iron-repeat-cmd)
 endif
