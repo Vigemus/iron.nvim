@@ -133,12 +133,6 @@ class Iron(BaseIron):
 
             logger.debug("Stripped: {}".format("\n".join(text)))
 
-        try:
-          self.nvim.call('winrestview', self.nvim.eval('b:iron_cursor_pos'))
-        # in case key not found
-        except NvimError:
-            pass
-
         return self.send_to_repl(["\n".join(text)])
 
     @neovim.function("IronSend")
