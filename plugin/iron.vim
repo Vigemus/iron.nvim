@@ -1,5 +1,7 @@
-map <silent> <Plug>(iron-send-motion) :<c-u>set opfunc=IronSendMotion<CR>g@
-vmap <silent> <Plug>(iron-send-motion) :<c-u>call IronSendMotion('visual')<CR>
+map <silent> <Plug>(iron-send-motion) 
+      \ :<c-u>let b:iron_cursor_pos = winsaveview() \| set opfunc=IronSendMotion<CR>g@
+vmap <silent> <Plug>(iron-send-motion)
+      \ :<c-u>let b:iron_cursor_pos = winsaveview() \| call IronSendMotion('visual')<CR>
 
 "Call previous command again
 map <silent> <Plug>(iron-repeat-cmd) :call IronSend("\u001b\u005b\u0041")<CR>
