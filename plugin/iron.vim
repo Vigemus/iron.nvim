@@ -1,6 +1,6 @@
-nnoremap <silent> <Plug>(iron-send-motion)
+map <silent> <Plug>(iron-send-motion)
       \ :<c-u>let b:iron_cursor_pos = winsaveview()<CR>:<c-u>set opfunc=IronSendMotion<CR>g@
-vnoremap <silent> <Plug>(iron-send-motion)
+vmap <silent> <Plug>(iron-send-motion)
       \ :<c-u>let b:iron_cursor_pos = winsaveview()<CR>:<c-u>call IronSendMotion('visual')<CR>
 
 "Call previous command again
