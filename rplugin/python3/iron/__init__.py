@@ -109,17 +109,22 @@ class Iron(BaseIron):
     @neovim.function("IronSendMotion", range=True)
     def send_motion_to_repl(self, args, rng=None):
         logger.debug("Supplied data: {}".format(", ".join(args)))
+        cur_buf = self.nvim.current.buffer
+
+        if not 'iron_cursor_pos' in cur_buf.vars:
+            # Probably repeating, so setting the position manually
+            cur_buf.vars['iron_cursor_pos'] = self.call('winsaveview')
 
         if args[0] == 'visual':
-            init = self.nvim.current.buffer.mark('<')
-            end = self.nvim.current.buffer.mark('>')
+            init = cur_buf.mark('<')
+            end = cur_buf.mark('>')
         else:
-            init = self.nvim.current.buffer.mark('[')
-            end = self.nvim.current.buffer.mark(']')
+            init = cur_buf.mark('[')
+            end = cur_buf.mark(']')
 
         end[1] += 1
 
-        text = self.nvim.current.buffer[init[0]-1:end[0]]
+        text = cur_buf[init[0]-1:end[0]]
 
         logger.debug("Gathered: {} - {}: {}".format(
             init, end, "\n".join(text)))
@@ -132,6 +137,9 @@ class Iron(BaseIron):
                 text[-1] = text[-1][:end[1]]
 
             logger.debug("Stripped: {}".format("\n".join(text)))
+
+        self.call('winrestview', cur_buf.vars['iron_cursor_pos'])
+        del cur_buf.vars['iron_cursor_pos']
 
         return self.send_to_repl(["\n".join(text)])
 
