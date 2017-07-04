@@ -27,7 +27,7 @@ function! IronWatchFile(fname, command) abort
 endfunction
 
 function! IronUnwatchFile(fname) abort
-  exec "autocmd! IronWatch BufWritePost" . a:fname
+  exec "autocmd! IronWatch BufWritePost " . a:fname
 endfunction
 
 command! -nargs=* IronWatchCurrentFile call IronWatchFile(expand('%'), <q-args>)
