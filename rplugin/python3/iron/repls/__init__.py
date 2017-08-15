@@ -5,6 +5,7 @@ import iron.repls.elixir
 import iron.repls.elm
 import iron.repls.erlang
 import iron.repls.haskell
+import iron.repls.julia
 import iron.repls.lisp
 import iron.repls.lua
 import iron.repls.node
@@ -30,6 +31,7 @@ available_repls = [
     haskell.intero,
     haskell.stackghci,
     haskell.ghci,
+    julia.repl,
     lua.repl,
     lisp.sbcl,
     lisp.clisp,
