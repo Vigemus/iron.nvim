@@ -55,10 +55,13 @@ other combination of commands/mappings you may need to send text to the repl.
 Iron has also set conveniently a mapping for calling back the previous command:
 `cp` (remember as call previous).
 
-Both `ctr` and `cp` can be remmaped, for example to define them only for the
-python filetype:
+Both `ctr` and `cp` can be remmaped. For example, if you only work with python,
+you can use the following configuration:
 
 ```vim
+" deactivate default mappings
+let g:iron_map_defaults=0
+" define custom mappings for the python filetype
 augroup ironmapping
     autocmd!
     autocmd Filetype python nmap <buffer> <localleader>t <Plug>(iron-send-motion)

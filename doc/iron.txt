@@ -125,6 +125,10 @@ g:iron_new_REPL_hooks
 g:iron_new_`ft`_REPL_hooks
   Provide specific functions to be executed after a REPL of given ft is opened.
 
+g:iron_map_defaults
+  Provide default global mappings (see |iron-mappings|) to send a chunk of text
+  to a REPL (ctr) and to repeat the previous command (cp). Default value = 1.
+  
 ===============================================================================
 Mappings                                                        *iron-mappings*
 
