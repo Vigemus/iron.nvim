@@ -116,14 +116,17 @@ Customizing                                                  *iron-customizing*
 
 To change iron's behavior, change the following variables:
 
-g:iron_REPL_open_cmd
-  Allows REPL to be positioned differently.
+g:iron_repl_open_cmd
+  Allows REPL to be positioned differently. To open in a vertical split,
+  set this to "vsplit", for example.
 
-g:iron_new_REPL_hooks
+g:iron_new_repl_hooks
   List of functions to be executed after any REPL is opened.
 
-g:iron_new_`ft`_REPL_hooks
+g:iron_new_`ft`_repl_hooks
   Provide specific functions to be executed after a REPL of given ft is opened.
+  Here, `ft` should be replaced by the intended filetype, eg. 'python'
+  (without the quotes).
 
 g:iron_map_defaults
   Provide default global mappings (see |iron-mappings|) to send a chunk of text
