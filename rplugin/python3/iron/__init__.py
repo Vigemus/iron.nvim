@@ -45,7 +45,7 @@ class Iron(BaseIron):
         return self.has_repl_template(ft) and ft or self.prompt("repl type")
 
     @neovim.command("IronFocus", sync=True)
-    def prompt_command(self):
+    def focus_on_repl(self):
         try:
             ft = self.get_or_prompt_ft()
             pwd = self.get_pwd()
