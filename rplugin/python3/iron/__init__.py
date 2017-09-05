@@ -48,8 +48,13 @@ class Iron(BaseIron):
     def focus_on_repl(self):
         try:
             ft = self.get_or_prompt_ft()
+            repl =  self.get_repl(ft)
+            if repl is None:
+                logger.warning("No repl open for ft: {}".format(ft))
+                return
+
             pwd = self.get_pwd()
-            buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
+            buf_id = repl['instances'][pwd]['buf_id']
             nr = self.nvim.funcs.bufwinnr(buf_id)
             self.call_cmd('{}wincmd w'.format(nr))
         except Exception as e:
