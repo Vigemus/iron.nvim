@@ -44,6 +44,17 @@ class Iron(BaseIron):
         ft = self.get_ft()
         return self.has_repl_template(ft) and ft or self.prompt("repl type")
 
+    @neovim.command("IronFocus", sync=True)
+    def prompt_command(self):
+        try:
+            ft = self.get_or_prompt_ft()
+            pwd = self.get_pwd()
+            buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
+            nr = self.nvim.funcs.bufwinnr(buf_id)
+            self.call_cmd('{}wincmd w'.format(nr))
+        except:
+            logger.warning("No repl open for ft.")
+
     @neovim.command("IronPromptCommand", sync=True)
     def prompt_command(self):
         try:
