@@ -52,7 +52,7 @@ class Iron(BaseIron):
             buf_id = self.__repl[ft]['instances'][pwd]['buf_id']
             nr = self.nvim.funcs.bufwinnr(buf_id)
             self.call_cmd('{}wincmd w'.format(nr))
-        except e:
+        except Exception as e:
             logger.warning("Error focusing: {}".format(e))
 
     @neovim.command("IronPromptCommand", sync=True)
