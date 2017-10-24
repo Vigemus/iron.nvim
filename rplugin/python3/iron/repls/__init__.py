@@ -9,6 +9,7 @@ import iron.repls.julia
 import iron.repls.lisp
 import iron.repls.lua
 import iron.repls.node
+import iron.repls.ts_node
 import iron.repls.ocaml
 import iron.repls.php
 import iron.repls.pure
@@ -45,6 +46,7 @@ available_repls = [
     python.python,
     pure.repl,
     node.repl,
+    ts_node.repl,
     ruby.repl,
     scala.sbt_cmd,
     scala.sbt_file,
