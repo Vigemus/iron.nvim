@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: abaez/luarocks:lua5.1
+    steps:
+      - checkout
+      - run:
+          name: Install busted
+          command: luarocks-5.1 install busted
+      - run:
+          name: tests
+          command: busted
