@@ -40,7 +40,6 @@ iron.core.get_preferred_repl = function(ft)
   local preference = iron.config.preferred[ft]
   local repl_def = nil
   if preference ~= nil then
-    print(preference)
     repl_def = repl[preference]
   else
     -- TODO Find a better way to select preferred repl
