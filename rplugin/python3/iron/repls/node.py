@@ -4,4 +4,5 @@
 repl = {
     'command': 'node',
     'language': 'javascript',
+    'multiline' : ('.editor\n', '')
 }
