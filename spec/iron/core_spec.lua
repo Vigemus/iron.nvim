@@ -1,8 +1,5 @@
 -- luacheck: globals insulate setup describe it assert mock
 -- luacheck: globals before_each after_each
-local inspect = require("inspect")
-
-
 
 insulate("About #iron functionality", function()
   before_each(function()
