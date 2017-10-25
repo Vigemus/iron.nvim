@@ -1,5 +1,4 @@
 -- luacheck: globals unpack vim
-local inspect = require("inspect")
 local nvim = vim.api
 local iron = {
   memory = {},
