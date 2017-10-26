@@ -6,6 +6,10 @@ Interactive Repls Over Neovim
 
 [![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=shield&circle-token=debdaf36972c979be9ab014b325aa91da3ca0c1c)]()
 
+## Support iron.nvim
+Support iron.nvim development by sending me some bitcoins at `19n1bchWPg8NLKY1By51rwv7jZRzPwYfYq`.
+Cheers!
+
 ## What is it for?
 
 Iron is a simple utility that helps you bringing repls for the current `ft`,
