@@ -49,11 +49,8 @@ end
 
 iron.core.get_preferred_repl = function(ft)
   local repl = iron.core.get_repl_definitions(ft)
-  local preference = iron.config.preferred[ft]
-  local repl_def = nil
-  if preference ~= nil then
-    repl_def = repl[preference]
-  else
+  local repl_def = iron.config.preferred[ft]
+  if repl_def == nil then
     -- TODO Find a better way to select preferred repl
     for k, v in pairs(repl) do
       if os.execute('which ' .. k .. ' > /dev/null') == 0 then
@@ -68,8 +65,9 @@ end
 iron.core.create_new_repl = function(ft)
   nvim.nvim_command(iron.config.repl_open_cmd .. '| enew | set wfw | startinsert')
   local repl = iron.core.get_preferred_repl(ft)
-  nvim.nvim_call_function('termopen', {{repl.command}})
-  iron.memory[ft] = nvim.nvim_call_function('bufnr', {'%'})
+  local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
+  local buffer_id = nvim.nvim_call_function('bufnr', {'%'})
+  iron.memory[ft] = { job = job_id, buffer = buffer_id}
 end
 
 iron.core.get_repl_instance = function(ft)
