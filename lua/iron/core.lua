@@ -1,17 +1,29 @@
 -- luacheck: globals unpack vim
+local clone = function(curr)
+  local new = {}
+  for k, v in pairs(curr) do
+    new[k] = v
+  end
+
+  return new
+end
+
+local visibility = require("iron.visibility")
+
+local defaultconfig = {
+  visibility = visibility.toggle,
+  preferred = {}
+}
+
+
 local nvim = vim.api
 local iron = {
   memory = {},
   core = {
-    visibility = require("iron.visibility")
+    visibility = visibility
   },
-  config = {},
+  config = clone(defaultconfig),
   fts = require("iron.fts.fts")
-}
-
-local defaultconfig = {
-  visibility = iron.core.visibility.toggle,
-  preferred = {}
 }
 
 local _nvim_proxy = {
@@ -66,19 +78,20 @@ iron.core.get_repl_instance = function(ft)
     iron.core.create_new_repl(ft)
   end
   local showfn = function()
-    nvim.nvim_command(iron.config.repl_open_cmd .. '| b ' .. mem ..' | set wfw | startinsert')
+    nvim.nvim_command(iron.config.repl_open_cmd .. '| b ' .. mem.buffer ..' | set wfw | startinsert')
   end
 
   if mem == nil then
     newfn()
   else
-    iron.config.visibility(mem, newfn, showfn)
+    iron.config.visibility(mem.buffer, newfn, showfn)
   end
 end
 
 iron.set_config = function(cfg)
-  iron.config = copy(defaultconfig)
+  iron.config = clone(defaultconfig)
   setmetatable(iron.config, _nvim_proxy)
+
   for k, v in pairs(cfg) do
     iron.config[k] = v
   end
