@@ -67,7 +67,7 @@ iron.core.create_new_repl = function(ft)
   local repl = iron.core.get_preferred_repl(ft)
   local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
   local buffer_id = nvim.nvim_call_function('bufnr', {'%'})
-  iron.memory[ft] = { job = job_id, buffer = buffer_id}
+  iron.memory[ft] = { job = job_id, buffer = buffer_id, definition = repl}
 end
 
 iron.core.get_repl_instance = function(ft)
