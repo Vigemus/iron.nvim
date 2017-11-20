@@ -1,20 +1,12 @@
 -- luacheck: globals unpack vim
-local clone = function(curr)
-  local new = {}
-  for k, v in pairs(curr) do
-    new[k] = v
-  end
 
-  return new
-end
-
+local clone = require("iron.functional").clone
 local visibility = require("iron.visibility")
 
 local defaultconfig = {
   visibility = visibility.toggle,
   preferred = {}
 }
-
 
 local nvim = vim.api
 local iron = {
