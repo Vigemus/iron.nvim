@@ -1,4 +1,4 @@
-local clone = require("iron.functional").clone
+local clone = require("iron.util.functional").clone
 
 local common = {
   format = function(open, close)
