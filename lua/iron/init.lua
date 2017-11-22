@@ -106,4 +106,8 @@ api.repl_for = function(ft)
   iron.core.get_repl(iron.config, iron.memory, ft)
 end
 
+api.send_to = function(ft, data)
+  iron.core.send_to_repl(iron.config, iron.memory, ft, data)
+end
+
 return iron
