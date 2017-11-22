@@ -1,9 +1,9 @@
+local common = require('iron.fts.common')
 local py = {}
 
-py.ipython = {
-  command = 'ipython',
-  multiline = {'\x1b[200~', '\x1b[201~', '\r'}
-}
 
+py.ipython = common.new("bracketed"){
+  command = 'ipython'
+}
 
 return py

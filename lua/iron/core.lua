@@ -1,47 +1,20 @@
 -- luacheck: globals unpack vim
 local nvim = vim.api
-local iron = {
-  memory = {},
-  core = {
-    visibility = require("iron.visibility")
-  },
-  config = {},
-  fts = require("iron.fts.fts")
-}
+local fts = require('iron.fts')
+local core = {}
 
-local defaultconfig = {
-  visibility = iron.core.visibility.toggle,
-  preferred = {}
-}
-
-local _nvim_proxy = {
-  __index = function(_, key)
-    local key_ = 'iron_' .. key
-    local val = nil
-    if nvim.nvim_call_function('exists', {key_}) == 1 then
-      val = nvim.nvim_get_var(key_)
-    end
-    return val
-  end
-}
-
-setmetatable(iron.config, _nvim_proxy)
-
-iron.core.get_file_ft = function()
-  return nvim.nvim_get_option("ft")
+local get_from_memory = function(config, memory, ft)
+  return config.memory_management.get(memory, ft)
 end
 
-iron.core.get_repl_definitions = function(ft)
-  return iron.fts[ft]
+local set_on_memory = function(config, memory, ft, fn)
+  return config.memory_management.set(memory, ft, fn)
 end
 
-iron.core.get_preferred_repl = function(ft)
-  local repl = iron.core.get_repl_definitions(ft)
-  local preference = iron.config.preferred[ft]
-  local repl_def = nil
-  if preference ~= nil then
-    repl_def = repl[preference]
-  else
+core.get_preferred_repl = function(config, ft)
+  local repl = fts[ft]
+  local repl_def = config.preferred[ft]
+  if repl_def == nil then
     -- TODO Find a better way to select preferred repl
     for k, v in pairs(repl) do
       if os.execute('which ' .. k .. ' > /dev/null') == 0 then
@@ -53,35 +26,33 @@ iron.core.get_preferred_repl = function(ft)
   return repl_def
 end
 
-iron.core.create_new_repl = function(ft)
-  nvim.nvim_command(iron.config.repl_open_cmd .. '| enew | set wfw | startinsert')
-  local repl = iron.core.get_preferred_repl(ft)
-  nvim.nvim_call_function('termopen', {{repl.command}})
-  iron.memory[ft] = nvim.nvim_call_function('bufnr', {'%'})
+core.create_new_repl = function(config, ft)
+  nvim.nvim_command(config.repl_open_cmd .. '| enew | set wfw | startinsert')
+  local repl = core.get_preferred_repl(config, ft)
+  local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
+  local buffer_id = nvim.nvim_call_function('bufnr', {'%'})
+  return { job = job_id, buffer = buffer_id, definition = repl}
 end
 
-iron.core.get_repl_instance = function(ft)
-  local mem = iron.memory[ft]
-  local newfn = function()
-    iron.core.create_new_repl(ft)
-  end
+-- TODO split get_repl from get_or_create_repl
+-- TODO create ensure repl exists which won't toggle/create new/whatever
+core.get_repl = function(config, memory, ft)
+  local mem = get_from_memory(config, memory, ft)
+  local newfn = function() return core.create_new_repl(config, ft) end
   local showfn = function()
-    nvim.nvim_command(iron.config.repl_open_cmd .. '| b ' .. mem ..' | set wfw | startinsert')
+    nvim.nvim_command(config.repl_open_cmd .. '| b ' .. mem.buffer ..' | set wfw | startinsert')
   end
-
   if mem == nil then
-    newfn()
+    mem = set_on_memory(config, memory, ft, newfn)
   else
-    iron.config.visibility(mem, newfn, showfn)
+    config.visibility(mem.buffer, newfn, showfn)
   end
+  return mem
 end
 
-iron.set_config = function(cfg)
-  iron.config = copy(defaultconfig)
-  setmetatable(iron.config, _nvim_proxy)
-  for k, v in pairs(cfg) do
-    iron.config[k] = v
-  end
+core.send_to_repl = function(config, memory, ft, data)
+  local mem = get_from_memory(config, memory, ft)
+  nvim.nvim_call_function('jobsend', {mem.job, mem.definition.format(data)})
 end
 
-return iron
+return core

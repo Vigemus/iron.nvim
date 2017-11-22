@@ -1,6 +1,6 @@
 return {
   default = {
     verbose = true,
-    lpath = "./lua/?.lua"
+    lpath = "./lua/?.lua;./lua/?/init.lua"
   }
 }
