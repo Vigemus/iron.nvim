@@ -3,6 +3,14 @@ local nvim = vim.api
 local fts = require('iron.fts')
 local core = {}
 
+local get_from_memory = function(config, memory, ft)
+  return config.memory_management.get(memory, ft)
+end
+
+local set_on_memory = function(config, memory, ft, fn)
+  return config.memory_management.set(memory, ft, fn)
+end
+
 core.get_preferred_repl = function(config, ft)
   local repl = fts[ft]
   local repl_def = config.preferred[ft]
