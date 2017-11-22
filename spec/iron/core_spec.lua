@@ -3,7 +3,7 @@
 
 insulate("About #iron functionality", function()
 
-    local fns = require('iron.functional')
+    local _ = require('iron.functional')
     before_each(function()
         _G.vim = mock({ api = {
                     nvim_call_function = function(_, _) return 1 end,
@@ -52,12 +52,14 @@ insulate("About #iron functionality", function()
   end)
 
   describe("#memory related", function()
-    it("create_new_repl", function()
+    it("get_repl", function()
       local iron = require('iron.core')
-      iron.core.create_new_repl("python")
-      assert.are_same(#(fns.keys(iron.memory)), 1)
+      local repl = iron.core.get_repl('python')
+      assert.are_same(#(_.keys(repl)), 3)
+      assert.are_same(#(_.keys(iron.memory)), 1)
       assert.are_not_same(iron.memory.python, nil)
-      assert.are_same(#(fns.keys(iron.memory.python)), 3)
+      assert.are_same(#(_.keys(iron.memory.python)), 1)
+      assert.are_same(repl, iron.config.memory_management.get(iron.memory, 'python'))
     end)
   end)
 
