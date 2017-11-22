@@ -13,13 +13,13 @@ end
 memory_management.tab_based = {
   set = function(memory, ft, creation)
     local repl_data = creation()
-    local tab = nvim.nvim_call_function('tabpagenr')
+    local tab = nvim.nvim_call_function('tabpagenr', {})
     default_map_set(memory, ft, "tab_" .. tab, repl_data)
     return repl_data
   end,
   get = function(memory, ft)
     ensure_key(memory, ft)
-    local tab = nvim.nvim_call_function('tabpagenr')
+    local tab = nvim.nvim_call_function('tabpagenr', {})
     return memory[ft]["tab_" .. tab]
   end
 }
@@ -27,13 +27,13 @@ memory_management.tab_based = {
 memory_management.path_based = {
   set = function(memory, ft, creation)
     local repl_data = creation()
-    local pwd = nvim.nvim_call_function('getcwd')
+    local pwd = nvim.nvim_call_function('getcwd', {})
     default_map_set(memory, ft, "pwd_" .. pwd, repl_data)
     return repl_data
   end,
   get = function(memory, ft)
     ensure_key(memory, ft)
-    local pwd = nvim.nvim_call_function('getcwd')
+    local pwd = nvim.nvim_call_function('getcwd', {})
     return memory[ft]["pwd_" .. pwd]
   end
 }
