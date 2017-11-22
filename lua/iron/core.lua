@@ -34,18 +34,25 @@ core.create_new_repl = function(config, ft)
   return { job = job_id, buffer = buffer_id, definition = repl}
 end
 
+-- TODO split get_repl from get_or_create_repl
+-- TODO create ensure repl exists which won't toggle/create new/whatever
 core.get_repl = function(config, memory, ft)
-  local mem = config.memory_management.get(memory, ft)
+  local mem = get_from_memory(config, memory, ft)
   local newfn = function() return core.create_new_repl(config, ft) end
   local showfn = function()
     nvim.nvim_command(config.repl_open_cmd .. '| b ' .. mem.buffer ..' | set wfw | startinsert')
   end
   if mem == nil then
-    mem = config.memory_management.set(memory, ft, newfn)
+    mem = set_on_memory(config, memory, ft, newfn)
   else
     config.visibility(mem.buffer, newfn, showfn)
   end
   return mem
+end
+
+core.send_to_repl = function(config, memory, ft, data)
+  local mem = get_from_memory(config, memory, ft)
+  nvim.nvim_call_function('jobsend', {mem.job, mem.definition.format(data)})
 end
 
 return core
