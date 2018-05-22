@@ -17,7 +17,7 @@ Interactive Repls Over Neovim
 - [ ] ... (accepting feature-requests)
 
 ## Support iron.nvim
-Support iron.nvim development by sending me some bitcoins at `19n1bchWPg8NLKY1By51rwv7jZRzPwYfYq`.
+Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
 Cheers!
 
 ## What is it for?
