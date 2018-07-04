@@ -1,40 +1,39 @@
-local clone = require("iron.util.functional").clone
-
-local common = {
-  format = function(open, close)
-    local r = function(data)
-      local new = {open}
-      for ix, v in ipairs(data) do
-        new[ix+1] = v
-      end
-      new[#new+1] = close
-      new[#new+1] = ''
-      return new
-    end
-
-    return r
-  end
+local fthelper = {
+  functions = {}
 }
 
-common.new = function(type)
-  local inner = function(args)
-    local data = clone(common.types[type])
-    data.format = common.format(data.open, data.close)
+fthelper.functions.format = function(repldef, lines)
+  local tp = fthelper.types[repldef.type or "plain"]
+  local new = {}
+  local off = 0
 
-    for k, v in pairs(args) do
-      data[k] = v
-    end
-
-    return data
+  if tp.open ~= nil then
+    new = {tp.open}
+    off = 1
   end
-  return inner
+
+  for ix, v in ipairs(lines) do
+    new[ix+off] = v
+  end
+
+  if tp.close ~= nil then
+    new[#new+off] = tp.close
+  end
+
+  new[#new+off] = ''
+  return new
 end
 
-common.types = {}
+fthelper.types = {}
 
-common.types.bracketed = {
+fthelper.types.plain = {
+  open = nil,
+  close = nil,
+}
+
+fthelper.types.bracketed = {
   open = '\x1b[200~',
   close = '\x1b[201~',
 }
 
-return common
+return fthelper

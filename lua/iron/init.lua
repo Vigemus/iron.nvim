@@ -19,30 +19,47 @@ local nvim = vim.api
 --    This is what guides irons behavior. Falls back to `g:iron_`
 --    variables is value isn't set in lua.
 --
+--  -->> fts:
+--    File types and their repl definitions.
+--
+--  -->> utils:
+--    Utility functions that can be reused by clients.
+--
 --  -->> core:
 --    User api, should have all public functions there.
 --    mostly a reorganization of core, hiding the complexity
 --    of managing memory and config from the user.
 --]]
+local helpers = {
+  ft = require("iron.fts.common")
+}
 local iron = {
   memory = {},
   behavior = {
-    memory_management = require("iron.memory_management"),
+    manager = require("iron.memory_management"),
     visibility = require("iron.visibility")
   },
   ll = {},
   core = {},
   debug = {},
-  fts = require("iron.fts.fts"),
+  fts = require("iron.fts"),
   utils = require("iron.utils")
 }
 
 local defaultconfig = {
   visibility = iron.behavior.visibility.toggle,
-  memory_management = iron.behavior.memory_management.path_based,
+  manager = iron.behavior.manager.path_based,
   preferred = {},
   repl_open_cmd = "topleft vertical 100 split"
 }
+
+local get_from_memory = function(ft)
+  return iron.config.manager.get(iron.memory, ft)
+end
+
+local set_on_memory = function(ft, fn)
+  return iron.config.manager.set(iron.memory, ft, fn)
+end
 
 iron.ll.get_file_ft = function()
   return nvim.nvim_get_option("ft")
@@ -76,17 +93,25 @@ end
 
 iron.ll.create_new_repl = function(ft, repl)
   iron.ll.new_repl_window("enew")
-  nvim.nvim_call_function('termopen', {{repl.command}})
-  iron.memory[ft] = nvim.nvim_call_function('bufnr', {'%'})
+  local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
+  local bufnr = nvim.nvim_call_function('bufnr', {'%'})
+  local inst = {
+    bufnr = bufnr,
+    job = job_id,
+    repldef = repl
+  }
+  set_on_memory(ft, function() return inst end)
+
+  return bufnr
 end
 
-iron.core.send_to_repl = function(config, memory, ft, data)
-  local mem = get_from_memory(config, memory, ft)
-  nvim.nvim_call_function('jobsend', {mem.job, mem.definition.format(data)})
+iron.ll.send_to_repl = function(ft, data)
+  local mem = get_from_memory(ft)
+  nvim.nvim_call_function('jobsend', {mem.job, helpers.ft.functions.format(mem.repldef, data)})
 end
 
 iron.core.repl_for = function(ft)
-  local mem = iron.memory[ft]
+  local mem = get_from_memory(ft)
   local newfn = function()
     local repl = iron.ll.get_preferred_repl(ft)
     iron.ll.create_new_repl(ft, repl)
@@ -101,18 +126,19 @@ iron.core.repl_for = function(ft)
     iron.config.visibility(mem, newfn, showfn)
   end
 
-  return iron.memory[ft]
+  return get_from_memory(ft)
 end
 
 iron.core.focus_on = function(ft)
-  local mem = iron.memory[ft]
+  local mem = get_from_memory(ft)
+
   if mem == nil then
     mem = iron.core.repl_for(ft)
   end
 
   iron.behavior.visibility.focus(mem, nil, nil)
 
-  return iron.memory[ft]
+  return mem
 end
 
 
@@ -136,6 +162,10 @@ end
 
 iron.debug.fts = function()
   print(require("inspect")(iron.fts))
+end
+
+iron.debug.memory = function()
+  print(require("inspect")(iron.memory))
 end
 
 -- [[ Setup ]] --
