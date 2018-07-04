@@ -1,113 +1,144 @@
 -- luacheck: globals unpack vim
 local nvim = vim.api
 
-local clone = require("iron.util.functional").clone
-local visibility = require("iron.visibility")
-local memory_management = require("iron.memory_management")
-
---[[ -> config proxy
--- enables seamless configuration either through
--- lua or neovim, prepending `iron_` to the key.
---]]
-local _nvim_proxy = {
-  __index = function(_, key)
-    local key_ = 'iron_' .. key
-    local val = nil
-    if nvim.nvim_call_function('exists', {key_}) == 1 then
-      val = nvim.nvim_get_var(key_)
-    end
-    return val
-  end
-}
-
---[[ -> default config
--- Here is defined the default configuration of iron and minimal required data
--- iron expects to be set in order to correctly function.
---]]
-local defaultconfig = {
-  visibility = visibility.toggle,
-  memory_management = memory_management.path_based,
-  preferred = {}
-}
-
-
---[[ -> new config
--- creates a new config based on the default config
--- and sets the proxy in it.
---]]
-local new_config = function()
-  local config = clone(defaultconfig)
-  setmetatable(config, _nvim_proxy)
-
-  return config
-end
-
 
 --[[ -> iron
 -- Here is the complete iron API.
 -- Below is a brief description of module separation:
---  -->> predefs:
+--  -->> behavior:
 --    Functions that alter iron's behavior and are set to be used
 --    within configuration by the user
 --
 --  -->> memory:
 --    Iron's repl database, so it knows which instances it's managing.
 --
---  -->> core:
---    Repl management functions.
+--  -->> ll:
+--    Low level functions that interact with neovim's windows and buffers.
 --
 --  -->> config:
 --    This is what guides irons behavior. Falls back to `g:iron_`
 --    variables is value isn't set in lua.
 --
---  -->> _ | api:
+--  -->> core:
 --    User api, should have all public functions there.
 --    mostly a reorganization of core, hiding the complexity
 --    of managing memory and config from the user.
 --]]
-local api = {}
 local iron = {
-  predefs = {
-    visibility = visibility,
-    memory_management = memory_management,
-  },
   memory = {},
-  core = require('iron.core'),
-  config = new_config(),
-  api = api,
-  _ = api
+  behavior = {
+    memory_management = require("iron.memory_management"),
+    visibility = require("iron.visibility")
+  },
+  ll = {},
+  core = {},
+  debug = {},
+  fts = require("iron.fts.fts"),
+  utils = require("iron.utils")
 }
 
---[[ -> set config
--- configuration entrypoint.
--- Below is a code example, setting the defaults:
---| iron._.set_config{
---|   visibility = iron.predefs.visibility.toggle,
---|   memory_management = iron.predefs.memory_management.path_based,
---| }
---]]
-api.set_config = function(cfg)
-  local config = new_config()
+local defaultconfig = {
+  visibility = iron.behavior.visibility.toggle,
+  memory_management = iron.behavior.memory_management.path_based,
+  preferred = {},
+  repl_open_cmd = "topleft vertical 100 split"
+}
 
-  for k, v in pairs(cfg) do
-    config[k] = v
+iron.ll.get_file_ft = function()
+  return nvim.nvim_get_option("ft")
+end
+
+iron.ll.get_repl_definitions = function(ft)
+  return iron.fts[ft]
+end
+
+iron.ll.get_preferred_repl = function(ft)
+  local repl = iron.ll.get_repl_definitions(ft)
+  local preference = iron.config.preferred[ft]
+  local repl_def = nil
+  if preference ~= nil then
+    repl_def = repl[preference]
+  else
+    -- TODO Find a better way to select preferred repl
+    for k, v in pairs(repl) do
+      if os.execute('which ' .. k .. ' > /dev/null') == 0 then
+        repl_def = v
+        break
+      end
+    end
+  end
+  return repl_def
+end
+
+iron.ll.new_repl_window = function(buff)
+  nvim.nvim_command(iron.config.repl_open_cmd .. '| ' .. buff .. ' | set wfw | startinsert')
+end
+
+iron.ll.create_new_repl = function(ft, repl)
+  iron.ll.new_repl_window("enew")
+  nvim.nvim_call_function('termopen', {{repl.command}})
+  iron.memory[ft] = nvim.nvim_call_function('bufnr', {'%'})
+end
+
+iron.core.send_to_repl = function(config, memory, ft, data)
+  local mem = get_from_memory(config, memory, ft)
+  nvim.nvim_call_function('jobsend', {mem.job, mem.definition.format(data)})
+end
+
+iron.core.repl_for = function(ft)
+  local mem = iron.memory[ft]
+  local newfn = function()
+    local repl = iron.ll.get_preferred_repl(ft)
+    iron.ll.create_new_repl(ft, repl)
+  end
+  local showfn = function()
+    iron.ll.new_repl_window('b ' .. mem)
   end
 
-  iron.config = config
+  if mem == nil then
+    newfn()
+  else
+    iron.config.visibility(mem, newfn, showfn)
+  end
+
+  return iron.memory[ft]
+end
+
+iron.core.focus_on = function(ft)
+  local mem = iron.memory[ft]
+  if mem == nil then
+    mem = iron.core.repl_for(ft)
+  end
+
+  iron.behavior.visibility.focus(mem, nil, nil)
+
+  return iron.memory[ft]
 end
 
 
---[[ -> repl for
--- opens a repl for given `ft`
--- Below is a code example, opening a new lua repl: 
---| iron._.repl_for('lua')
---]]
-api.repl_for = function(ft)
-  iron.core.get_repl(iron.config, iron.memory, ft)
+iron.core.set_config = function(cfg)
+  iron.config = iron.utils.clone(defaultconfig)
+  for k, v in pairs(cfg) do
+    iron.config[k] = v
+  end
 end
 
-api.send_to = function(ft, data)
-  iron.core.send_to_repl(iron.config, iron.memory, ft, data)
+iron.core.add_repl_definitions = function(defns)
+  for ft, defn in pairs(defns) do
+    if iron.fts[ft] == nil then
+      iron.fts[ft] = {}
+    end
+    for repl, repldfn in pairs(defn) do
+      iron.fts[ft][repl] = repldfn
+    end
+  end
 end
+
+iron.debug.fts = function()
+  print(require("inspect")(iron.fts))
+end
+
+-- [[ Setup ]] --
+iron.config = iron.utils.clone(defaultconfig)
 
 return iron

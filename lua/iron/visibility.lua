@@ -26,8 +26,15 @@ visibility.toggle = function(bufid, newfn, showfn)
     if window == -1 then
       showfn()
     else
-      nvim.nvim_command("exec '" .. window .. "wincmd c'")
+      nvim.nvim_command(window .. "wincmd c")
     end
+  end
+end
+
+visibility.focus = function(bufid, _, _)
+  local window = nvim.nvim_call_function('bufwinnr', {bufid})
+  if window ~= -1 then
+    nvim.nvim_command(window .. "wincmd w")
   end
 end
 
