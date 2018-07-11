@@ -10,11 +10,24 @@ Interactive Repls Over Neovim
 
 - [x] Creating REPLs with lua
 - [x] Sending data to REPLs
-- [ ] Mappings and custom mappings
-- [ ] User-defined REPL configuration
-- [ ] FT-specific hooks
-- [ ] Autocommands
-- [ ] ... (accepting feature-requests)
+- [x] User-defined REPL configuration
+- [x] Focus on repl
+- [x] Debug
+- [ ] VimL counterpart (commands and functions)
+- [ ] Documentation
+- [ ] Migration of python definitions to lua
+
+### Important notice!
+
+Python support is frozen as of ead377f and will be kept in a legacy branch after migration ends.
+After this commit, python code is considered legacy and soon-to-be removed.
+
+Migrating to lua will allow things to be easier to hack and maintain. It will solve sync/async issues and
+will allow a much easier to extend and maintain system.
+
+Feel free to open issues or pull requests if the migration path is unclear, missing something or dropping a feature you rely on.
+
+Also, feel free to contribute with ideas.
 
 ## Support iron.nvim
 Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.

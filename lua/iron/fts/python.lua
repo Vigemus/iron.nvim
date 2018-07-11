@@ -1,9 +1,9 @@
-local common = require('iron.fts.common')
 local py = {}
 
 
-py.ipython = common.new("bracketed"){
-  command = 'ipython'
+py.ipython = {
+  command = 'ipython',
+  type = 'bracketed'
 }
 
 return py
