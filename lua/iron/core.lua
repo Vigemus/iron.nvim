@@ -50,9 +50,4 @@ core.get_repl = function(config, memory, ft)
   return mem
 end
 
-core.send_to_repl = function(config, memory, ft, data)
-  local mem = get_from_memory(config, memory, ft)
-  nvim.nvim_call_function('jobsend', {mem.job, mem.definition.format(data)})
-end
-
 return core
