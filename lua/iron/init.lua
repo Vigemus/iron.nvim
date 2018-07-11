@@ -53,11 +53,11 @@ local defaultconfig = {
   repl_open_cmd = "topleft vertical 100 split"
 }
 
-local get_from_memory = function(ft)
+iron.ll.get_from_memory = function(ft)
   return iron.config.manager.get(iron.memory, ft)
 end
 
-local set_on_memory = function(ft, fn)
+iron.ll.set_on_memory = function(ft, fn)
   return iron.config.manager.set(iron.memory, ft, fn)
 end
 
@@ -100,18 +100,18 @@ iron.ll.create_new_repl = function(ft, repl)
     job = job_id,
     repldef = repl
   }
-  set_on_memory(ft, function() return inst end)
+  iron.ll.set_on_memory(ft, function() return inst end)
 
   return bufnr
 end
 
 iron.ll.send_to_repl = function(ft, data)
-  local mem = get_from_memory(ft)
+  local mem = iron.ll.get_from_memory(ft)
   nvim.nvim_call_function('jobsend', {mem.job, helpers.ft.functions.format(mem.repldef, data)})
 end
 
 iron.core.repl_for = function(ft)
-  local mem = get_from_memory(ft)
+  local mem = iron.ll.get_from_memory(ft)
   local newfn = function()
     local repl = iron.ll.get_preferred_repl(ft)
     iron.ll.create_new_repl(ft, repl)
@@ -123,14 +123,14 @@ iron.core.repl_for = function(ft)
   if mem == nil then
     newfn()
   else
-    iron.config.visibility(mem, newfn, showfn)
+    iron.config.visibility(mem.bufnr, newfn, showfn)
   end
 
-  return get_from_memory(ft)
+  return iron.ll.get_from_memory(ft)
 end
 
 iron.core.focus_on = function(ft)
-  local mem = get_from_memory(ft)
+  local mem = iron.ll.get_from_memory(ft)
 
   if mem == nil then
     mem = iron.core.repl_for(ft)
