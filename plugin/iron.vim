@@ -1,4 +1,4 @@
-map <silent> <Plug>(iron-send-motion) 
+map <silent> <Plug>(iron-send-motion)
       \ :<c-u>let b:iron_cursor_pos = winsaveview() \| set opfunc=IronSendMotion<CR>g@
 vmap <silent> <Plug>(iron-send-motion)
       \ :<c-u>let b:iron_cursor_pos = winsaveview() \| call IronSendMotion('visual')<CR>
