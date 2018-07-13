@@ -3,7 +3,7 @@
 
 insulate("About #iron functionality", function()
 
-    local _ = require('iron.util.functional')
+    local _ = require('iron.util.tables')
     before_each(function()
         _G.vim = mock({ api = {
                     nvim_call_function = function(_, _) return 1 end,
