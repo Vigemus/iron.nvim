@@ -6,8 +6,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install busted
-          command: luarocks-5.1 install busted
+          name: Install Dependencies
+          command: luarocks-5.1 install busted luackeck
       - run:
-          name: tests
+          name: Unit Tests
           command: busted
+      - run:
+          name: Linter
+          command: luacheck lua/**/*.lua
