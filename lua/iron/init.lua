@@ -22,16 +22,16 @@ local nvim = vim.api
 --  -->> fts:
 --    File types and their repl definitions.
 --
---  -->> utils:
---    Utility functions that can be reused by clients.
---
 --  -->> core:
 --    User api, should have all public functions there.
 --    mostly a reorganization of core, hiding the complexity
 --    of managing memory and config from the user.
 --]]
-local helpers = {
-  ft = require("iron.fts.common")
+local ext = {
+  repl = require("iron.fts.common").functions,
+  strings = require("iron.util.strings"),
+  tables = require("iron.util.tables"),
+  functions = require("iron.util.functions")
 }
 local iron = {
   memory = {},
@@ -42,8 +42,7 @@ local iron = {
   ll = {},
   core = {},
   debug = {},
-  fts = require("iron.fts"),
-  utils = require("iron.utils")
+  fts = require("iron.fts")
 }
 
 local defaultconfig = {
@@ -53,12 +52,22 @@ local defaultconfig = {
   repl_open_cmd = "topleft vertical 100 split"
 }
 
+-- [[ Low-level
 iron.ll.get_from_memory = function(ft)
   return iron.config.manager.get(iron.memory, ft)
 end
 
 iron.ll.set_on_memory = function(ft, fn)
   return iron.config.manager.set(iron.memory, ft, fn)
+end
+
+iron.ll.get_buffer_ft = function(bufnr)
+  local ft = nvim.nvim_buf_get_option(bufnr, 'filetype')
+  if ext.tables.get(iron.fts, ft) == nil then
+    nvim.nvim_command("echoerr 'No repl definition for current files &filetype'")
+  else
+    return ft
+  end
 end
 
 iron.ll.get_file_ft = function()
@@ -102,48 +111,66 @@ iron.ll.create_new_repl = function(ft, repl)
   }
   iron.ll.set_on_memory(ft, function() return inst end)
 
-  return bufnr
+  return inst
+end
+
+iron.ll.create_preferred_repl = function(ft)
+    local repl = iron.ll.get_preferred_repl(ft)
+    return iron.ll.create_new_repl(ft, repl)
+end
+
+iron.ll.ensure_repl_exists = function(ft, newfn)
+  newfn = newfn or iron.ll.create_preferred_repl
+  local mem = iron.ll.get_from_memory(ft)
+  local created = false
+
+  if mem == nil or nvim.nvim_call_function('bufname', {mem.bufnr}) == "" then
+    mem = newfn(ft)
+    created = true
+  end
+
+  return mem, created
 end
 
 iron.ll.send_to_repl = function(ft, data)
+  local dt = data
+
+  if type(data) == string then
+    dt = ext.strings.split(data, '\n')
+  end
+
   local mem = iron.ll.get_from_memory(ft)
-  nvim.nvim_call_function('jobsend', {mem.job, helpers.ft.functions.format(mem.repldef, data)})
+  nvim.nvim_call_function('chansend', {mem.job, ext.repl.format(mem.repldef, dt)})
 end
+-- Low-level ]]
 
 iron.core.repl_for = function(ft)
-  local mem = iron.ll.get_from_memory(ft)
-  local newfn = function()
-    local repl = iron.ll.get_preferred_repl(ft)
-    iron.ll.create_new_repl(ft, repl)
+  local mem, created = iron.ll.ensure_repl_exists(ft)
+
+  if not created then
+    local showfn = function()
+      iron.ll.new_repl_window('b ' .. mem.bufnr)
+    end
+    iron.config.visibility(mem.bufnr, showfn)
   end
-  local showfn = function()
-    iron.ll.new_repl_window('b ' .. mem)
-  end
-
-  if mem == nil then
-    newfn()
-  else
-    iron.config.visibility(mem.bufnr, newfn, showfn)
-  end
-
-  return iron.ll.get_from_memory(ft)
-end
-
-iron.core.focus_on = function(ft)
-  local mem = iron.ll.get_from_memory(ft)
-
-  if mem == nil then
-    mem = iron.core.repl_for(ft)
-  end
-
-  iron.behavior.visibility.focus(mem, nil, nil)
 
   return mem
 end
 
+iron.core.focus_on = function(ft)
+  local mem = iron.ll.ensure_repl_exists(ft)
+
+  local showfn = function()
+    iron.ll.new_repl_window('b ' .. mem.bufnr)
+  end
+
+  iron.behavior.visibility.focus(mem.bufnr, showfn)
+
+  return mem
+end
 
 iron.core.set_config = function(cfg)
-  iron.config = iron.utils.clone(defaultconfig)
+  iron.config = ext.functions.clone(defaultconfig)
   for k, v in pairs(cfg) do
     iron.config[k] = v
   end
@@ -160,6 +187,29 @@ iron.core.add_repl_definitions = function(defns)
   end
 end
 
+iron.core.send_motion = function(tp)
+  local bufnr = nvim.nvim_call_function('bufnr', {'%'})
+  local ft = iron.ll.get_buffer_ft(bufnr)
+
+  if ft ~= nil then
+    local b, e
+
+    if tp == 'visual' then
+      b, e = '<', '>'
+    else
+      b, e = '[', ']'
+    end
+
+    iron.ll.ensure_repl_exists(ft)
+    iron.ll.send_to_repl(ft, nvim.nvim_buf_get_lines(
+          bufnr,
+          nvim.nvim_buf_get_mark(bufnr, b)[1] - 1,
+          nvim.nvim_buf_get_mark(bufnr, e)[1],
+          0
+      ))
+  end
+end
+
 iron.debug.fts = function()
   print(require("inspect")(iron.fts))
 end
@@ -169,6 +219,6 @@ iron.debug.memory = function()
 end
 
 -- [[ Setup ]] --
-iron.config = iron.utils.clone(defaultconfig)
+iron.config = ext.functions.clone(defaultconfig)
 
 return iron

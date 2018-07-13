@@ -1,5 +1,6 @@
 local fthelper = {
-  functions = {}
+  functions = {},
+  types = {}
 }
 
 fthelper.functions.format = function(repldef, lines)
@@ -24,7 +25,6 @@ fthelper.functions.format = function(repldef, lines)
   return new
 end
 
-fthelper.types = {}
 
 fthelper.types.plain = {
   open = nil,
