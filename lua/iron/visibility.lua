@@ -1,41 +1,33 @@
 local nvim = vim.api -- luacheck: ignore
 local visibility = {}
 
-visibility.always_new = function(_, newfn, _)
-    newfn()
-end
-
-visibility.single = function(bufid, newfn, showfn)
-  local bufname = nvim.nvim_call_function('bufname', {bufid})
-  if bufname == "" then
-    newfn()
-  else
-    local window = nvim.nvim_call_function('bufwinnr', {bufid})
-    if window == -1 then
-      showfn()
-    end
-  end
-end
-
-visibility.toggle = function(bufid, newfn, showfn)
-  local bufname = nvim.nvim_call_function('bufname', {bufid})
-  if bufname == "" then
-    newfn()
-  else
-    local window = nvim.nvim_call_function('bufwinnr', {bufid})
-    if window == -1 then
-      showfn()
-    else
-      nvim.nvim_command(window .. "wincmd c")
-    end
-  end
-end
-
-visibility.focus = function(bufid, _, _)
+local hidden = function(bufid, showfn)
+  local was_hidden = false
   local window = nvim.nvim_call_function('bufwinnr', {bufid})
-  if window ~= -1 then
-    nvim.nvim_command(window .. "wincmd w")
+
+  if window == -1 then
+    showfn()
+    was_hidden = true
+    window = nvim.nvim_call_function('bufwinnr', {bufid})
   end
+
+  return window, was_hidden
+end
+
+visibility.single = function(bufid, showfn)
+  hidden(bufid, showfn)
+end
+
+visibility.toggle = function(bufid, showfn)
+  local window, was_hidden = hidden(bufid, showfn)
+  if not was_hidden then
+    nvim.nvim_command(window .. "wincmd c")
+  end
+end
+
+visibility.focus = function(bufid, showfn)
+  local window = hidden(bufid, showfn)
+  nvim.nvim_command(window .. "wincmd w")
 end
 
 return visibility
