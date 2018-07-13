@@ -22,7 +22,11 @@ fns.peek = function(tbl)
 end
 
 fns.get = function(d, k)
-  return d and d[k]
+  if type(d) == "table" then
+    return d and d[k]
+  else
+    return nil
+  end
 end
 
 fns.get_in = function(d, k)
