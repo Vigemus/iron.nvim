@@ -1,9 +1,22 @@
-local py = {}
+local python = {}
 
-
-py.ipython = {
-  command = 'ipython',
-  type = 'bracketed'
+python.ptipython = {
+  command = "ptipython",
+  type = "bracketed",
 }
 
-return py
+python.ipython = {
+  command = "ipython",
+  type = "bracketed",
+}
+
+python.ptpython = {
+  command = "ptpython",
+  type = "bracketed",
+}
+
+python.python = {
+  command = "python",
+}
+
+return python

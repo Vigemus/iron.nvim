@@ -6,17 +6,6 @@ Interactive Repls Over Neovim
 
 [![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=shield&circle-token=debdaf36972c979be9ab014b325aa91da3ca0c1c)]()
 
-## Lua roadmap
-
-- [x] Creating REPLs with lua
-- [x] Sending data to REPLs
-- [x] User-defined REPL configuration
-- [x] Focus on repl
-- [x] Debug
-- [ ] VimL counterpart (commands and functions)
-- [ ] Documentation
-- [ ] Migration of python definitions to lua
-
 ### Important notice!
 
 Python support is frozen as of ead377f and will be kept in a legacy branch after migration ends.
@@ -33,85 +22,100 @@ Also, feel free to contribute with ideas.
 Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
 Cheers!
 
-## What is it for?
+## Lua roadmap
 
-Iron is a simple utility that helps you bringing repls for the current `ft`,
-together with some mappings that allow you to quickly interact with it.
+- [x] Creating REPLs with lua
+- [x] Sending data to REPLs
+- [x] User-defined REPL configuration
+- [x] Focus on repl
+- [x] Debug
+- [x] Migration of python definitions to lua
+  - [ ] Custom checkers to select repl
+- [ ] VimL counterpart (commands and functions)
+- [ ] Documentation
 
-It provides commands below:
-  - `IronRepl` to start a repl based on current buffer;
-  - `IronPromptRepl` to prompt you for which repl type it should open;
-  - `IronPromptCommand` to prompt for which command to run for current ft (if no definition for current ft, prompts for ft);
-  - `IronDumpReplDefinition` to dump on the logfile the current definition for repls. Useful for debugging.
-  - `IronClearReplDefinition` resets data to original state. If something gets messy, this should restore the behavior.
+## Lua Usage
 
-It also provides the following functions:
-  - `IronSendSpecial` allows calling python functions for the current ft. See more below.
-  - `IronSendMotion` gets a chunk of text from current buffer based on the motion sent. Used by `ctr`.
-  - `IronSend` is a general function for sending text to the repl.
+if you want to use the iron features directly instead of using the VimL counterpart
+(not implemented yet), below follows the list of public lua functions:
 
-## Language special mappings
+```lua
+local iron = require("iron")
 
-Iron allows that you add some commonly used tasks as special mappings for each
-language. Currently, only clojure has several of those implemented. Those
-mappings allow you the get chunks of text from the current buffer and issue
-commands specifically for the current ft, such as calling a test for that
-file/namespace, importing a dependency, toggling debugging state or whatever
-makes sense for the language/repl.
+iron.core.repl_for(ft)
+--[[
+Creates a repl for given FT, or focuses on it if already exists
+`ft` is a valid file type
+--]]
 
-If you think you are repeating yourself too
-much, feel free to open a PR implementing one of those.
+iron.core.focus_on(ft)
+--[[
+Focuses on existing repl for ft
+`ft` is a valid file type
+--]]
 
-## Installing
+iron.core.set_config(config)
+--[[
+Sets a configuration based on provided table.
+`config` is a valid table containing configuration
 
-As iron.nvim is a remote plugin, it requires you to `:UpdateRemotePlugins` after installing or upgrading it.
+ex.:
+iron.core.set_config{
+  preferred = {
+    python = "ipython"
+  },
+  repl_open_cmd = "rightbelow 20 split"
+}
+--]]
 
-To install, simply do as follows:
+iron.core.add_repl_definitions(defns)
+--[[
+Adds a list of repl definitions for provided fts.
+`defns` is a valid table containing repl definitions
 
-```vim
-  Plug 'hkupty/iron.nvim'
+ex.:
+iron.core.add_repl_definitions{
+  python = {
+    mycustom = {
+      command = "mycmd"
+    }
+  }
+}
+--]]
 
-  "remember to update
-  UpdateRemotePlugins
+iron.core.send_motion(tp)
+--[[
+Sends a motion for iron to capture the text and send to the repl.
+`tp` can be "visual", "block" or "line"
+--]]
+
+iron.debug.fts
+iron.debug.memory
 ```
 
-## Using
+## Dropped features
 
-After opening a repl for current buffer, iron has defined a general mapping to
-send text to it: `ctr`.
+- Repl specific bindings (`IronSendSpecial`)
+  - This increased the complexity of the python implementation by some extent.
+  - It can depend on user configuration/installed plugins
+  - [https://github.com/Vigemus/trex.nvim](trex.nvim) can provide similar feature in the future
+- `IronPromptRepl`/`IronPromptCommand`
+  - trex.nvim provides `TrexInvoke`, which allows ft to be passed;
+    - If prompting is required, it can be chained to that command.
+  - Iron might end up providing a command, but `lua require("iron").core.repl_for(<ft>)` does the trick;
+  - Same thing can be accomplished for the underlying repl command, though trickier:
+    ```lua
+    -- create this file in your ~/.config/nvim/ as iron.lua
+    -- in your init.vim, run `luafile $HOME/.config/nvim/iron.lua`
 
-`ctr` operates on text objects, so you can `ctr3j`, `ctrap`, `0ctr$`, and any
-other combination of commands/mappings you may need to send text to the repl.
+    local iron = require("iron")
+    _G.create_repl = function(ft, command, tp)
+      local repl_definition = {
+        command = command,
+        type = tp or 'bracketed'
+      }
+      return iron.ll.create_new_repl(ft, repl_definition)
+    end
 
-Iron has also set conveniently a mapping for calling back the previous command:
-`cp` (remember as call previous).
-
-Both `ctr` and `cp` can be remmaped. For example, if you only work with python,
-you can use the following configuration:
-
-```vim
-" deactivate default mappings
-let g:iron_map_defaults=0
-" define custom mappings for the python filetype
-augroup ironmapping
-    autocmd!
-    autocmd Filetype python nmap <buffer> <localleader>t <Plug>(iron-send-motion)
-    autocmd Filetype python vmap <buffer> <localleader>t <Plug>(iron-send-motion)
-    autocmd Filetype python nmap <buffer> <localleader>p <Plug>(iron-repeat-cmd)
-augroup END
-```
-
-Iron also can have special, language/repl based mappings as defined per-repl.
-Refer to Language Special Mappings above for more information.
-
-## Status
-
-Although iron is currently experimental/beta and may have bugs and/or missing
-functionality, it has already a nice range of languages implemented and quite a
-nice support for clojure already. Other languages may be lacking support, but
-reportedly work ok.
-
-Feel free to fork and extend iron. It is completely open source and community
-driven.
-
-*Please* report any bugs by opening issues and/or PRs.
+    vim.api.nvim_command([[command! -nargs=+ PromptMyRepl lua create_repl(&ft, <f-args>)]])
+    ```
