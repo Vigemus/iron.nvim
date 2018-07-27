@@ -30,6 +30,7 @@ Cheers!
 - [x] Focus on repl
 - [x] Debug
 - [x] Migration of python definitions to lua
+  - [ ] Custom checkers to selct repl
 - [ ] VimL counterpart (commands and functions)
 - [ ] Documentation
 
