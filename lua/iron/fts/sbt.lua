@@ -1,10 +1,10 @@
-local sbt.scala = {}
+local sbt = {}
 
-sbt.scala.sbt = {
+sbt.sbt = {
   command = "sbt",
   type = "custom",
   open = ":paste\n",
   close = "",
 }
 
-return sbt.scala
+return sbt
