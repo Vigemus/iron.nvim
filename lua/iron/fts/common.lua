@@ -4,7 +4,7 @@ local fthelper = {
 }
 
 fthelper.functions.format = function(repldef, lines)
-  local tp = fthelper.types[repldef.type or "plain"]
+  local tp = fthelper.types[repldef.type or "plain"](repldef)
   local new = {}
   local off = 0
 
@@ -26,14 +26,25 @@ fthelper.functions.format = function(repldef, lines)
 end
 
 
-fthelper.types.plain = {
-  open = nil,
-  close = nil,
-}
+fthelper.types.plain = function(_)
+  return {
+    open = nil,
+    close = nil,
+  }
+end
 
-fthelper.types.bracketed = {
-  open = '\x1b[200~',
-  close = '\x1b[201~',
-}
+fthelper.types.bracketed = function(_)
+  return {
+    open = '\x1b[200~',
+    close = '\x1b[201~',
+  }
+end
+
+fthelper.types.custom = function(def)
+  return {
+    open = def.open,
+    close = def.close,
+  }
+end
 
 return fthelper
