@@ -30,9 +30,68 @@ Cheers!
 - [x] Focus on repl
 - [x] Debug
 - [x] Migration of python definitions to lua
-  - [ ] Custom checkers to selct repl
+  - [ ] Custom checkers to select repl
 - [ ] VimL counterpart (commands and functions)
 - [ ] Documentation
+
+## Lua Usage
+
+if you want to use the iron features directly instead of using the VimL counterpart
+(not implemented yet), below follows the list of public lua functions:
+
+```lua
+local iron = require("iron")
+
+iron.core.repl_for(ft)
+--[[
+Creates a repl for given FT, or focuses on it if already exists
+`ft` is a valid file type
+--]]
+
+iron.core.focus_on(ft)
+--[[
+Focuses on existing repl for ft
+`ft` is a valid file type
+--]]
+
+iron.core.set_config(config)
+--[[
+Sets a configuration based on provided table.
+`config` is a valid table containing configuration
+
+ex.:
+iron.core.set_config{
+  preferred = {
+    python = "ipython"
+  },
+  repl_open_cmd = "rightbelow 20 split"
+}
+--]]
+
+iron.core.add_repl_definitions(defns)
+--[[
+Adds a list of repl definitions for provided fts.
+`defns` is a valid table containing repl definitions
+
+ex.:
+iron.core.add_repl_definitions{
+  python = {
+    mycustom = {
+      command = "mycmd"
+    }
+  }
+}
+--]]
+
+iron.core.send_motion(tp)
+--[[
+Sends a motion for iron to capture the text and send to the repl.
+`tp` can be "visual", "block" or "line"
+--]]
+
+iron.debug.fts
+iron.debug.memory
+```
 
 ## Dropped features
 
