@@ -1,6 +1,6 @@
 " TODO Drop once lua mappings exist
 function! IronSendMotion(mode)
-  exec 'lua require("iron").core.send_motion('.a:mode.')'
+  exec 'lua require("iron").core.send_motion("'.a:mode.'")'
   if exists("b:iron_cursor_pos")
     call winrestview(b:iron_cursor_pos)
   endif
@@ -29,6 +29,7 @@ command! -nargs=? -complete=filetype IronFocus
 
 map <silent> <Plug>(iron-send-motion)
       \ <Cmd>let b:iron_cursor_pos = winsaveview() \| set opfunc=IronSendMotion<CR>g@
+
 vmap <silent> <Plug>(iron-send-motion)
       \ <Cmd>let b:iron_cursor_pos = winsaveview() \| call IronSendMotion('visual')<CR>
 
