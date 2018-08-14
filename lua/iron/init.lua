@@ -134,7 +134,7 @@ end
 iron.ll.send_to_repl = function(ft, data)
   local dt = data
 
-  if type(data) == string then
+  if type(data) == "string" then
     dt = ext.strings.split(data, '\n')
   end
 
