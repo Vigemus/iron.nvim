@@ -214,8 +214,9 @@ iron.core.send_motion = function(tp)
   end
 end
 
-iron.debug.fts = function()
-  print(require("inspect")(iron.fts))
+iron.debug.definitions = function(lang)
+  local defs = lang and iron.fts[lang] or iron.fts
+  print(require("inspect")(defs))
 end
 
 iron.debug.memory = function()
