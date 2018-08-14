@@ -28,7 +28,6 @@ fthelper.functions.format = function(repldef, lines)
   for _, v in ipairs(lines) do
     table.insert(new, v)
   end
-
   if repldef.close ~= nil then
     extend(new, repldef.close)
   elseif (#new > 0
