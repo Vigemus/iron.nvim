@@ -35,12 +35,11 @@ map <silent> <Plug>(iron-send-motion)
 vmap <silent> <Plug>(iron-send-motion)
       \ <Cmd>let b:iron_cursor_pos = winsaveview() \| call IronSendMotion('visual')<CR>
 
-"Call previous command again
 map <silent> <Plug>(iron-repeat-cmd) <Cmd>IronSend! \27\91\65<CR>
-map <silent> <Plug>(iron-cr)         <Cmd>IronSend! \13<CR>             " <CR> to force execution of command
-map <silent> <Plug>(iron-interrupt)  <Cmd>IronSend! \03<CR>             " <c-c> to interrupt command
-map <silent> <Plug>(iron-exit)       <Cmd>IronSend! \04<CR>             " <c-d> to exit iron
-map <silent> <Plug>(iron-clear)      <Cmd>IronSend! \12<CR>             " <c-l> to clear screen
+map <silent> <Plug>(iron-cr)         <Cmd>IronSend! \13<CR>
+map <silent> <Plug>(iron-interrupt)  <Cmd>IronSend! \03<CR>
+map <silent> <Plug>(iron-exit)       <Cmd>IronSend! \04<CR>
+map <silent> <Plug>(iron-clear)      <Cmd>IronSend! \12<CR>
 
 if !exists('g:iron_map_defaults')
   let g:iron_map_defaults = 1
