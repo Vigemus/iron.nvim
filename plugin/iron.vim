@@ -20,6 +20,7 @@ function! IronSendWrapper(bang, ...)
   exec 'lua require("iron").core.send("'.s:ft.'", "'.s:tbl.'")'
 endfunction
 
+command! IronRepl exec 'lua require("iron").core.repl_for("'.&ft.'")'
 command! -nargs=+ -bang IronSend call IronSendWrapper(<bang>0, <f-args>)
 command! -nargs=? -complete=filetype IronFocus
       \  exec 'lua require("iron").core.focus_on("'
