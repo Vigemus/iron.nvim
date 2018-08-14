@@ -6,25 +6,25 @@ local fthelper = {
 fthelper.functions.format = function(repldef, lines)
   local tp = fthelper.types[repldef.type or "plain"](repldef)
   local new = {}
-  local off = 0
 
   if tp.open ~= nil then
-    new = {tp.open}
-    off = 1
+    new = table.insert(tp.open)
   end
 
-  for ix, v in ipairs(lines) do
-    new[ix+off] = v
+  for _, v in ipairs(lines) do
+    table.insert(new, v)
   end
 
   if tp.close ~= nil then
-    new[#new+off] = tp.close
+    table.insert(new, tp.close)
+  elseif (#new > 0
+      and new[#new] ~= ""
+      and string.byte(string.sub(new[#new], 1, 1)) > 31) then
+    table.insert(new, "")
   end
 
-  new[#new+off] = ''
   return new
 end
-
 
 fthelper.types.plain = function(_)
   return {
