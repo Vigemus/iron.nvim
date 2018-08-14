@@ -1,7 +1,6 @@
 -- luacheck: globals unpack vim
 local nvim = vim.api
 
-
 --[[ -> iron
 -- Here is the complete iron API.
 -- Below is a brief description of module separation:
@@ -16,8 +15,7 @@ local nvim = vim.api
 --    Low level functions that interact with neovim's windows and buffers.
 --
 --  -->> config:
---    This is what guides irons behavior. Falls back to `g:iron_`
---    variables is value isn't set in lua.
+--    This is what guides irons behavior.
 --
 --  -->> fts:
 --    File types and their repl definitions.
