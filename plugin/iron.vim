@@ -1,12 +1,14 @@
-" TODO Drop once lua mappings exist
 function! IronSendMotion(mode)
+  " TODO Drop once lua mappings exist
+  " Note: This is a private function. Don't use it directly
+
   exec 'lua require("iron").core.send_motion("'.a:mode.'")'
   if exists("b:iron_cursor_pos")
     call winrestview(b:iron_cursor_pos)
   endif
 endfunction
 
-function! IronSendWrapper(bang, ...)
+function! s:send_wrapper(bang, ...)
   let s:args = copy(a:000)
 
   if a:bang
@@ -21,7 +23,7 @@ function! IronSendWrapper(bang, ...)
 endfunction
 
 command! IronRepl exec 'lua require("iron").core.repl_for("'.&ft.'")'
-command! -nargs=+ -bang IronSend call IronSendWrapper(<bang>0, <f-args>)
+command! -nargs=+ -bang IronSend call <SID>send_wrapper(<bang>0, <f-args>)
 command! -nargs=? -complete=filetype IronFocus
       \  exec 'lua require("iron").core.focus_on("'
       \ .(empty(<q-args>) ? &ft : <q-args>)
