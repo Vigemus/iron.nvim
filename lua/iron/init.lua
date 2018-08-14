@@ -44,7 +44,6 @@ local iron = {
   debug = {},
   fts = require("iron.fts")
 }
-
 local defaultconfig = {
   visibility = iron.behavior.visibility.toggle,
   manager = iron.behavior.manager.path_based,
@@ -185,6 +184,11 @@ iron.core.add_repl_definitions = function(defns)
       iron.fts[ft][repl] = repldfn
     end
   end
+end
+
+iron.core.send = function(ft, data)
+  iron.ll.ensure_repl_exists(ft)
+  iron.ll.send_to_repl(ft, data)
 end
 
 iron.core.send_motion = function(tp)
