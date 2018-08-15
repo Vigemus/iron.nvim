@@ -4,11 +4,13 @@ local fthelper = {
 }
 
 fthelper.functions.format = function(repldef, lines)
+  assert(type(lines) == "table", "Supplied lines is not a table")
+
   local tp = fthelper.types[repldef.type or "plain"](repldef)
   local new = {}
 
   if tp.open ~= nil then
-    new = table.insert(tp.open)
+    table.insert(new, tp.open)
   end
 
   for _, v in ipairs(lines) do
@@ -35,8 +37,8 @@ end
 
 fthelper.types.bracketed = function(_)
   return {
-    open = '\x1b[200~',
-    close = '\x1b[201~',
+    open = "\27[200~",
+    close = "\27[201~",
   }
 end
 
