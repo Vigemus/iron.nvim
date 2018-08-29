@@ -23,26 +23,19 @@ insulate("On fthelper", function()
       assert.are.same(fts.format({}, {"asdf"}), {"asdf", ""})
       end)
 
-    it("should #wrap the lines with an escape sequence for 'bracketed' text format", function()
+    it("should #wrap the lines with whatever supplied enclosing pairs", function()
       assert.are.same(
-        fts.format({type = "bracketed"}, {"asdf"}),
-        {"\27[200~", "asdf", "\27[201~"}
-      )
-      end)
-
-    it("should #wrap the lines with whatever was supplied for 'custom' text format", function()
-      assert.are.same(
-        fts.format({type = "custom", open = "{", close = "}"}, {"asdf"}),
+        fts.format({open = "{", close = "}"}, {"asdf"}),
         {"{", "asdf", "}"}
       )
 
       assert.are.same(
-        fts.format({type = "custom", open = "\x1b[200~", close = "\x1b[201~"}, {"asdf"}),
+        fts.format({open = "\x1b[200~", close = "\x1b[201~"}, {"asdf"}),
         {"\x1b[200~", "asdf", "\x1b[201~"}
       )
 
       assert.are.same(
-        fts.format({type = "custom", open = "\27[200~", close = "\27[201~"}, {"asdf"}),
+        fts.format({open = "\27[200~", close = "\27[201~"}, {"asdf"}),
         {"\27[200~", "asdf", "\27[201~"}
       )
       end)
