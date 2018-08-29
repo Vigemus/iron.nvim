@@ -2,9 +2,8 @@ local sbt = {}
 
 sbt.sbt = {
   command = "sbt",
-  type = "custom",
   open = ":paste\n",
-  close = "",
+  close = "\04",
 }
 
 return sbt
