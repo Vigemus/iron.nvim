@@ -29,7 +29,6 @@ local ext = {
   repl = require("iron.fts.common").functions,
   strings = require("iron.util.strings"),
   tables = require("iron.util.tables"),
-  functions = require("iron.util.functions")
 }
 local iron = {
   memory = {},
@@ -182,7 +181,7 @@ iron.core.focus_on = function(ft)
 end
 
 iron.core.set_config = function(cfg)
-  iron.config = ext.functions.clone(defaultconfig)
+  iron.config = ext.tables.clone(defaultconfig)
   for k, v in pairs(cfg) do
     iron.config[k] = v
   end
@@ -297,6 +296,6 @@ iron.debug.memory = function()
 end
 
 -- [[ Setup ]] --
-iron.config = ext.functions.clone(defaultconfig)
+iron.config = ext.tables.clone(defaultconfig)
 
 return iron
