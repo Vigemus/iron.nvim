@@ -34,15 +34,20 @@ local ext = {
 local iron = {
   memory = {},
   behavior = {
+    debug_level = require("iron.debug_level"),
     manager = require("iron.memory_management"),
     visibility = require("iron.visibility")
   },
   ll = {},
   core = {},
-  debug = {},
+  debug = {
+    ll = {},
+    mem = {}
+  },
   fts = require("iron.fts")
 }
 local defaultconfig = {
+  debug_level = iron.behavior.debug_level.fatal,
   visibility = iron.behavior.visibility.toggle,
   manager = iron.behavior.manager.path_based,
   preferred = {},
@@ -137,7 +142,17 @@ iron.ll.send_to_repl = function(ft, data)
   end
 
   local mem = iron.ll.get_from_memory(ft)
-  nvim.nvim_call_function('chansend', {mem.job, ext.repl.format(mem.repldef, dt)})
+  dt = ext.repl.format(mem.repldef, dt)
+
+  iron.debug.ll.store{
+    where = "send_to_repl",
+    raw_lines = data,
+    lines = dt,
+    repl = mem,
+    level = iron.behavior.debug_level.info
+  }
+
+  nvim.nvim_call_function('chansend', {mem.job, dt})
 end
 -- Low-level ]]
 
@@ -208,6 +223,7 @@ iron.core.send_motion = function(tp)
     end
 
     local lines = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
+    local nosub = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
 
     lines[1] = string.sub(lines[1], b_col + 1)
 
@@ -217,9 +233,54 @@ iron.core.send_motion = function(tp)
       lines[#lines] = string.sub(lines[#lines], 1, e_col - b_col + 1)
     end
 
+  iron.debug.ll.store{
+    b_col = b_col,
+    e_col = e_col,
+    b_line = b_line,
+    e_line = e_line,
+    lines = lines,
+    lines_nosub = nosub,
+    tp = tp,
+    where = "send_motion",
+    level = iron.behavior.debug_level.info
+  }
+
+
     iron.ll.ensure_repl_exists(ft)
     iron.ll.send_to_repl(ft, lines)
   end
+end
+
+iron.debug.ll.store = function(opt)
+  opt.level = opt.level or iron.behavior.debug_level.info
+  if opt.level > iron.config.debug_level then
+    table.insert(iron.debug.mem, opt)
+  end
+end
+
+iron.debug.dump = function(level, to_buff)
+  level = level or iron.behavior.debug_level.info
+  local inspect = require("inspect")
+  local dump
+
+  if to_buff then
+    nvim.nvim_command("rightbelow vertical edit +set\\ nobl\\ bh=delete\\ bt=nofile iron://debug-logs")
+    dump = function(data)
+      nvim.nvim_call_function("writefile", {{data}, "iron://debug-logs"})
+    end
+  else
+    dump = function(data)
+      print(inspect(data))
+    end
+
+  end
+
+  for _, v in ipairs(iron.debug.mem) do
+    if v.level <= level then
+      dump(v)
+    end
+  end
+
 end
 
 iron.debug.definitions = function(lang)
