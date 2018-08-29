@@ -23,7 +23,6 @@ fthelper.functions.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
 
   local new = {}
-
   extend(new, repldef.open)
 
   for _, v in ipairs(lines) do
