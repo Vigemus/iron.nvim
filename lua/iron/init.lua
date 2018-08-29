@@ -225,12 +225,16 @@ iron.core.send_motion = function(tp)
     local lines = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
     local nosub = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
 
-    lines[1] = string.sub(lines[1], b_col + 1)
+    if b_col ~= 0 then
+      lines[1] = string.sub(lines[1], b_col + 1)
+    end
 
-    if b_line ~= e_line then
-      lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
-    else
-      lines[#lines] = string.sub(lines[#lines], 1, e_col - b_col + 1)
+    if e_col ~= 0 then
+      if b_line ~= e_line then
+        lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
+      else
+        lines[#lines] = string.sub(lines[#lines], 1, e_col - b_col + 1)
+      end
     end
 
   iron.debug.ll.store{
