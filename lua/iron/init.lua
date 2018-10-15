@@ -86,9 +86,8 @@ iron.ll.get_preferred_repl = function(ft)
   if preference ~= nil then
     repl_def = repl[preference]
   else
-    -- TODO Find a better way to select preferred repl
     for k, v in pairs(repl) do
-      if os.execute('which ' .. k .. ' > /dev/null') == 0 then
+      if nvim.nvim_command_output('echo exepath("' .. k .. '")') ~= '' then
         repl_def = v
         break
       end
