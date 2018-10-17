@@ -87,7 +87,7 @@ iron.ll.get_preferred_repl = function(ft)
     repl_def = repl[preference]
   else
     for k, v in pairs(repl) do
-      if nvim.nvim_command_output('echo exepath("' .. k .. '")') ~= '' then
+      if nvim.nvim_call_function('exepath', {k}) ~= '' then
         repl_def = v
         break
       end
