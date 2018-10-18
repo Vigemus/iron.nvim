@@ -1,7 +1,7 @@
 local erlang = {}
 
 erlang.erl = {
-  command = "erl",
+  command = {"erl"},
 }
 
 return erlang

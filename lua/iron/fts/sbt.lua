@@ -1,7 +1,7 @@
 local sbt = {}
 
 sbt.sbt = {
-  command = "sbt",
+  command = {"sbt"},
   open = ":paste\n",
   close = "\04",
 }

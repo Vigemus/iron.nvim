@@ -1,7 +1,7 @@
 local typescript = {}
 
 typescript.ts = {
-  command = "ts-node",
+  command = {"ts-node"},
   open = ".editor\n",
   close = "\04",
 }

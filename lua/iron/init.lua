@@ -102,7 +102,7 @@ end
 
 iron.ll.create_new_repl = function(ft, repl)
   iron.ll.new_repl_window("enew")
-  local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
+  local job_id = nvim.nvim_call_function('termopen', {repl.command})
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local inst = {
     bufnr = bufnr,

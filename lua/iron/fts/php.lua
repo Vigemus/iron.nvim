@@ -1,11 +1,11 @@
 local php = {}
 
 php.psysh = {
-  command = "psysh",
+  command = {"psysh"},
 }
 
 php.php = {
-  command = "php -a",
+  command = {"php", "-a"},
 }
 
 return php

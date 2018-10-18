@@ -1,7 +1,7 @@
 local tcl = {}
 
 tcl.tclsh = {
-  command = "tclsh",
+  command = {"tclsh"},
 }
 
 return tcl

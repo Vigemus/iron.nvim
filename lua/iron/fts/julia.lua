@@ -1,7 +1,7 @@
 local julia = {}
 
 julia.julia = {
-  command = "julia",
+  command = {"julia"},
 }
 
 return julia

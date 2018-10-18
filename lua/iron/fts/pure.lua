@@ -1,7 +1,7 @@
 local pure = {}
 
 pure.pure = {
-  command = "pure",
+  command = {"pure"},
   open = ":paste\n",
   close = "\04",
 }

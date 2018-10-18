@@ -8,9 +8,9 @@ local def = function(cmd)
   }
 end
 
-python.ptipython = def("ptipython")
-python.ipython = def("ipython")
-python.ptpython = def("ptpython")
-python.python = def("python")
+python.ptipython = def({"ptipython"})
+python.ipython = def({"ipython"})
+python.ptpython = def({"ptpython"})
+python.python = def({"python"})
 
 return python
