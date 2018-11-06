@@ -1,7 +1,7 @@
 local lua = {}
 
 lua.lua = {
-  command = "lua",
+  command = {"lua"},
 }
 
 return lua

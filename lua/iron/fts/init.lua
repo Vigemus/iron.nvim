@@ -1,5 +1,4 @@
 -- luacheck: globals unpack
---
 
 local fts = {
   clojure = require("iron.fts.clojure"),
@@ -15,13 +14,11 @@ local fts = {
   php = require("iron.fts.php"),
   pure = require("iron.fts.pure"),
   python = require("iron.fts.python"),
-
   r = require("iron.fts.r"),
   racket = require("iron.fts.racket"),
   ruby = require("iron.fts.ruby"),
   sbt_scala = require("iron.fts.sbt"),
   scala = require("iron.fts.scala"),
-
   scheme = require("iron.fts.scheme"),
   sh = require("iron.fts.sh"),
   tcl = require("iron.fts.tcl"),

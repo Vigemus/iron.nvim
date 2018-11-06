@@ -1,7 +1,6 @@
 -- luacheck: globals unpack vim
 local nvim = vim.api
 
-
 --[[ -> iron
 -- Here is the complete iron API.
 -- Below is a brief description of module separation:
@@ -16,8 +15,7 @@ local nvim = vim.api
 --    Low level functions that interact with neovim's windows and buffers.
 --
 --  -->> config:
---    This is what guides irons behavior. Falls back to `g:iron_`
---    variables is value isn't set in lua.
+--    This is what guides irons behavior.
 --
 --  -->> fts:
 --    File types and their repl definitions.
@@ -31,21 +29,24 @@ local ext = {
   repl = require("iron.fts.common").functions,
   strings = require("iron.util.strings"),
   tables = require("iron.util.tables"),
-  functions = require("iron.util.functions")
 }
 local iron = {
   memory = {},
   behavior = {
+    debug_level = require("iron.debug_level"),
     manager = require("iron.memory_management"),
     visibility = require("iron.visibility")
   },
   ll = {},
   core = {},
-  debug = {},
+  debug = {
+    ll = {},
+    mem = {}
+  },
   fts = require("iron.fts")
 }
-
 local defaultconfig = {
+  debug_level = iron.behavior.debug_level.fatal,
   visibility = iron.behavior.visibility.toggle,
   manager = iron.behavior.manager.path_based,
   preferred = {},
@@ -79,15 +80,15 @@ iron.ll.get_repl_definitions = function(ft)
 end
 
 iron.ll.get_preferred_repl = function(ft)
-  local repl = iron.ll.get_repl_definitions(ft)
+  local repl_definitions = iron.ll.get_repl_definitions(ft)
   local preference = iron.config.preferred[ft]
   local repl_def = nil
+
   if preference ~= nil then
-    repl_def = repl[preference]
+    repl_def = repl_definitions[preference]
   else
-    -- TODO Find a better way to select preferred repl
-    for k, v in pairs(repl) do
-      if os.execute('which ' .. k .. ' > /dev/null') == 0 then
+    for _, v in pairs(repl_definitions) do
+      if nvim.nvim_call_function('exepath', {v.command[1]}) ~= '' then
         repl_def = v
         break
       end
@@ -102,7 +103,7 @@ end
 
 iron.ll.create_new_repl = function(ft, repl)
   iron.ll.new_repl_window("enew")
-  local job_id = nvim.nvim_call_function('termopen', {{repl.command}})
+  local job_id = nvim.nvim_call_function('termopen', {repl.command})
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local inst = {
     bufnr = bufnr,
@@ -135,12 +136,22 @@ end
 iron.ll.send_to_repl = function(ft, data)
   local dt = data
 
-  if type(data) == string then
+  if type(data) == "string" then
     dt = ext.strings.split(data, '\n')
   end
 
   local mem = iron.ll.get_from_memory(ft)
-  nvim.nvim_call_function('chansend', {mem.job, ext.repl.format(mem.repldef, dt)})
+  dt = ext.repl.format(mem.repldef, dt)
+
+  iron.debug.ll.store{
+    where = "send_to_repl",
+    raw_lines = data,
+    lines = dt,
+    repl = mem,
+    level = iron.behavior.debug_level.info
+  }
+
+  nvim.nvim_call_function('chansend', {mem.job, dt})
 end
 -- Low-level ]]
 
@@ -170,7 +181,7 @@ iron.core.focus_on = function(ft)
 end
 
 iron.core.set_config = function(cfg)
-  iron.config = ext.functions.clone(defaultconfig)
+  iron.config = ext.tables.clone(defaultconfig)
   for k, v in pairs(cfg) do
     iron.config[k] = v
   end
@@ -187,31 +198,122 @@ iron.core.add_repl_definitions = function(defns)
   end
 end
 
+iron.core.send = function(ft, data)
+  iron.ll.ensure_repl_exists(ft)
+  iron.ll.send_to_repl(ft, data)
+end
+
 iron.core.send_motion = function(tp)
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local ft = iron.ll.get_buffer_ft(bufnr)
 
   if ft ~= nil then
-    local b, e
+    local b_line, b_col, e_line, e_col, _
 
     if tp == 'visual' then
-      b, e = '<', '>'
+      _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"v"}))
+      _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"."}))
+
+      b_col = b_col - 1
+      e_col = e_col - 1
     else
-      b, e = '[', ']'
+      b_line, b_col = unpack(nvim.nvim_buf_get_mark(bufnr, '['))
+      e_line, e_col = unpack(nvim.nvim_buf_get_mark(bufnr, ']'))
     end
 
+    local lines = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
+    local nosub = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
+
+    if b_col ~= 0 then
+      lines[1] = string.sub(lines[1], b_col + 1)
+    end
+
+    if e_col ~= 0 then
+      if b_line ~= e_line then
+        lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
+      else
+        lines[#lines] = string.sub(lines[#lines], 1, e_col - b_col + 1)
+      end
+    end
+
+  iron.debug.ll.store{
+    b_col = b_col,
+    e_col = e_col,
+    b_line = b_line,
+    e_line = e_line,
+    lines = lines,
+    lines_nosub = nosub,
+    tp = tp,
+    where = "send_motion",
+    level = iron.behavior.debug_level.info
+  }
+
+
     iron.ll.ensure_repl_exists(ft)
-    iron.ll.send_to_repl(ft, nvim.nvim_buf_get_lines(
-          bufnr,
-          nvim.nvim_buf_get_mark(bufnr, b)[1] - 1,
-          nvim.nvim_buf_get_mark(bufnr, e)[1],
-          0
-      ))
+    iron.ll.send_to_repl(ft, lines)
   end
 end
 
-iron.debug.fts = function()
-  print(require("inspect")(iron.fts))
+iron.core.list_fts = function()
+  local lst = {}
+
+  for k, _ in pairs(iron.fts) do
+    table.insert(lst, k)
+  end
+
+  return lst
+end
+
+iron.core.list_definitions_for_ft = function(ft)
+  local lst = {}
+  local defs = ext.tables.get(iron.fts, ft)
+
+  if defs == nil then
+    nvim.nvim_command("echoerr 'No repl definition for current filetype" .. ft .. "'")
+  else
+    for k, v in pairs(defs) do
+      table.insert(lst, {k, v})
+    end
+  end
+
+  return lst
+end
+
+iron.debug.ll.store = function(opt)
+  opt.level = opt.level or iron.behavior.debug_level.info
+  if opt.level > iron.config.debug_level then
+    table.insert(iron.debug.mem, opt)
+  end
+end
+
+iron.debug.dump = function(level, to_buff)
+  level = level or iron.behavior.debug_level.info
+  local inspect = require("inspect")
+  local dump
+
+  if to_buff then
+    nvim.nvim_command("rightbelow vertical edit +set\\ nobl\\ bh=delete\\ bt=nofile iron://debug-logs")
+    dump = function(data)
+      nvim.nvim_call_function("writefile", {{data}, "iron://debug-logs"})
+    end
+  else
+    dump = function(data)
+      print(inspect(data))
+    end
+
+  end
+
+  for _, v in ipairs(iron.debug.mem) do
+    if v.level <= level then
+      dump(v)
+    end
+  end
+
+end
+
+iron.debug.definitions = function(lang)
+  local defs = lang and iron.fts[lang] or iron.fts
+  print(require("inspect")(defs))
 end
 
 iron.debug.memory = function()
@@ -219,6 +321,6 @@ iron.debug.memory = function()
 end
 
 -- [[ Setup ]] --
-iron.config = ext.functions.clone(defaultconfig)
+iron.config = ext.tables.clone(defaultconfig)
 
 return iron

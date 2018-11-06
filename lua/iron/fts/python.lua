@@ -1,22 +1,16 @@
 local python = {}
 
-python.ptipython = {
-  command = "ptipython",
-  type = "bracketed",
-}
+local def = function(cmd)
+  return {
+  command = cmd,
+    open = "\27[200~",
+    close = {"\27[201~", "", ""},
+  }
+end
 
-python.ipython = {
-  command = "ipython",
-  type = "bracketed",
-}
-
-python.ptpython = {
-  command = "ptpython",
-  type = "bracketed",
-}
-
-python.python = {
-  command = "python",
-}
+python.ptipython = def({"ptipython"})
+python.ipython = def({"ipython"})
+python.ptpython = def({"ptpython"})
+python.python = def({"python"})
 
 return python

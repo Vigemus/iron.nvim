@@ -1,15 +1,15 @@
 local sh = {}
 
 sh.zsh = {
-  command = "zsh",
+  command = {"zsh"},
 }
 
 sh.bash = {
-  command = "bash",
+  command = {"bash"},
 }
 
 sh.sh = {
-  command = "sh",
+  command = {"sh"},
 }
 
 return sh

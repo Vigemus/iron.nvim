@@ -1,7 +1,7 @@
 local ruby = {}
 
 ruby.irb = {
-  command = "irb",
+  command = {"irb"},
 }
 
 return ruby

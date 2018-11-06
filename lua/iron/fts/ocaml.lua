@@ -1,11 +1,11 @@
 local ocaml = {}
 
 ocaml.utop = {
-  command = "utop",
+  command = {"utop"},
 }
 
 ocaml.ocamltop = {
-  command = "ocamltop",
+  command = {"ocamltop"},
 }
 
 return ocaml

@@ -1,7 +1,7 @@
 local racket = {}
 
 racket.racket = {
-  command = "racket",
+  command = {"racket"},
 }
 
 return racket

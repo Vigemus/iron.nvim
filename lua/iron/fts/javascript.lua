@@ -1,10 +1,9 @@
 local javascript = {}
 
 javascript.node = {
-  command = "node",
-  type = "custom",
+  command = {"node"},
   open = ".editor\n",
-  close = "",
+  close = "\04",
 }
 
 return javascript
