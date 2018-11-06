@@ -1,4 +1,5 @@
 #!/bin/env bash
+set -eou pipefail
 
 exists() {
   command -v "$1" > /dev/null
@@ -11,11 +12,22 @@ setup(){
   }
 
   sudo luarocks-5.1 install busted
+  sudo luarocks-5.1 install luacheck
 }
 
-run(){
+tests(){
   exists busted || setup
   busted
+}
+
+linter(){
+  exists luacheck || setup
+  luacheck lua/**/*.lua
+}
+
+run() {
+  tests
+  linter
 }
 
 
