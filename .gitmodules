@@ -1,3 +1,0 @@
-[submodule "deps/zen.nvim"]
-	path = deps/zen.nvim
-	url = https://github.com/hkupty/zen.nvim

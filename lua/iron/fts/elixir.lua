@@ -1,7 +1,7 @@
 local elixir = {}
 
 elixir.iex = {
-  command = "iex",
+  command = {"iex"},
 }
 
 return elixir

@@ -1,7 +1,7 @@
 local elm = {}
 
 elm.elm = {
-  command = "elm-repl",
+  command = {"elm-repl"},
 }
 
 return elm

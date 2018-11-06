@@ -1,10 +1,9 @@
 local pure = {}
 
 pure.pure = {
-  command = "pure",
-  type = "custom",
+  command = {"pure"},
   open = ":paste\n",
-  close = "",
+  close = "\04",
 }
 
 return pure

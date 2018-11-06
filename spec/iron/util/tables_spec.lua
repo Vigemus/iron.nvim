@@ -85,5 +85,66 @@ insulate("On #tables code", function()
 
   end)
 
+  describe("#clone", function()
+
+    it("should preserve original table", function()
+      local original = {1, 2, 3}
+      local cloned = fn.clone(original)
+      table.insert(cloned, 4)
+
+      assert.are_same(original, {1, 2, 3})
+      assert.are_same(cloned, {1, 2, 3, 4})
+      end)
+
+    it("should create a perfect copy", function()
+      local original = {1, 2, 3}
+      local nested = {x = original}
+
+      local cloned = fn.clone(original)
+      local nested_cloned = fn.clone(nested)
+
+      assert.are_same(original, cloned)
+      assert.are_same(nested, nested_cloned)
+      end)
+    end)
+
+  describe("#merge", function()
+
+    it("should contain all values from all supplied tables", function()
+      local t1 = {value = "asdf"}
+      local t2 = {other = "qwer"}
+
+      local merged = fn.merge(t1, t2)
+
+      assert.are_same(merged, {value = "asdf", other = "qwer"})
+    end)
+
+    it("should merge key-value pairs with sequences", function()
+      local t1 = {value = "asdf"}
+      local t2 = {1, 2, 3}
+
+      local merged = fn.merge(t1, t2)
+
+      assert.are_same(merged, {value = "asdf", 1, 2, 3})
+    end)
+
+    it("should merge multiple tables", function()
+      local t1 = {value = "asdf"}
+      local t2 = {1, 2, 3}
+
+      local merged = fn.merge(t1, t2, {x = "!"})
+
+      assert.are_same(merged, {x = "!", value = "asdf", 1, 2, 3})
+    end)
+
+    it("should overwrite values", function()
+      local t1 = {value = "asdf"}
+
+      local merged = fn.merge(t1, {value = "1234"})
+
+      assert.are_same(merged, {value = "1234"})
+    end)
+  end)
+
 end)
 

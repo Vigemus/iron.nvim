@@ -1,11 +1,11 @@
 local lisp = {}
 
 lisp.sbcl = {
-  command = "sbcl",
+  command = {"sbcl"},
 }
 
 lisp.clisp = {
-  command = "clisp",
+  command = {"clisp"},
 }
 
 return lisp

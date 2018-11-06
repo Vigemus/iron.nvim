@@ -1,7 +1,7 @@
 local zsh = {}
 
 zsh.zsh = {
-  command = "zsh",
+  command = {"zsh"},
 }
 
 return zsh
