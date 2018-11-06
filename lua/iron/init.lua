@@ -80,14 +80,15 @@ iron.ll.get_repl_definitions = function(ft)
 end
 
 iron.ll.get_preferred_repl = function(ft)
-  local repl = iron.ll.get_repl_definitions(ft)
+  local repl_definitions = iron.ll.get_repl_definitions(ft)
   local preference = iron.config.preferred[ft]
   local repl_def = nil
+
   if preference ~= nil then
-    repl_def = repl[preference]
+    repl_def = repl_definitions[preference]
   else
-    for k, v in pairs(repl) do
-      if nvim.nvim_call_function('exepath', {k}) ~= '' then
+    for k, v in pairs(repl_definitions) do
+      if nvim.nvim_call_function('exepath', {v.command[1]}) ~= '' then
         repl_def = v
         break
       end
