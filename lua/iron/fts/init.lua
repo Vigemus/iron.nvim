@@ -12,6 +12,7 @@ local fts = {
   lua = require("iron.fts.lua"),
   ocaml = require("iron.fts.ocaml"),
   php = require("iron.fts.php"),
+  prolog = require("iron.fts.prolog"),
   pure = require("iron.fts.pure"),
   python = require("iron.fts.python"),
   r = require("iron.fts.r"),
