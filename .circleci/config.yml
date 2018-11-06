@@ -7,10 +7,10 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: ./pctl setup
+          command: luarocks-5.1 install busted && luarocks-5.1 install luacheck
       - run:
           name: Unit Tests
-          command: ./pctl tests
+          command: busted
       - run:
           name: Linter
-          command: ./pctl linter
+          command: luacheck lua/**/*.lua
