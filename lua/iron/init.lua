@@ -254,6 +254,31 @@ iron.core.send_motion = function(tp)
   end
 end
 
+iron.core.list_fts = function()
+  local lst = {}
+
+  for k, _ in pairs(iron.fts) do
+    table.insert(lst, k)
+  end
+
+  return lst
+end
+
+iron.core.list_definitions_for_ft = function(ft)
+  local lst = {}
+  local defs = ext.tables.get(iron.fts, ft)
+
+  if defs == nil then
+    nvim.nvim_command("echoerr 'No repl definition for current filetype" .. ft .. "'")
+  else
+    for k, v in pairs(defs) do
+      table.insert(lst, {k, v})
+    end
+  end
+
+  return lst
+end
+
 iron.debug.ll.store = function(opt)
   opt.level = opt.level or iron.behavior.debug_level.info
   if opt.level > iron.config.debug_level then
