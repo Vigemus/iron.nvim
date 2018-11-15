@@ -1,121 +1,56 @@
 # iron.nvim
 
+[![CircleCI](https://circleci.com/gh/Vigemus/iron.nvim.svg?style=svg)](https://circleci.com/gh/Vigemus/iron.nvim)
+
 Interactive Repls Over Neovim
-
-## Lua porting build status
-
-[![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=shield&circle-token=debdaf36972c979be9ab014b325aa91da3ca0c1c)]()
-
-### Important notice!
-
-Python support is frozen as of ead377f and will be kept in a legacy branch after migration ends.
-After this commit, python code is considered legacy and soon-to-be removed.
-
-Migrating to lua will allow things to be easier to hack and maintain. It will solve sync/async issues and
-will allow a much easier to extend and maintain system.
-
-Feel free to open issues or pull requests if the migration path is unclear, missing something or dropping a feature you rely on.
-
-Also, feel free to contribute with ideas.
 
 ## Support iron.nvim
 Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
 Cheers!
 
-## Lua roadmap
+## What is iron.nvim?
 
-- [x] Creating REPLs with lua
-- [x] Sending data to REPLs
-- [x] User-defined REPL configuration
-- [x] Focus on repl
-- [x] Debug
-- [x] Migration of python definitions to lua
-  - [ ] Custom checkers to select repl
-- [ ] VimL counterpart (commands and functions)
-- [ ] Documentation
+Iron is both a plugin and a library to allow users to deal with repls.
 
-## Lua Usage
+It keeps mechanisms to track REPLs for different file types and bindings to send data directly from the current buffer to it.
 
-if you want to use the iron features directly instead of using the VimL counterpart
-(not implemented yet), below follows the list of public lua functions:
+It is build on top of neovims `terminal` feature. The default terminal keybindings are kept for the terminal, meaning that to exit the insert mode, you need to use `<C-\><C-N>`.
+
+## How to configure?
+
+Create a lua configuration file on your `~/.config/nvim` folder (for example named `plugins.lua`) like this:
 
 ```lua
-local iron = require("iron")
+local iron = require('iron')
 
-iron.core.repl_for(ft)
---[[
-Creates a repl for given FT, or focuses on it if already exists
-`ft` is a valid file type
---]]
-
-iron.core.focus_on(ft)
---[[
-Focuses on existing repl for ft
-`ft` is a valid file type
---]]
-
-iron.core.set_config(config)
---[[
-Sets a configuration based on provided table.
-`config` is a valid table containing configuration
-
-ex.:
-iron.core.set_config{
-  preferred = {
-    python = "ipython"
-  },
-  repl_open_cmd = "rightbelow 20 split"
-}
---]]
-
-iron.core.add_repl_definitions(defns)
---[[
-Adds a list of repl definitions for provided fts.
-`defns` is a valid table containing repl definitions
-
-ex.:
 iron.core.add_repl_definitions{
   python = {
     mycustom = {
       command = {"mycmd"}
+  },
+  clojure = {
+    lein_connect = {
+      command = {"lein", "repl", ":connect"}
     }
   }
 }
---]]
 
-iron.core.send_motion(tp)
---[[
-Sends a motion for iron to capture the text and send to the repl.
-`tp` can be "visual", "block" or "line"
---]]
-
-iron.debug.fts
-iron.debug.memory
+iron.core.set_config {
+  preferred = {
+    python = "ipython",
+    clojure = "lein"
+  }
+}
 ```
 
-## Dropped features
+And on your init.vim, simply do the following:
 
-- Repl specific bindings (`IronSendSpecial`)
-  - This increased the complexity of the python implementation by some extent.
-  - It can depend on user configuration/installed plugins
-  - [https://github.com/Vigemus/trex.nvim](trex.nvim) can provide similar feature in the future
-- `IronPromptRepl`/`IronPromptCommand`
-  - trex.nvim provides `TrexInvoke`, which allows ft to be passed;
-    - If prompting is required, it can be chained to that command.
-  - Iron might end up providing a command, but `lua require("iron").core.repl_for(<ft>)` does the trick;
-  - Same thing can be accomplished for the underlying repl command, though trickier:
-    ```lua
-    -- create this file in your ~/.config/nvim/ as iron.lua
-    -- in your init.vim, run `luafile $HOME/.config/nvim/iron.lua`
+```vim
+luafile $HOME/.config/nvim/plugins.lua
+```
 
-    local iron = require("iron")
-    _G.create_repl = function(ft, command, tp)
-      local repl_definition = {
-        command = command,
-        type = tp or 'bracketed'
-      }
-      return iron.ll.create_new_repl(ft, repl_definition)
-    end
+### Important notice!
 
-    vim.api.nvim_command([[command! -nargs=+ PromptMyRepl lua create_repl(&ft, <f-args>)]])
-    ```
+The python remote plugin mechanism was dropped and removed from master. The latest commit containing it was [ead377f](https://github.com/Vigemus/iron.nvim/commits/ead377f).
+If you wan to use that instead, please for the repository or use the stale branch [legacy](https://github.com/Vigemus/iron.nvim/commits/legacy) for that.
+
