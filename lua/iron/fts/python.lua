@@ -2,9 +2,9 @@ local python = {}
 
 local def = function(cmd)
   return {
-    command = cmd,
+  command = cmd,
     open = "\27[200~",
-    close = {"\27[201~", ""},
+    close = {"\27[201~", "", ""},
   }
 end
 
