@@ -311,6 +311,63 @@ iron.debug.dump = function(level, to_buff)
 
 end
 
+iron.core.list_fts = function()
+  local lst = {}
+
+  for k, _ in pairs(iron.fts) do
+    table.insert(lst, k)
+  end
+
+  return lst
+end
+
+iron.core.list_definitions_for_ft = function(ft)
+  local lst = {}
+  local defs = ext.tables.get(iron.fts, ft)
+
+  if defs == nil then
+    nvim.nvim_command("echoerr 'No repl definition for current filetype" .. ft .. "'")
+  else
+    for k, v in pairs(defs) do
+      table.insert(lst, {k, v})
+    end
+  end
+
+  return lst
+end
+
+iron.debug.ll.store = function(opt)
+  opt.level = opt.level or iron.behavior.debug_level.info
+  if opt.level > iron.config.debug_level then
+    table.insert(iron.debug.mem, opt)
+  end
+end
+
+iron.debug.dump = function(level, to_buff)
+  level = level or iron.behavior.debug_level.info
+  local inspect = require("inspect")
+  local dump
+
+  if to_buff then
+    nvim.nvim_command("rightbelow vertical edit +set\\ nobl\\ bh=delete\\ bt=nofile iron://debug-logs")
+    dump = function(data)
+      nvim.nvim_call_function("writefile", {{data}, "iron://debug-logs"})
+    end
+  else
+    dump = function(data)
+      print(inspect(data))
+    end
+
+  end
+
+  for _, v in ipairs(iron.debug.mem) do
+    if v.level <= level then
+      dump(v)
+    end
+  end
+
+end
+
 iron.debug.definitions = function(lang)
   local defs = lang and iron.fts[lang] or iron.fts
   print(require("inspect")(defs))

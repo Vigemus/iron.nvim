@@ -11,6 +11,9 @@ end
 python.ptipython = def({"ptipython"})
 python.ipython = def({"ipython"})
 python.ptpython = def({"ptpython"})
-python.python = def({"python"})
+python.python = {
+  command = {"python"},
+  close = {"", ""}
+}
 
 return python
