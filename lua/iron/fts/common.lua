@@ -39,4 +39,11 @@ fthelper.functions.format = function(repldef, lines)
   return new
 end
 
+fthelper.functions.enclosing = function(def)
+  return {
+    open = def.open,
+    close = def.close,
+  }
+end
+
 return fthelper

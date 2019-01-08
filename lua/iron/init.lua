@@ -168,23 +168,6 @@ iron.core.repl_for = function(ft)
   return mem
 end
 
-iron.core.repl_from_def = function(ft, def)
-  local new_repl = function(_ft)
-    return iron.ll.create_new_repl(_ft, def)
-  end
-
-  local mem, created = iron.ll.ensure_repl_exists(ft, new_repl)
-
-  if not created then
-    local showfn = function()
-      iron.ll.new_repl_window('b ' .. mem.bufnr)
-    end
-    iron.config.visibility(mem.bufnr, showfn)
-  end
-
-  return mem
-end
-
 iron.core.focus_on = function(ft)
   local mem = iron.ll.ensure_repl_exists(ft)
 
