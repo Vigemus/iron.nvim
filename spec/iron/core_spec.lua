@@ -2,7 +2,6 @@
 -- luacheck: globals before_each after_each
 
 insulate("About #iron functionality", function()
-
     local _ = require('iron.util.tables')
     before_each(function()
         _G.vim = mock({ api = {
