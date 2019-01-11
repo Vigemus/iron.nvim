@@ -77,7 +77,7 @@ ex.:
 iron.core.add_repl_definitions{
   python = {
     mycustom = {
-      command = "mycmd"
+      command = {"mycmd"}
     }
   }
 }
