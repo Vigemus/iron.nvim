@@ -23,10 +23,11 @@ Create a lua configuration file on your `~/.config/nvim` folder (for example nam
 ```lua
 local iron = require('iron')
 
-iron.core.add_repl_definitions{
+iron.core.add_repl_definitions {
   python = {
     mycustom = {
       command = {"mycmd"}
+    }
   },
   clojure = {
     lein_connect = {
