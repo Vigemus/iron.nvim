@@ -53,5 +53,5 @@ luafile $HOME/.config/nvim/plugins.lua
 ### Important notice!
 
 The python remote plugin mechanism was dropped and removed from master. The latest commit containing it was [ead377f](https://github.com/Vigemus/iron.nvim/commits/ead377f).
-If you wan to use that instead, please for the repository or use the stale branch [legacy](https://github.com/Vigemus/iron.nvim/commits/legacy) for that.
+If you want to use that instead, please for the repository or use the stale branch [legacy](https://github.com/Vigemus/iron.nvim/commits/legacy) for that.
 
