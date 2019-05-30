@@ -40,6 +40,7 @@ map <silent> <Plug>(iron-cr)         <Cmd>IronSend! \13<CR>
 map <silent> <Plug>(iron-interrupt)  <Cmd>IronSend! \03<CR>
 map <silent> <Plug>(iron-exit)       <Cmd>IronSend! \04<CR>
 map <silent> <Plug>(iron-clear)      <Cmd>IronSend! \12<CR>
+map <silent> <Plug>(iron-send-line)  :lua require("iron").core.send_line()<CR>
 
 if !exists('g:iron_map_defaults')
   let g:iron_map_defaults = 1
@@ -53,6 +54,7 @@ if g:iron_map_defaults
     nmap ctr <Plug>(iron-send-motion)
     vmap ctr <Plug>(iron-send-motion)
     nmap cp <Plug>(iron-repeat-cmd)
+    nmap <localleader>sl <Plug>(iron-send-line)
 endif
 
 if g:iron_map_extended

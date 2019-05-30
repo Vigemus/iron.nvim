@@ -203,6 +203,25 @@ iron.core.send = function(ft, data)
   iron.ll.send_to_repl(ft, data)
 end
 
+iron.core.send_line = function()
+  local ft = iron.ll.get_buffer_ft(0)
+
+  if ft ~= nil then
+    local linenr = nvim.nvim_win_get_cursor(0)[1]
+    local cur_line = nvim.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
+
+    iron.debug.ll.store{
+      linenr = linenr,
+      cur_line = cur_line,
+      where = "send_line",
+      level = iron.behavior.debug_level.info
+    }
+
+    iron.ll.ensure_repl_exists(ft)
+    iron.ll.send_to_repl(ft, cur_line)
+  end
+end
+
 iron.core.send_motion = function(tp)
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local ft = iron.ll.get_buffer_ft(bufnr)
