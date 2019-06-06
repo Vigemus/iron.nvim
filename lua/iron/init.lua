@@ -223,8 +223,7 @@ iron.core.send_line = function()
 end
 
 iron.core.send_motion = function(tp)
-  local bufnr = nvim.nvim_call_function('bufnr', {'%'})
-  local ft = iron.ll.get_buffer_ft(bufnr)
+  local ft = iron.ll.get_buffer_ft(0)
 
   if ft ~= nil then
     local b_line, b_col, e_line, e_col, _
@@ -235,13 +234,20 @@ iron.core.send_motion = function(tp)
 
       b_col = b_col - 1
       e_col = e_col - 1
+
+      -- swap locations if visual selection beginning is after ending
+      if b_line > e_line then
+          b_line, b_col, e_line, e_col = e_line, e_col, b_line, b_col
+      elseif b_line == e_line and b_col > e_col then
+          b_col, e_col = e_col, b_col
+      end
     else
-      b_line, b_col = unpack(nvim.nvim_buf_get_mark(bufnr, '['))
-      e_line, e_col = unpack(nvim.nvim_buf_get_mark(bufnr, ']'))
+      b_line, b_col = unpack(nvim.nvim_buf_get_mark(0, '['))
+      e_line, e_col = unpack(nvim.nvim_buf_get_mark(0, ']'))
     end
 
-    local lines = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
-    local nosub = nvim.nvim_buf_get_lines(bufnr, b_line - 1, e_line, 0)
+    local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+    local nosub = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
 
     if b_col ~= 0 then
       lines[1] = string.sub(lines[1], b_col + 1)
