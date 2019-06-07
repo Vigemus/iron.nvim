@@ -163,6 +163,8 @@ iron.core.repl_for = function(ft)
       iron.ll.new_repl_window('b ' .. mem.bufnr)
     end
     iron.config.visibility(mem.bufnr, showfn)
+  else
+    nvim.nvim_command('wincmd p')
   end
 
   return mem
