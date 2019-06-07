@@ -22,6 +22,8 @@ visibility.toggle = function(bufid, showfn)
   local window, was_hidden = hidden(bufid, showfn)
   if not was_hidden then
     nvim.nvim_command(window .. "wincmd c")
+  else
+    nvim.nvim_command(window .. "wincmd p")
   end
 end
 
