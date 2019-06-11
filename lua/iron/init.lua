@@ -229,44 +229,17 @@ iron.core.send_line = function()
   end
 end
 
-iron.core.send_motion = function(tp)
+iron.core.send_motion = function()
   local ft = iron.ll.get_buffer_ft(0)
+  if ft == nil then return end
 
-  if ft ~= nil then
-    local b_line, b_col, e_line, e_col, _
+  local b_line, b_col, e_line, e_col
+  b_line, b_col = unpack(nvim.nvim_buf_get_mark(0, '['))
+  e_line, e_col = unpack(nvim.nvim_buf_get_mark(0, ']'))
 
-    if tp == 'visual' then
-      _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"v"}))
-      _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"."}))
-
-      b_col = b_col - 1
-      e_col = e_col - 1
-
-      -- swap locations if visual selection beginning is after ending
-      if b_line > e_line then
-          b_line, b_col, e_line, e_col = e_line, e_col, b_line, b_col
-      elseif b_line == e_line and b_col > e_col then
-          b_col, e_col = e_col, b_col
-      end
-    else
-      b_line, b_col = unpack(nvim.nvim_buf_get_mark(0, '['))
-      e_line, e_col = unpack(nvim.nvim_buf_get_mark(0, ']'))
-    end
-
-    local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-    local nosub = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-
-    if b_col ~= 0 then
-      lines[1] = string.sub(lines[1], b_col + 1)
-    end
-
-    if e_col ~= 0 then
-      if b_line ~= e_line then
-        lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
-      else
-        lines[#lines] = string.sub(lines[#lines], 1, e_col - b_col + 1)
-      end
-    end
+  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  lines[#lines] = string.sub(lines[#lines], 1, e_col)
+  lines[1] = string.sub(lines[1], b_col)
 
   iron.debug.ll.store{
     b_col = b_col,
@@ -274,16 +247,38 @@ iron.core.send_motion = function(tp)
     b_line = b_line,
     e_line = e_line,
     lines = lines,
-    lines_nosub = nosub,
-    tp = tp,
     where = "send_motion",
     level = iron.behavior.debug_level.info
   }
 
+  iron.ll.ensure_repl_exists(ft)
+  iron.ll.send_to_repl(ft, lines)
+end
 
-    iron.ll.ensure_repl_exists(ft)
-    iron.ll.send_to_repl(ft, lines)
-  end
+iron.core.visual_send = function()
+  local ft = iron.ll.get_buffer_ft(0)
+  if ft == nil then return end
+
+  local b_line, b_col, e_line, e_col, _
+  _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"'<"}))
+  _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"'>"}))
+
+  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  lines[#lines] = string.sub(lines[#lines], 1, e_col)
+  lines[1] = string.sub(lines[1], b_col)
+
+  iron.debug.ll.store{
+    b_col = b_col,
+    e_col = e_col,
+    b_line = b_line,
+    e_line = e_line,
+    lines = lines,
+    where = "visual_send",
+    level = iron.behavior.debug_level.info
+  }
+
+  iron.ll.ensure_repl_exists(ft)
+  iron.ll.send_to_repl(ft, lines)
 end
 
 iron.core.list_fts = function()
