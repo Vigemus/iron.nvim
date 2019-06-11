@@ -1,11 +1,5 @@
-function! IronSendMotion(mode)
-  " TODO Drop once lua mappings exist
-  " Note: This is a private function. Don't use it directly
-
+function! s:ironSendMotion(mode)
   exec 'lua require("iron").core.send_motion("'.a:mode.'")'
-  if exists("b:iron_cursor_pos")
-    call winrestview(b:iron_cursor_pos)
-  endif
 endfunction
 
 function! s:send_wrapper(bang, ...)
@@ -29,18 +23,14 @@ command! -nargs=? -complete=filetype IronFocus
       \ .(empty(<q-args>) ? &ft : <q-args>)
       \ .'")'
 
-map <silent> <Plug>(iron-send-motion)
-      \ <Cmd>let b:iron_cursor_pos = winsaveview() \| set opfunc=IronSendMotion<CR>g@
-
-vmap <silent> <Plug>(iron-send-motion)
-      \ <Cmd>let b:iron_cursor_pos = winsaveview() \| call IronSendMotion('visual')<CR>
-
-map <silent> <Plug>(iron-repeat-cmd) <Cmd>IronSend! \27\91\65<CR>
-map <silent> <Plug>(iron-cr)         <Cmd>IronSend! \13<CR>
-map <silent> <Plug>(iron-interrupt)  <Cmd>IronSend! \03<CR>
-map <silent> <Plug>(iron-exit)       <Cmd>IronSend! \04<CR>
-map <silent> <Plug>(iron-clear)      <Cmd>IronSend! \12<CR>
-map <silent> <Plug>(iron-send-line)  :lua require("iron").core.send_line()<CR>
+map <silent> <Plug>(iron-repeat-cmd)    <Cmd>IronSend! \27\91\65<CR>
+map <silent> <Plug>(iron-cr)            <Cmd>IronSend! \13<CR>
+map <silent> <Plug>(iron-interrupt)     <Cmd>IronSend! \03<CR>
+map <silent> <Plug>(iron-exit)          <Cmd>IronSend! \04<CR>
+map <silent> <Plug>(iron-clear)         <Cmd>IronSend! \12<CR>
+map <silent> <Plug>(iron-send-motion)   <Cmd>set opfunc=<SID>ironSendMotion<CR>g@
+map <silent> <Plug>(iron-send-line)     :lua require("iron").core.send_line()<CR>
+map <silent> <Plug>(iron-visual-send)   :lua require("iron").core.visual_send()<CR>
 
 if !exists('g:iron_map_defaults')
   let g:iron_map_defaults = 1
@@ -52,7 +42,7 @@ endif
 
 if g:iron_map_defaults
     nmap ctr <Plug>(iron-send-motion)
-    vmap ctr <Plug>(iron-send-motion)
+    vmap ctr <Plug>(iron-visual-send)
     nmap cp <Plug>(iron-repeat-cmd)
     nmap <localleader>sl <Plug>(iron-send-line)
 endif
