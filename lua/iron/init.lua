@@ -229,17 +229,19 @@ iron.core.send_line = function()
   end
 end
 
-iron.core.send_motion = function()
+iron.core.send_motion = function(mtype)
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
-  local b_line, b_col, e_line, e_col
-  b_line, b_col = unpack(nvim.nvim_buf_get_mark(0, '['))
-  e_line, e_col = unpack(nvim.nvim_buf_get_mark(0, ']'))
+  local b_line, b_col, e_line, e_col, _
+  _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"'["}))
+  _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"']"}))
 
   local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-  lines[#lines] = string.sub(lines[#lines], 1, e_col)
-  lines[1] = string.sub(lines[1], b_col)
+  if mtype == 'char' then
+    lines[#lines] = string.sub(lines[#lines], 1, e_col)
+    lines[1] = string.sub(lines[1], b_col)
+  end
 
   iron.debug.ll.store{
     b_col = b_col,
