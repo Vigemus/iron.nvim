@@ -23,7 +23,7 @@ command! -nargs=? -complete=filetype IronFocus
       \ .(empty(<q-args>) ? &ft : <q-args>)
       \ .'")'
 
-map <silent> <Plug>(iron-repeat-cmd)    <Cmd>IronSend! \27\91\65<CR>
+map <silent> <Plug>(iron-repeat-cmd)   :lua require("iron").core.repeat_cmd()<CR>
 map <silent> <Plug>(iron-cr)            <Cmd>IronSend! \13<CR>
 map <silent> <Plug>(iron-interrupt)     <Cmd>IronSend! \03<CR>
 map <silent> <Plug>(iron-exit)          <Cmd>IronSend! \04<CR>

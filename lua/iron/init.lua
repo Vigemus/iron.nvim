@@ -43,6 +43,7 @@ local iron = {
     ll = {},
     mem = {}
   },
+  last = {},
   fts = require("iron.fts")
 }
 local defaultconfig = {
@@ -255,6 +256,11 @@ iron.core.send_motion = function(mtype)
 
   iron.ll.ensure_repl_exists(ft)
   iron.ll.send_to_repl(ft, lines)
+
+  iron.last.b_line = b_line
+  iron.last.b_col = b_col
+  iron.last.e_col = e_col
+  iron.last.e_line = e_line
 end
 
 iron.core.visual_send = function()
@@ -276,6 +282,39 @@ iron.core.visual_send = function()
     e_line = e_line,
     lines = lines,
     where = "visual_send",
+    level = iron.behavior.debug_level.info
+  }
+
+  iron.ll.ensure_repl_exists(ft)
+  iron.ll.send_to_repl(ft, lines)
+
+  iron.last.b_line = b_line
+  iron.last.b_col = b_col
+  iron.last.e_col = e_col
+  iron.last.e_line = e_line
+end
+
+iron.core.repeat_cmd = function()
+  local ft = iron.ll.get_buffer_ft(0)
+  if ft == nil then return end
+
+  local b_line, b_col, e_line, e_col
+  b_line = iron.last.b_line
+  b_col = iron.last.b_col
+  e_line = iron.last.e_line
+  e_col = iron.last.e_col
+
+  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  lines[#lines] = string.sub(lines[#lines], 1, e_col)
+  lines[1] = string.sub(lines[1], b_col)
+
+  iron.debug.ll.store{
+    b_col = b_col,
+    e_col = e_col,
+    b_line = b_line,
+    e_line = e_line,
+    lines = lines,
+    where = "repeat_cmd",
     level = iron.behavior.debug_level.info
   }
 
