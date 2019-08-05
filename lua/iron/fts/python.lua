@@ -9,7 +9,7 @@ local def = function(cmd)
 end
 
 python.ptipython = def({"ptipython"})
-python.ipython = def({"ipython"})
+python.ipython = def({"ipython", "--no-autoindent"})
 python.ptpython = def({"ptpython"})
 python.python = {
   command = {"python"},
