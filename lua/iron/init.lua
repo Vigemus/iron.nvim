@@ -99,7 +99,11 @@ iron.ll.get_preferred_repl = function(ft)
 end
 
 iron.ll.new_repl_window = function(buff)
+  if type(iron.config.repl_open_cmd) == "function" then
+    iron.config.repl_open_cmd(buff)
+  else
   nvim.nvim_command(iron.config.repl_open_cmd .. '| ' .. buff .. ' | set wfw | startinsert')
+  end
 end
 
 iron.ll.create_new_repl = function(ft, repl)
@@ -356,7 +360,7 @@ end
 
 iron.debug.dump = function(level, to_buff)
   level = level or iron.behavior.debug_level.info
-  local inspect = require("inspect")
+  local inspect = require("vim.inspect")
   local dump
 
   if to_buff then
