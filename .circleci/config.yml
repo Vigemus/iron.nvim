@@ -7,10 +7,10 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: ./pctl setup
+          command: $CIRCLE_WORKING_DIRECTORY/pctl setup
       - run:
           name: Unit Tests
-          command: ./pctl tests
+          command: $CIRCLE_WORKING_DIRECTORY/pctl tests
       - run:
           name: Linter
-          command: ./pctl linter
+          command: $CIRCLE_WORKING_DIRECTORY/pctl linter
