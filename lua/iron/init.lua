@@ -442,11 +442,11 @@ end
 
 iron.debug.definitions = function(lang)
   local defs = lang and iron.fts[lang] or iron.fts
-  print(require("inspect")(defs))
+  print(require("vim.inspect")(defs))
 end
 
 iron.debug.memory = function()
-  print(require("inspect")(iron.memory))
+  print(require("vim.inspect")(iron.memory))
 end
 
 -- [[ Setup ]] --
