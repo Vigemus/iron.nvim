@@ -1,0 +1,52 @@
+#!/bin/bash
+set -eou pipefail
+
+BIN_DIR="$(dirname "$(realpath "$0")")"
+ROOT_DIR="$(dirname "$BIN_DIR")"
+
+LUAROCKS="luarocks-5.1"
+
+exists() {
+  command -v "$1" > /dev/null
+}
+
+setup(){
+  exists luarocks-5.1 || {
+    exists luarocks && {
+    version=$(luarocks --help | grep "Lua version:")
+    if [[ $version =~ "5.1" ]]; then
+      LUAROCKS=luarocks
+    fi
+    } || {
+      echo 'Please install luarocks'
+      exit 1
+    }
+  }
+
+  $LUAROCKS install busted
+  $LUAROCKS install luacheck
+}
+
+tests(){
+  exists busted || setup
+  busted
+}
+
+linter(){
+  exists luacheck || setup
+  luacheck lua/**/*.lua
+}
+
+run() {
+  tests
+  linter
+}
+
+
+run-dev(){
+inotifywait -r -q -m -e close_write --format %e lua spec | while read -r ; do
+busted
+done
+}
+
+cd $ROOT_DIR && "$@"
