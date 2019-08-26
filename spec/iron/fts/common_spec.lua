@@ -19,24 +19,29 @@ insulate("On fthelper", function()
       assert.are.same(fts.format({}, {"asdf", ""}), {"asdf", ""})
       end)
 
-    it("should add an #empty line for 'plain' text format", function()
-      assert.are.same(fts.format({}, {"asdf"}), {"asdf", ""})
+    it("should not add a new line if the input contains only one line", function()
+      assert.are.same(fts.format({}, {"asdf"}), {"asdf"})
+      end)
+
+
+    it("should add a new line if the input contains more than one line", function()
+      assert.are.same(fts.format({}, {"asdf", "qwer"}), {"asdf", "qwer", ""})
       end)
 
     it("should #wrap the lines with whatever supplied enclosing pairs", function()
       assert.are.same(
-        fts.format({open = "{", close = "}"}, {"asdf"}),
-        {"{", "asdf", "}"}
+        fts.format({open = "{", close = "}"}, {"asdf", "qwer"}),
+        {"{", "asdf", "qwer", "}"}
       )
 
       assert.are.same(
-        fts.format({open = "\x1b[200~", close = "\x1b[201~"}, {"asdf"}),
-        {"\x1b[200~", "asdf", "\x1b[201~"}
+        fts.format({open = "\x1b[200~", close = "\x1b[201~"}, {"asdf", "qwer"}),
+        {"\x1b[200~", "asdf", "qwer", "\x1b[201~"}
       )
 
       assert.are.same(
-        fts.format({open = "\27[200~", close = "\27[201~"}, {"asdf"}),
-        {"\27[200~", "asdf", "\27[201~"}
+        fts.format({open = "\27[200~", close = "\27[201~"}, {"asdf", "qwer"}),
+        {"\27[200~", "asdf", "qwer", "\27[201~"}
       )
       end)
   end)

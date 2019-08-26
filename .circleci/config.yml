@@ -2,15 +2,15 @@ version: 2
 jobs:
   build:
     docker:
-      - image: abaez/luarocks:lua5.1
+      - image: vigemus/lua:luarocks-5.1
     steps:
       - checkout
       - run:
           name: Install Dependencies
-          command: $CIRCLE_WORKING_DIRECTORY/pctl setup
+          command: bin/pctl setup
       - run:
           name: Unit Tests
-          command: $CIRCLE_WORKING_DIRECTORY/pctl tests
+          command: bin/pctl tests
       - run:
           name: Linter
-          command: $CIRCLE_WORKING_DIRECTORY/pctl linter
+          command: bin/pctl linter
