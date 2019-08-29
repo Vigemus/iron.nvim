@@ -17,7 +17,9 @@ fthelper.functions.format = function(repldef, lines)
     new = extend(repldef.open, lines, repldef.close)
   end
 
-  new[#new] = new[#new] .. "\13"
+  if #new > 0 then
+    new[#new] = new[#new] .. "\13"
+  end
 
   return new
 end
