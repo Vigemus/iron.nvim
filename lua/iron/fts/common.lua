@@ -22,10 +22,6 @@ end
 fthelper.functions.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
 
-  if #lines == 1 then
-    return lines
-  end
-
   local new = {}
   extend(new, repldef.open)
 
