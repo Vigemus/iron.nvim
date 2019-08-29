@@ -1,9 +1,15 @@
+local extend = require("iron.util.tables").extend
 local scala = {}
 
 scala.sbt = {
   command = {"sbt"},
-  open = ":paste\n",
-  close = "\04",
+  format = function(lines)
+  if #lines == 1 then
+    return lines
+  end
+
+  return extend({":paste"}, lines, {"\04"})
+end
 }
 
 scala.scala = {
