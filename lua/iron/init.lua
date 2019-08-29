@@ -221,6 +221,7 @@ iron.core.send_line = function()
   if ft ~= nil then
     local linenr = nvim.nvim_win_get_cursor(0)[1]
     local cur_line = nvim.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
+    if #cur_line == 0 then return end
 
     iron.debug.ll.store{
       linenr = linenr,
@@ -243,6 +244,7 @@ iron.core.send_motion = function(mtype)
   _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"']"}))
 
   local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  if #lines == 0 then return end
   if mtype == 'char' then
     lines[#lines] = string.sub(lines[#lines], 1, e_col)
     lines[1] = string.sub(lines[1], b_col)
