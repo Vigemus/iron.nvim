@@ -1,26 +1,15 @@
+local extend = require("iron.util.tables").extend
 local fthelper = {
   functions = {},
   types = {}
 }
 
-local extend = function(tbl, itm)
-  if itm == nil then
-    return tbl
-  end
-
-  if type(itm) == "table" then
-    for _, i in ipairs(itm) do
-      table.insert(tbl, i)
-    end
-  else
-    table.insert(tbl, itm)
-  end
-
-  return tbl
-end
-
 fthelper.functions.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
+
+  if repldef.format then
+    return repldef.format(lines)
+  end
 
   local new = {}
   extend(new, repldef.open)

@@ -63,4 +63,21 @@ fns.merge = function (...)
   return res
 end
 
+fns.extend = function(tbl, itm)
+  if itm == nil then
+    return tbl
+  end
+
+  if type(itm) == "table" then
+    for _, i in ipairs(itm) do
+      table.insert(tbl, i)
+    end
+  else
+    table.insert(tbl, itm)
+  end
+
+  return tbl
+end
+
+
 return fns
