@@ -1,26 +1,24 @@
 local extend = require("iron.util.tables").extend
 local python = {}
 
-local format = function(open, close)
+local format = function(open, close, cr)
   return function(lines)
-    local new = {
-      open .. lines[1]
-    }
-
-    for line=2, #lines - 1 do
-      table.insert(new, lines[line])
+    if #lines == 1 then
+      return { lines[1] .. cr }
+    else
+      local new = { open .. lines[1] }
+      for line=2, #lines do
+        table.insert(new, lines[line])
+      end
+      return extend(new, close)
     end
-
-    new[#lines] = lines[#lines] .. close
-    return new
   end
-
 end
 
 local def = function(cmd)
   return {
     command = cmd,
-    format = format("\27[200~", "\27[201~\13")
+    format = format("\27[200~", "\27[201~\13", "\13")
   }
 end
 
