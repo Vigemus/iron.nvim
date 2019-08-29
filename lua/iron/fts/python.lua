@@ -11,15 +11,15 @@ local format = function(open, close)
       table.insert(new, lines[line])
     end
 
-    return extend(new, close)
+    new[#new] = new[#new] .. close .. "\13"
+    return new
   end
-
 end
 
 local def = function(cmd)
   return {
     command = cmd,
-    format = format("\27[200~", "\27[201~\13")
+    format = format("\27[200~", "\27[201~")
   }
 end
 
@@ -28,7 +28,6 @@ python.ipython = def({"ipython", "--no-autoindent"})
 python.ptpython = def({"ptpython"})
 python.python = {
   command = {"python"},
-  close = {""}
 }
 
 return python
