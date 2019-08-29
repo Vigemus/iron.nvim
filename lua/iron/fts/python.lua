@@ -7,11 +7,12 @@ local format = function(open, close)
       open .. lines[1]
     }
 
-    for line=2, #lines do
+    for line=2, #lines - 1 do
       table.insert(new, lines[line])
     end
 
-    return extend(new, close)
+    new[#lines] = lines[#lines] .. close
+    return new
   end
 
 end
