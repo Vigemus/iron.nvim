@@ -106,8 +106,14 @@ iron.ll.new_repl_window = function(buff)
   end
 end
 
-iron.ll.create_new_repl = function(ft, repl)
-  iron.ll.new_repl_window("enew")
+iron.ll.create_new_repl = function(ft, repl, new_win)
+  -- make creation of new windows optional
+  new_win = new_win or true
+
+  if new_win then 
+    iron.ll.new_repl_window("enew")
+  end
+
   local job_id = nvim.nvim_call_function('termopen', {repl.command})
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local inst = {
@@ -120,9 +126,10 @@ iron.ll.create_new_repl = function(ft, repl)
   return inst
 end
 
-iron.ll.create_preferred_repl = function(ft)
+iron.ll.create_preferred_repl = function(ft, new_win)
+    new_win = new_win or true
     local repl = iron.ll.get_preferred_repl(ft)
-    return iron.ll.create_new_repl(ft, repl)
+    return iron.ll.create_new_repl(ft, repl, new_win)
 end
 
 iron.ll.ensure_repl_exists = function(ft, newfn)
@@ -163,7 +170,50 @@ iron.ll.send_to_repl = function(ft, data)
   end
   nvim.nvim_call_function('chansend', {mem.job, dt})
 end
+
+iron.ll.get_replft_for_bufnr = function(bufnr)
+  -- given a buffer number, tries to look up the corresponding 
+  -- filetype of the REPL
+  -- If the corresponding buffer number does not exist or is not 
+  -- a REPL, then return nil
+  local ft_found = nil
+  for ft, val in paris(iron.memory) do
+    local mem = iron.ll.get_from_memory(ft)
+    if bufnr == mem.bufnr then
+      ft_found = ft
+  end
+  return ft_found
+end
+
+
 -- Low-level ]]
+
+iron.core.repl_here = function(ft)
+  -- first check if the repl for the current filetype already exists
+  local mem = iron.ll.get_from_memory(ft)
+  local exists = not (mem == nil or 
+                      nvim.nvim_call_function('bufname', {mem.bufnr}) == "")
+ 
+  if exists then
+    -- it exists so just active the buffer in the current window
+    nvim.nvim_command('b ' .. mem.bufnr)
+  else
+    -- the repl does not exist, so we have to create a new one, 
+    -- but in the current window   
+    mem = iron.ll.create_preferred_repl(ft, false)
+  end
+  
+  return mem
+end
+
+iron.core.repl_restart = function()
+  -- First, check if the cursor is on top or a REPL
+  -- Then, start a new REPL of the same time and enter it into the window
+  -- Afterwards, wipe out the old REPL buffer
+  -- This is done without asking for confirmation, so user beware
+ 
+end
+
 
 iron.core.repl_for = function(ft)
   local mem, created = iron.ll.ensure_repl_exists(ft)
