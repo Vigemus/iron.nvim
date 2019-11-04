@@ -106,8 +106,21 @@ iron.ll.new_repl_window = function(buff)
   end
 end
 
-iron.ll.create_new_repl = function(ft, repl)
-  iron.ll.new_repl_window("enew")
+iron.ll.create_new_repl = function(ft, repl, new_win)
+  -- make creation of new windows optional
+  if new_win == nil then 
+  	new_win = true
+  end
+
+  if new_win then 
+    iron.ll.new_repl_window("enew")
+  else
+    -- just want to open a new empty buffer, as termopen destroys the 
+    -- currently active buffer
+    nvim.nvim_command('enew')
+  end
+
+
   local job_id = nvim.nvim_call_function('termopen', {repl.command})
   local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local inst = {
@@ -120,9 +133,12 @@ iron.ll.create_new_repl = function(ft, repl)
   return inst
 end
 
-iron.ll.create_preferred_repl = function(ft)
+iron.ll.create_preferred_repl = function(ft, new_win)
+    if new_win == nil then 
+    	new_win = true
+    end
     local repl = iron.ll.get_preferred_repl(ft)
-    return iron.ll.create_new_repl(ft, repl)
+    return iron.ll.create_new_repl(ft, repl, new_win)
 end
 
 iron.ll.ensure_repl_exists = function(ft, newfn)
@@ -163,7 +179,65 @@ iron.ll.send_to_repl = function(ft, data)
   end
   nvim.nvim_call_function('chansend', {mem.job, dt})
 end
+
+iron.ll.get_repl_ft_for_bufnr = function(bufnr)
+  -- given a buffer number, tries to look up the corresponding 
+  -- filetype of the REPL
+  -- If the corresponding buffer number does not exist or is not 
+  -- a REPL, then return nil
+  local ft_found = nil
+  for ft in pairs(iron.memory) do
+    local mem = iron.ll.get_from_memory(ft)
+    if bufnr == mem.bufnr then
+      ft_found = ft
+    end
+  end
+  return ft_found
+end
+
 -- Low-level ]]
+
+iron.core.repl_here = function(ft)
+  -- first check if the repl for the current filetype already exists
+  local mem = iron.ll.get_from_memory(ft)
+  local exists = not (mem == nil or 
+                      nvim.nvim_call_function('bufname', {mem.bufnr}) == "")
+ 
+  if exists then
+    -- it exists so just activate the buffer in the current window
+    nvim.nvim_command('b ' .. mem.bufnr)
+  else
+    -- the repl does not exist, so we have to create a new one, 
+    -- but in the current window   
+    mem = iron.ll.create_preferred_repl(ft, false)
+  end
+  
+  return mem
+end 
+
+iron.core.repl_restart = function()
+  -- First, check if the cursor is on top or a REPL
+  -- Then, start a new REPL of the same time and enter it into the window
+  -- Afterwards, wipe out the old REPL buffer
+  -- This is done without asking for confirmation, so user beware
+  local bufnr_here = nvim.nvim_call_function('bufnr', {"%"})
+  local ft_here = iron.ll.get_repl_ft_for_bufnr(bufnr_here)
+
+  if ft_here ~= nil then
+    mem = iron.ll.create_preferred_repl(ft_here, false)
+    -- created a new one, now have to kill the old one
+    nvim.nvim_command('bwipeout! ' .. bufnr_here)
+    return mem
+  else 
+    -- no repl found, so nothing to do
+    nvim.nvim_command("echoerr 'No repl found in current buffer; cannot restart'")
+    return nil
+  end
+
+  -- just for safety, code should not reach here
+  return nil
+end
+
 
 iron.core.repl_for = function(ft)
   local mem, created = iron.ll.ensure_repl_exists(ft)
