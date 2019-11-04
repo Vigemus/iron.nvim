@@ -26,7 +26,7 @@ command! -nargs=? -complete=filetype IronFocus
 " add additional commands to open a REPL in the current buffer and to restart
 " a REPL
 command! -nargs=1 -complete=filetype IronReplHere 
-	\ exec 'lua require("iron").core.repl_here('
+    \ exec 'lua require("iron").core.repl_here("'
     \ .(<q-args>)
     \ .'")'
 command! IronRestart exec 'lua require("iron").core.repl_restart()'
@@ -43,7 +43,7 @@ map <silent> <Plug>(iron-visual-send)   :lua require("iron").core.visual_send()<
 
 if !exists('g:iron_map_defaults')
   let g:iron_map_defaults = 1
-edif
+endif
 
 if !exists('g:iron_map_extended')
   let g:iron_map_extended = 1
