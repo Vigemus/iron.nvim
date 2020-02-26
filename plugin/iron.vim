@@ -16,7 +16,10 @@ function! s:send_wrapper(bang, ...)
   exec 'lua require("iron").core.send("'.s:ft.'", "'.s:tbl.'")'
 endfunction
 
-command! IronRepl exec 'lua require("iron").core.repl_for("'.&ft.'")'
+command! -nargs=? -complete=filetype IronRepl
+      \ exec 'lua require("iron").core.repl_for("'
+      \ .(empty(<q-args>) ? &ft : <q-args>)
+      \ .'")'
 command! -nargs=+ -bang IronSend call <SID>send_wrapper(<bang>0, <f-args>)
 command! -nargs=? -complete=filetype IronFocus
       \  exec 'lua require("iron").core.focus_on("'
@@ -25,9 +28,9 @@ command! -nargs=? -complete=filetype IronFocus
 
 " add additional commands to open a REPL in the current buffer and to restart
 " a REPL
-command! -nargs=1 -complete=filetype IronReplHere 
+command! -nargs=? -complete=filetype IronReplHere
     \ exec 'lua require("iron").core.repl_here("'
-    \ .(<q-args>)
+    \ .(empty(<q-args>) ? &ft : <q-args>)
     \ .'")'
 command! IronRestart exec 'lua require("iron").core.repl_restart()'
 
