@@ -38,7 +38,11 @@ Languages                                                      *iron-languages*
 Currently, Iron has support for the following programming languages:
 
   - clojure
+    - boot
     - lein
+  - csh
+    - csh
+    - tcsh
   - elixir
   - elm
   - erlang
@@ -46,18 +50,22 @@ Currently, Iron has support for the following programming languages:
     - intero
     - stack ghci
     - ghci
+  - javascript
+  - julia
   - lisp
     - sbcl
     - clisp
   - lua
-  - javascript
-    - node
   - ocaml
     - ocamltop
     - utop
   - php
     - php
     - psysh
+  - prolog
+    - gprolog
+    - swipl
+  - ps1 (powershell)
   - pure-lang
   - python
     - python
@@ -74,7 +82,12 @@ Currently, Iron has support for the following programming languages:
     - guile
     - csi
   - sh
+    - zsh
+    - bash
+    - sh
   - tcl
+  - typescript
+  - zsh
 
 
 ===============================================================================

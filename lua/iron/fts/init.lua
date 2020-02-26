@@ -2,6 +2,7 @@
 
 local fts = {
   clojure = require("iron.fts.clojure"),
+  csh = require("iron.fts.csh"),
   elixir = require("iron.fts.elixir"),
   elm = require("iron.fts.elm"),
   erlang = require("iron.fts.erlang"),
@@ -13,6 +14,7 @@ local fts = {
   ocaml = require("iron.fts.ocaml"),
   php = require("iron.fts.php"),
   prolog = require("iron.fts.prolog"),
+  ps1 = require("iron.fts.ps1"),
   pure = require("iron.fts.pure"),
   python = require("iron.fts.python"),
   r = require("iron.fts.r"),
