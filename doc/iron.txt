@@ -98,6 +98,12 @@ Iron provides the following commands for interacting with REPLs:
 :IronRepl [ft]
   Open a REPL for current or given file type.
 
+:IronReplHere [ft]
+  Open a REPL for current or given file type in the current window.
+
+:IronRestart
+  Restart the current REPL.
+
 :IronSend! some [text...]
   Sends the supplied chunk of text to the repl for current filetype.
 
@@ -137,7 +143,7 @@ g:iron_map_defaults
   to a REPL (ctr) and to repeat the previous command (cp). Default value = 1.
 
 g:iron_map_extended
-  Maps additional keybindings to iron
+  Maps additional keybindings to iron. Default value = 1.
 
 ===============================================================================
 Mappings                                                        *iron-mappings*
@@ -147,16 +153,42 @@ ctr
 cp
   repeat the previous command
 
+
+Extended Mappings
+
+c<CR>
+  Send new line to REPL
+cst
+  Send an Interrupt to REPL
+cq
+  Exit REPL
+cl
+  Clear the REPL
+
+
 Those hereabove mappings can be redefined by the user, i.e: >
 
-  nmap <localleader>t <Plug>(iron-send-motion)
+  nmap <localleader>t    <Plug>(iron-send-motion)
+  vmap <localleader>v    <Plug>(iron-visual-send)
+  nmap <localleader>r    <Plug>(iron-repeat-cmd)
+  nmap <localleader>l    <Plug>(iron-send-line)
+  nmap <localleader><CR> <Plug>(iron-cr)
+  nmap <localleader>i    <plug>(iron-interrupt)
+  nmap <localleader>q    <Plug>(iron-exit)
+  nmap <localleader>c    <Plug>(iron-clear)
 <
 
   -------------------------------------------------------------~
    LHS(default)     RHS                                  MODE~
   -------------------------------------------------------------~
-   ctr              |<Plug>(iron-send-motion)|              `nv`
-   cp               |<Plug>(iron-repeat-cmd|                `n`
+   ctr              |<Plug>(iron-send-motion)|              `n`
+   ctr              |<Plug>(iron-visual-send)|              `v`
+   cp               |<Plug>(iron-repeat-cmd)|               `n`
+   <localleader>sl  |<Plug>(iron-send-line)|                `n`
+   c<CR>            |<Plug>(iron-cr)|                       `n`
+   cst              |<Plug>(iron-interrupt)|                `n`
+   cq               |<Plug>(iron-exit)|                     `n`
+   cl               |<Plug>(iron-clear)|                    `n`
   -------------------------------------------------------------~
 
 ===============================================================================
