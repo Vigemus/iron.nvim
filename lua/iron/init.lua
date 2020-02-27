@@ -25,6 +25,13 @@ local nvim = vim.api
 --    mostly a reorganization of core, hiding the complexity
 --    of managing memory and config from the user.
 --]]
+
+local function echoerr(msg)
+  nvim.nvim_command('echohl ErrorMsg')
+  nvim.nvim_command('echomsg "'..msg..'"')
+  nvim.nvim_command('echohl')
+end
+
 local ext = {
   repl = require("iron.fts.common").functions,
   strings = require("iron.util.strings"),
@@ -66,7 +73,7 @@ end
 iron.ll.get_buffer_ft = function(bufnr)
   local ft = nvim.nvim_buf_get_option(bufnr, 'filetype')
   if ext.tables.get(iron.fts, ft) == nil then
-    nvim.nvim_command("echoerr 'No repl definition for current files &filetype'")
+    echoerr("There's no REPL definition for current filetype "..ft)
   else
     return ft
   end
@@ -87,13 +94,18 @@ iron.ll.get_preferred_repl = function(ft)
 
   if preference ~= nil then
     repl_def = repl_definitions[preference]
-  else
+  elseif repl_definitions ~= nil then
     for _, v in pairs(repl_definitions) do
       if nvim.nvim_call_function('exepath', {v.command[1]}) ~= '' then
         repl_def = v
         break
       end
     end
+    if repl_def == nil then
+      echoerr("Failed to locate REPL executable, aborting")
+    end
+  else
+    echoerr("There's no REPL definition for current filetype "..ft)
   end
   return repl_def
 end
@@ -138,7 +150,10 @@ iron.ll.create_preferred_repl = function(ft, new_win)
         new_win = true
     end
     local repl = iron.ll.get_preferred_repl(ft)
-    return iron.ll.create_new_repl(ft, repl, new_win)
+    if repl ~= nil then
+      return iron.ll.create_new_repl(ft, repl, new_win)
+    end
+    return nil
 end
 
 iron.ll.ensure_repl_exists = function(ft, newfn)
@@ -243,7 +258,7 @@ iron.core.repl_restart = function()
       nvim.nvim_command('wincmd p')
     else
       -- no repl found, so nothing to do
-      nvim.nvim_command("echoerr 'No repl found in current buffer; cannot restart'")
+      echoerr ('No repl found in current buffer; cannot restart')
     end
   end
 
@@ -429,7 +444,7 @@ iron.core.list_definitions_for_ft = function(ft)
   local defs = ext.tables.get(iron.fts, ft)
 
   if defs == nil then
-    nvim.nvim_command("echoerr 'No repl definition for current filetype" .. ft .. "'")
+    echoerr("There's no REPL definition for current filetype " .. ft)
   else
     for k, v in pairs(defs) do
       table.insert(lst, {k, v})
@@ -486,7 +501,7 @@ iron.core.list_definitions_for_ft = function(ft)
   local defs = ext.tables.get(iron.fts, ft)
 
   if defs == nil then
-    nvim.nvim_command("echoerr 'No repl definition for current filetype" .. ft .. "'")
+    echoerr ("There's no REPL definition for current filetype " .. ft)
   else
     for k, v in pairs(defs) do
       table.insert(lst, {k, v})
@@ -505,7 +520,7 @@ end
 
 iron.debug.dump = function(level, to_buff)
   level = level or iron.behavior.debug_level.info
-  local inspect = require("inspect")
+  local inspect = require("vim.inspect")
   local dump
 
   if to_buff then
