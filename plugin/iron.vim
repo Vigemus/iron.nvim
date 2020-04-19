@@ -41,6 +41,7 @@ map <silent> <Plug>(iron-interrupt)     <Cmd>IronSend! \03<CR>
 map <silent> <Plug>(iron-exit)          <Cmd>IronSend! \04<CR>
 map <silent> <Plug>(iron-clear)         <Cmd>IronSend! \12<CR>
 map <silent> <Plug>(iron-send-motion)   <Cmd>set opfunc=<SID>ironSendMotion<CR>g@
+map <silent> <Plug>(iron-send-lines)    <Cmd>set opfunc=<SID>ironSendMotion<bar>exe 'norm! 'v:count1.'g@_'<CR>
 map <silent> <Plug>(iron-send-line)     :lua require("iron").core.send_line()<CR>
 map <silent> <Plug>(iron-visual-send)   :lua require("iron").core.visual_send()<CR>
 
