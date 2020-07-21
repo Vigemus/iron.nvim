@@ -190,11 +190,9 @@ iron.ll.send_to_repl = function(ft, data)
     level = iron.behavior.debug_level.info
   }
 
-  local window = nvim.nvim_call_function('bufwinnr', {mem.bufnr})
-  if window ~= -1 then
-    nvim.nvim_command(window .. "windo normal! G")
-    nvim.nvim_command(window .. "wincmd p")
-  end
+  local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
+  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+
   nvim.nvim_call_function('chansend', {mem.job, dt})
 end
 
