@@ -24,8 +24,7 @@
 --    mostly a reorganization of core, hiding the complexity
 --    of managing store and config from the user.
 --]]
-local floats = require("iron.floats")
-
+local view = require("iron.view")
 
 local ext = {
   repl = require("iron.fts.common").functions,
@@ -49,9 +48,7 @@ local defaultconfig = {
   visibility = iron.behavior.visibility.toggle,
   scope = iron.behavior.scope.path_based,
   preferred = {},
-  repl_open_cmd = function(buff)
-    return vim.api.nvim_open_win(buff, true, floats.left(100))
-  end
+  repl_open_cmd = view.openwin('topleft vertical 100 split')
 }
 
 -- [[ Low-level ]]
@@ -100,13 +97,7 @@ iron.ll.new_repl_window = function(buff)
   if type(iron.config.repl_open_cmd) == "function" then
     return iron.config.repl_open_cmd(buff)
   else
-    vim.api.nvim_command(iron.config.repl_open_cmd)
-    vim.api.nvim_set_current_buf(buff)
-
-    local winid = vim.fn.win_getid(vim.fn.bufwinnr(buff))
-    vim.api.nvim_win_set_option(winid, "winfixwidth", true)
-
-    return winid
+    return view.openwin(iron.config.repl_open_cmd, buff)
   end
 end
 
