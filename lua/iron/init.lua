@@ -7,7 +7,7 @@
 --    Functions that alter iron's behavior and are set to be used
 --    within configuration by the user
 --
---  -->> memory:
+--  -->> store:
 --    Iron's repl database, so it knows which instances it's managing.
 --
 --  -->> ll:
@@ -22,8 +22,9 @@
 --  -->> core:
 --    User api, should have all public functions there.
 --    mostly a reorganization of core, hiding the complexity
---    of managing memory and config from the user.
+--    of managing store and config from the user.
 --]]
+local floats = require("iron.floats")
 
 
 local ext = {
@@ -34,9 +35,9 @@ local ext = {
 local iron = {
   namespace = vim.api.nvim_create_namespace("iron"),
   marks = {},
-  memory = {},
+  store = {},
   behavior = {
-    manager = require("iron.memory_management"),
+    scope = require("iron.scope"),
     visibility = require("iron.visibility")
   },
   ll = {},
@@ -46,19 +47,21 @@ local iron = {
 }
 local defaultconfig = {
   visibility = iron.behavior.visibility.toggle,
-  manager = iron.behavior.manager.path_based,
+  scope = iron.behavior.scope.path_based,
   preferred = {},
-  repl_open_cmd = "topleft vertical 100 split"
+  repl_open_cmd = function(buff)
+    return vim.api.nvim_open_win(buff, true, floats.left(100))
+  end
 }
 
 -- [[ Low-level ]]
 
-iron.ll.get_from_memory = function(ft)
-  return iron.config.manager.get(iron.memory, ft)
+iron.ll.get = function(ft)
+  return iron.config.scope.get(iron.store, ft)
 end
 
-iron.ll.set_on_memory = function(ft, fn)
-  return iron.config.manager.set(iron.memory, ft, fn)
+iron.ll.set = function(ft, fn)
+  return iron.config.scope.set(iron.store, ft, fn)
 end
 
 iron.ll.get_buffer_ft = function(bufnr)
@@ -71,7 +74,7 @@ iron.ll.get_buffer_ft = function(bufnr)
 end
 
 iron.ll.get_preferred_repl = function(ft)
-  local repl_definitions = iron.ll.get_repl_definitions(ft)
+  local repl_definitions = iron.fts[ft]
   local preference = iron.config.preferred[ft]
   local repl_def = nil
 
@@ -152,13 +155,12 @@ iron.ll.create_preferred_repl = function(ft, new_win)
     return nil
 end
 
-iron.ll.ensure_repl_exists = function(ft, newfn)
-  newfn = newfn or iron.ll.create_preferred_repl
-  local mem = iron.ll.get_from_memory(ft)
+iron.ll.ensure_repl_exists = function(ft)
+  local mem = iron.ll.get(ft)
   local created = false
 
-  if mem == nil or nvim.nvim_call_function('bufname', {mem.bufnr}) == "" then
-    mem = newfn(ft)
+  if mem == nil or vim.fn.bufname(mem.bufnr) == "" then
+    mem = iron.ll.create_preferred_repl(ft)
     created = true
   end
 
@@ -172,7 +174,7 @@ iron.ll.send_to_repl = function(ft, data)
     dt = ext.strings.split(data, '\n')
   end
 
-  local mem = iron.ll.get_from_memory(ft)
+  local mem = iron.ll.get(ft)
   dt = ext.repl.format(mem.repldef, dt)
 
   local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
@@ -187,8 +189,8 @@ iron.ll.get_repl_ft_for_bufnr = function(bufnr)
   -- If the corresponding buffer number does not exist or is not
   -- a REPL, then return nil
   local ft_found = nil
-  for ft in pairs(iron.memory) do
-    local mem = iron.ll.get_from_memory(ft)
+  for ft in pairs(iron.store) do
+    local mem = iron.ll.get(ft)
     if mem ~= nil and bufnr == mem.bufnr then
       ft_found = ft
     end
@@ -200,7 +202,7 @@ end
 
 iron.core.repl_here = function(ft)
   -- first check if the repl for the current filetype already exists
-  local mem = iron.ll.get_from_memory(ft)
+  local mem = iron.ll.get(ft)
   local exists = not (mem == nil or vim.fn.bufname(mem.bufnr) == "")
 
   if exists then
@@ -230,8 +232,7 @@ iron.core.repl_restart = function()
   else
     local ft = vim.api.nvim_buf_get_option(bufnr_here, 'filetype')
 
-
-    local mem = iron.ll.get_from_memory(ft)
+    local mem = iron.ll.get(ft)
     local exists = not (mem == nil or
                         vim.fn.bufname(mem.bufnr) == "")
 
