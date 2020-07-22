@@ -33,7 +33,11 @@ local ext = {
 }
 local iron = {
   namespace = vim.api.nvim_create_namespace("iron"),
-  marks = {},
+  mark = {
+    save_pos = 20,
+    begin_last = 99,
+    end_last = 100
+  },
   store = {},
   behavior = {
     scope = require("iron.scope"),
@@ -41,7 +45,6 @@ local iron = {
   },
   ll = {},
   core = {},
-  last = {},
   fts = require("iron.fts")
 }
 local defaultconfig = {
@@ -295,79 +298,105 @@ iron.core.send_line = function()
   local ft = iron.ll.get_buffer_ft(0)
 
   if ft ~= nil then
+
     local linenr = vim.api.nvim_win_get_cursor(0)[1]
     local cur_line = vim.api.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
-    if #cur_line == 0 then return end
+    local width = vim.fn.strwidth(cur_line)
+
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.begin_last, linenr, 0, {})
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.end_last, linenr, width - 1, {})
+
+    if width == 0 then return end
 
     iron.core.send(ft, cur_line)
   end
 end
 
-iron.core.send_motion = function(mtype)
+iron.core.send_chunk = function(mode, mtype)
+  local bstart, bend
+  local b_line, b_col, e_line, e_col, _
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
-  local b_line, b_col, e_line, e_col, _
-  _, b_line, b_col = unpack(vim.api.nvim_call_function("getpos", {"'["}))
-  _, e_line, e_col = unpack(vim.api.nvim_call_function("getpos", {"']"}))
+  if mode == "visual" then
+    bstart = "'<"
+    bend = "'>"
+  else
+    bstart = "'["
+    bend = "']"
+  end
+
+  -- getpos is 1-based
+  -- extmark, getlines are 0-based
+  _, b_line, b_col = unpack(vim.fn.getpos(bstart))
+  _, e_line, e_col = unpack(vim.fn.getpos(bend))
+
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+
   if #lines == 0 then return end
-  if mtype == 'char' then
-    lines[#lines] = string.sub(lines[#lines], 1, e_col)
+
+  if b_col > 1 then
     lines[1] = string.sub(lines[1], b_col)
+  end
+  if e_col > 1 then
+    lines[#lines] = string.sub(lines[#lines], 1, e_col)
   end
 
   iron.core.send(ft, lines)
 
-  local mark = vim.api.nvim_buf_get_extmarks(0, iron.namespace, 0, -1, {})[1]
-  vim.fn.winrestview({lnum = mark[2], col = mark[3]})
-  vim.api.nvim_buf_del_extmark(0, iron.namespace, mark[1])
+  local mark = vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.save_pos)
 
-  iron.last.b_line = b_line
-  iron.last.b_col = b_col
-  iron.last.e_col = e_col
-  iron.last.e_line = e_line
+  if #mark ~= 0 then
+    -- winrestview is 1-based
+    vim.fn.winrestview({lnum = mark[1] + 1, col = mark[2] + 1})
+    vim.api.nvim_buf_del_extmark(0, iron.namespace, 20)
+  end
+
+  vim.api.nvim_buf_set_extmark(
+    0,
+    iron.namespace,
+    iron.mark.begin_last,
+    b_line - 1,
+    b_col - 1,
+    {}
+  )
+
+  vim.api.nvim_buf_set_extmark(
+    0,
+    iron.namespace,
+    iron.mark.end_last,
+    e_line - 1,
+    e_col -1,
+    {}
+  )
+
 end
 
-iron.core.visual_send = function()
-  local ft = iron.ll.get_buffer_ft(0)
-  if ft == nil then return end
+iron.core.send_motion = function(mtype) iron.core.send_chunk("motion", mtype) end
 
-  local b_line, b_col, e_line, e_col, _
-  _, b_line, b_col = unpack(vim.api.nvim_call_function("getpos", {"'<"}))
-  _, e_line, e_col = unpack(vim.api.nvim_call_function("getpos", {"'>"}))
-
-  local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-  lines[#lines] = string.sub(lines[#lines], 1, e_col)
-  lines[1] = string.sub(lines[1], b_col)
-
-  iron.core.send(ft, lines)
-
-
--- [[ TODO: Add extmark]]
-  iron.last.b_line = b_line
-  iron.last.b_col = b_col
-  iron.last.e_col = e_col
-  iron.last.e_line = e_line
-end
+iron.core.visual_send = function() iron.core.send_chunk("visual") end
 
 iron.core.repeat_cmd = function()
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
   local b_line, b_col, e_line, e_col
-  b_line = iron.last.b_line
-  b_col = iron.last.b_col
-  e_line = iron.last.e_line
-  e_col = iron.last.e_col
 
-  local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-  lines[#lines] = string.sub(lines[#lines], 1, e_col)
-  lines[1] = string.sub(lines[1], b_col)
+  -- extmark is 0-based index
+  b_line, b_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.begin_last))
+  e_line, e_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.end_last))
 
-  iron.ll.ensure_repl_exists(ft)
-  iron.ll.send_to_repl(ft, lines)
+  local lines = vim.api.nvim_buf_get_lines(0, b_line, e_line + 1, 0)
+
+  if b_col >= 1 then
+    lines[1] = string.sub(lines[1], b_col + 1)
+  end
+  if e_col >= 1 then
+    lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
+  end
+
+  iron.core.send(ft, lines)
 end
 
 iron.core.list_fts = function()
