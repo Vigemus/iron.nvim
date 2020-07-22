@@ -243,6 +243,18 @@ iron.core.repl_restart = function()
   return mem
 end
 
+iron.core.repl_by_name = function(repl_name, ft)
+  ft = ft or vim.bo.ft
+  local repl = iron.fts[ft][repl_name]
+
+  if repl == nil then
+    vim.api.nvim_err_writeln('Repl definition of name "' .. repl_name .. '" not found for file type: '.. ft)
+    return
+  end
+
+  return iron.ll.create_new_repl(ft, repl)
+end
+
 iron.core.repl_for = function(ft)
   local mem, created = iron.ll.ensure_repl_exists(ft)
 
