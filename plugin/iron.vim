@@ -1,5 +1,10 @@
+function! s:save_pos()
+  let s:view = winsaveview()
+  call nvim_buf_set_extmark(0, nvim_create_namespace('iron'), 0, s:view.lnum, s:view.col, {})
+endfunction
+
 function! s:ironSendMotion(mode)
-  exec 'lua require("iron").core.send_motion("'.a:mode.'")'
+  call luaeval('require("iron").core.send_motion(_A)', a:mode)
 endfunction
 
 function! s:send_wrapper(bang, ...)
@@ -40,7 +45,7 @@ map <silent> <Plug>(iron-cr)            <Cmd>IronSend! \13<CR>
 map <silent> <Plug>(iron-interrupt)     <Cmd>IronSend! \03<CR>
 map <silent> <Plug>(iron-exit)          <Cmd>IronSend! \04<CR>
 map <silent> <Plug>(iron-clear)         <Cmd>IronSend! \12<CR>
-map <silent> <Plug>(iron-send-motion)   <Cmd>set opfunc=<SID>ironSendMotion<CR>g@
+map <silent> <Plug>(iron-send-motion)   <Cmd>call <SID>save_pos()<bar>set opfunc=<SID>ironSendMotion<CR>g@
 map <silent> <Plug>(iron-send-lines)    <Cmd>set opfunc=<SID>ironSendMotion<bar>exe 'norm! 'v:count1.'g@_'<CR>
 map <silent> <Plug>(iron-send-line)     :lua require("iron").core.send_line()<CR>
 map <silent> <Plug>(iron-visual-send)   :lua require("iron").core.visual_send()<CR>

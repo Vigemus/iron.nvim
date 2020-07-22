@@ -38,6 +38,8 @@ local ext = {
   tables = require("iron.util.tables"),
 }
 local iron = {
+  namespace = vim.api.nvim_create_namespace("iron"),
+  marks = {},
   memory = {},
   behavior = {
     debug_level = require("iron.debug_level"),
@@ -61,7 +63,8 @@ local defaultconfig = {
   repl_open_cmd = "topleft vertical 100 split"
 }
 
--- [[ Low-level
+-- [[ Low-level ]]
+
 iron.ll.get_from_memory = function(ft)
   return iron.config.manager.get(iron.memory, ft)
 end
@@ -187,11 +190,9 @@ iron.ll.send_to_repl = function(ft, data)
     level = iron.behavior.debug_level.info
   }
 
-  local window = nvim.nvim_call_function('bufwinnr', {mem.bufnr})
-  if window ~= -1 then
-    nvim.nvim_command(window .. "windo normal! G")
-    nvim.nvim_command(window .. "wincmd p")
-  end
+  local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
+  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+
   nvim.nvim_call_function('chansend', {mem.job, dt})
 end
 
@@ -210,7 +211,7 @@ iron.ll.get_repl_ft_for_bufnr = function(bufnr)
   return ft_found
 end
 
--- Low-level ]]
+-- [[ Low-level ]]
 
 iron.core.repl_here = function(ft)
   -- first check if the repl for the current filetype already exists
@@ -364,6 +365,10 @@ iron.core.send_motion = function(mtype)
   iron.ll.ensure_repl_exists(ft)
   iron.ll.send_to_repl(ft, lines)
 
+  local mark = vim.api.nvim_buf_get_extmarks(0, iron.namespace, 0, -1, {})[1]
+  vim.fn.winrestview({lnum = mark[2], col = mark[3]})
+  vim.api.nvim_buf_del_extmark(0, iron.namespace, mark[1])
+
   iron.last.b_line = b_line
   iron.last.b_col = b_col
   iron.last.e_col = e_col
@@ -395,6 +400,8 @@ iron.core.visual_send = function()
   iron.ll.ensure_repl_exists(ft)
   iron.ll.send_to_repl(ft, lines)
 
+
+-- [[ TODO: Add extmark]]
   iron.last.b_line = b_line
   iron.last.b_col = b_col
   iron.last.e_col = e_col
