@@ -109,24 +109,25 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
   if new_win == nil then
     new_win = true
   end
-  local winnr
+
+  local winid
   local prevwin = vim.api.nvim_get_current_win()
   local bufnr = vim.api.nvim_create_buf(false, true)
 
   if new_win then
-    winnr = iron.ll.new_repl_window(bufnr)
+    winid = iron.ll.new_repl_window(bufnr)
   else
-    winnr = iron.ll.get(ft).winnr
+    winid = iron.ll.get(ft).winid
   end
 
-  vim.api.nvim_set_current_win(winnr)
+  vim.api.nvim_set_current_win(winid)
   local job_id = vim.fn.termopen(repl.command)
 
   local inst = {
     bufnr = bufnr,
     job = job_id,
     repldef = repl,
-    winnr = winnr
+    winid = winid
   }
 
   local timer = vim.loop.new_timer()
@@ -135,17 +136,15 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
     end))
 
   return iron.ll.set(ft, inst)
-
 end
 
 iron.ll.create_preferred_repl = function(ft, new_win)
-    if new_win == nil then
-        new_win = true
-    end
     local repl = iron.ll.get_preferred_repl(ft)
+
     if repl ~= nil then
       return iron.ll.create_new_repl(ft, repl, new_win)
     end
+
     return nil
 end
 
