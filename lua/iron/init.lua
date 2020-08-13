@@ -325,7 +325,6 @@ end
 
 iron.core.send_chunk = function(mode, mtype)
   local bstart, bend
-  local b_line, b_col, e_line, e_col, _
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
@@ -339,11 +338,19 @@ iron.core.send_chunk = function(mode, mtype)
 
   -- getpos is 1-based
   -- extmark, getlines are 0-based
-  _, b_line, b_col = unpack(vim.fn.getpos(bstart))
-  _, e_line, e_col = unpack(vim.fn.getpos(bend))
 
+
+
+  local b_line, b_col = unpack(vim.fn.getpos(bstart),2,3)
+  local e_line, e_col = unpack(vim.fn.getpos(bend),2,3)
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+
+  b_col,e_col = unpack(mtype=='line' and { 0,lines[#lines]:len() } or { b_col,e_col })
+
+  --handle eol
+  b_col = b_col > lines[1]:len() and lines[1]:len() or b_col
+  e_col = e_col > lines[#lines]:len() and lines[#lines]:len() or e_col
 
   if #lines == 0 then return end
 
