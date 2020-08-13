@@ -1,5 +1,4 @@
 -- luacheck: globals unpack vim
-local nvim = vim.api
 
 --[[ -> iron
 -- Here is the complete iron API.
@@ -8,7 +7,7 @@ local nvim = vim.api
 --    Functions that alter iron's behavior and are set to be used
 --    within configuration by the user
 --
---  -->> memory:
+--  -->> store:
 --    Iron's repl database, so it knows which instances it's managing.
 --
 --  -->> ll:
@@ -23,14 +22,9 @@ local nvim = vim.api
 --  -->> core:
 --    User api, should have all public functions there.
 --    mostly a reorganization of core, hiding the complexity
---    of managing memory and config from the user.
+--    of managing store and config from the user.
 --]]
-
-local function echoerr(msg)
-  nvim.nvim_command('echohl ErrorMsg')
-  nvim.nvim_command('echomsg "'..msg..'"')
-  nvim.nvim_command('echohl')
-end
+local view = require("iron.view")
 
 local ext = {
   repl = require("iron.fts.common").functions,
@@ -38,57 +32,49 @@ local ext = {
   tables = require("iron.util.tables"),
 }
 local iron = {
-  memory = {},
+  namespace = vim.api.nvim_create_namespace("iron"),
+  mark = {
+    save_pos = 20,
+    begin_last = 99,
+    end_last = 100
+  },
+  store = {},
   behavior = {
-    debug_level = require("iron.debug_level"),
-    manager = require("iron.memory_management"),
+    scope = require("iron.scope"),
     visibility = require("iron.visibility")
   },
   ll = {},
   core = {},
-  debug = {
-    ll = {},
-    mem = {}
-  },
-  last = {},
   fts = require("iron.fts")
 }
 local defaultconfig = {
-  debug_level = iron.behavior.debug_level.fatal,
   visibility = iron.behavior.visibility.toggle,
-  manager = iron.behavior.manager.path_based,
+  scope = iron.behavior.scope.path_based,
   preferred = {},
-  repl_open_cmd = "topleft vertical 100 split"
+  repl_open_cmd = view.openwin('topleft vertical 100 split')
 }
 
--- [[ Low-level
-iron.ll.get_from_memory = function(ft)
-  return iron.config.manager.get(iron.memory, ft)
+-- [[ Low-level ]]
+
+iron.ll.get = function(ft)
+  return iron.config.scope.get(iron.store, ft)
 end
 
-iron.ll.set_on_memory = function(ft, fn)
-  return iron.config.manager.set(iron.memory, ft, fn)
+iron.ll.set = function(ft, fn)
+  return iron.config.scope.set(iron.store, ft, fn)
 end
 
 iron.ll.get_buffer_ft = function(bufnr)
-  local ft = nvim.nvim_buf_get_option(bufnr, 'filetype')
+  local ft = vim.api.nvim_buf_get_option(bufnr, 'filetype')
   if ext.tables.get(iron.fts, ft) == nil then
-    echoerr("There's no REPL definition for current filetype "..ft)
+    vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
   else
     return ft
   end
 end
 
-iron.ll.get_file_ft = function()
-  return nvim.nvim_get_option("ft")
-end
-
-iron.ll.get_repl_definitions = function(ft)
-  return iron.fts[ft]
-end
-
 iron.ll.get_preferred_repl = function(ft)
-  local repl_definitions = iron.ll.get_repl_definitions(ft)
+  local repl_definitions = iron.fts[ft]
   local preference = iron.config.preferred[ft]
   local repl_def = nil
 
@@ -96,25 +82,25 @@ iron.ll.get_preferred_repl = function(ft)
     repl_def = repl_definitions[preference]
   elseif repl_definitions ~= nil then
     for _, v in pairs(repl_definitions) do
-      if nvim.nvim_call_function('exepath', {v.command[1]}) ~= '' then
+      if vim.fn.executable(v.command[1]) == 1 then
         repl_def = v
         break
       end
     end
     if repl_def == nil then
-      echoerr("Failed to locate REPL executable, aborting")
+      vim.api.nvim_err_writeln("Failed to locate REPL executable, aborting")
     end
   else
-    echoerr("There's no REPL definition for current filetype "..ft)
+    vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
   end
   return repl_def
 end
 
 iron.ll.new_repl_window = function(buff)
   if type(iron.config.repl_open_cmd) == "function" then
-    iron.config.repl_open_cmd(buff)
+    return iron.config.repl_open_cmd(buff)
   else
-    nvim.nvim_command(iron.config.repl_open_cmd .. '| ' .. buff .. ' | set wfw | startinsert')
+    return view.openwin(iron.config.repl_open_cmd, buff)
   end
 end
 
@@ -124,45 +110,50 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
     new_win = true
   end
 
+  local winid
+  local prevwin = vim.api.nvim_get_current_win()
+  local bufnr = vim.api.nvim_create_buf(false, true)
+
   if new_win then
-    iron.ll.new_repl_window("enew")
+    winid = iron.ll.new_repl_window(bufnr)
   else
-    -- just want to open a new empty buffer, as termopen destroys the
-    -- currently active buffer
-    nvim.nvim_command('enew')
+    winid = iron.ll.get(ft).winid
   end
 
+  vim.api.nvim_set_current_win(winid)
+  local job_id = vim.fn.termopen(repl.command)
 
-  local job_id = nvim.nvim_call_function('termopen', {repl.command})
-  local bufnr = nvim.nvim_call_function('bufnr', {'%'})
   local inst = {
     bufnr = bufnr,
     job = job_id,
-    repldef = repl
+    repldef = repl,
+    winid = winid
   }
-  iron.ll.set_on_memory(ft, function() return inst end)
 
-  return inst
+  local timer = vim.loop.new_timer()
+  timer:start(10, 0, vim.schedule_wrap(function()
+      vim.api.nvim_set_current_win(prevwin)
+    end))
+
+  return iron.ll.set(ft, inst)
 end
 
 iron.ll.create_preferred_repl = function(ft, new_win)
-    if new_win == nil then
-        new_win = true
-    end
     local repl = iron.ll.get_preferred_repl(ft)
+
     if repl ~= nil then
       return iron.ll.create_new_repl(ft, repl, new_win)
     end
+
     return nil
 end
 
-iron.ll.ensure_repl_exists = function(ft, newfn)
-  newfn = newfn or iron.ll.create_preferred_repl
-  local mem = iron.ll.get_from_memory(ft)
+iron.ll.ensure_repl_exists = function(ft)
+  local mem = iron.ll.get(ft)
   local created = false
 
-  if mem == nil or nvim.nvim_call_function('bufname', {mem.bufnr}) == "" then
-    mem = newfn(ft)
+  if mem == nil or vim.fn.bufname(mem.bufnr) == "" then
+    mem = iron.ll.create_preferred_repl(ft)
     created = true
   end
 
@@ -176,23 +167,13 @@ iron.ll.send_to_repl = function(ft, data)
     dt = ext.strings.split(data, '\n')
   end
 
-  local mem = iron.ll.get_from_memory(ft)
+  local mem = iron.ll.get(ft)
   dt = ext.repl.format(mem.repldef, dt)
 
-  iron.debug.ll.store{
-    where = "send_to_repl",
-    raw_lines = data,
-    lines = dt,
-    repl = mem,
-    level = iron.behavior.debug_level.info
-  }
+  local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
+  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
 
-  local window = nvim.nvim_call_function('bufwinnr', {mem.bufnr})
-  if window ~= -1 then
-    nvim.nvim_command(window .. "windo normal! G")
-    nvim.nvim_command(window .. "wincmd p")
-  end
-  nvim.nvim_call_function('chansend', {mem.job, dt})
+  vim.api.nvim_call_function('chansend', {mem.job, dt})
 end
 
 iron.ll.get_repl_ft_for_bufnr = function(bufnr)
@@ -201,8 +182,8 @@ iron.ll.get_repl_ft_for_bufnr = function(bufnr)
   -- If the corresponding buffer number does not exist or is not
   -- a REPL, then return nil
   local ft_found = nil
-  for ft in pairs(iron.memory) do
-    local mem = iron.ll.get_from_memory(ft)
+  for ft in pairs(iron.store) do
+    local mem = iron.ll.get(ft)
     if mem ~= nil and bufnr == mem.bufnr then
       ft_found = ft
     end
@@ -210,17 +191,15 @@ iron.ll.get_repl_ft_for_bufnr = function(bufnr)
   return ft_found
 end
 
--- Low-level ]]
+-- [[ Low-level ]]
 
 iron.core.repl_here = function(ft)
   -- first check if the repl for the current filetype already exists
-  local mem = iron.ll.get_from_memory(ft)
-  local exists = not (mem == nil or
-                      nvim.nvim_call_function('bufname', {mem.bufnr}) == "")
+  local mem = iron.ll.get(ft)
+  local exists = not (mem == nil or vim.fn.bufname(mem.bufnr) == "")
 
   if exists then
-    -- it exists so just activate the buffer in the current window
-    nvim.nvim_command('b ' .. mem.bufnr)
+    vim.api.nvim_set_current_buf(mem.bufnr)
   else
     -- the repl does not exist, so we have to create a new one,
     -- but in the current window
@@ -232,50 +211,60 @@ end
 
 iron.core.repl_restart = function()
   -- First, check if the cursor is on top or a REPL
-  -- Then, start a new REPL of the same time and enter it into the window
+  -- Then, start a new REPL of the same type and enter it into the window
   -- Afterwards, wipe out the old REPL buffer
   -- This is done without asking for confirmation, so user beware
-  local bufnr_here = nvim.nvim_call_function('bufnr', {"%"})
+  local bufnr_here = vim.fn.bufnr("%")
   local ft_here = iron.ll.get_repl_ft_for_bufnr(bufnr_here)
   local mem = nil
 
   if ft_here ~= nil then
     mem = iron.ll.create_preferred_repl(ft_here, false)
     -- created a new one, now have to kill the old one
-    nvim.nvim_command('bwipeout! ' .. bufnr_here)
+    vim.api.nvim_command('bwipeout! ' .. bufnr_here)
   else
+    local ft = vim.api.nvim_buf_get_option(bufnr_here, 'filetype')
 
-    local ft = nvim.nvim_buf_get_option(bufnr_here, 'filetype')
-
-    local mem = iron.ll.get_from_memory(ft)
+    local mem = iron.ll.get(ft)
     local exists = not (mem == nil or
-                        nvim.nvim_call_function('bufname', {mem.bufnr}) == "")
+                        vim.fn.bufname(mem.bufnr) == "")
 
     if exists then
       -- Wipe the old REPL and then create a new one
-      nvim.nvim_command('bwipeout! ' .. mem.bufnr)
+      vim.api.nvim_command('bwipeout! ' .. mem.bufnr)
       mem, _ = iron.ll.ensure_repl_exists(ft)
-      nvim.nvim_command('wincmd p')
+      vim.api.nvim_command('wincmd p')
     else
       -- no repl found, so nothing to do
-      echoerr ('No repl found in current buffer; cannot restart')
+      vim.api.nvim_err_writeln('No repl found in current buffer; cannot restart')
     end
   end
 
   return mem
 end
 
+iron.core.repl_by_name = function(repl_name, ft)
+  ft = ft or vim.bo.ft
+  local repl = iron.fts[ft][repl_name]
+
+  if repl == nil then
+    vim.api.nvim_err_writeln('Repl definition of name "' .. repl_name .. '" not found for file type: '.. ft)
+    return
+  end
+
+  return iron.ll.create_new_repl(ft, repl)
+end
 
 iron.core.repl_for = function(ft)
   local mem, created = iron.ll.ensure_repl_exists(ft)
 
   if not created then
     local showfn = function()
-      iron.ll.new_repl_window('b ' .. mem.bufnr)
+      return iron.ll.new_repl_window(mem.bufnr)
     end
     iron.config.visibility(mem.bufnr, showfn)
   else
-    nvim.nvim_command('wincmd p')
+    vim.api.nvim_command('wincmd p')
   end
 
   return mem
@@ -285,7 +274,7 @@ iron.core.focus_on = function(ft)
   local mem = iron.ll.ensure_repl_exists(ft)
 
   local showfn = function()
-    iron.ll.new_repl_window('b ' .. mem.bufnr)
+    return iron.ll.new_repl_window(mem.bufnr)
   end
 
   iron.behavior.visibility.focus(mem.bufnr, showfn)
@@ -320,113 +309,105 @@ iron.core.send_line = function()
   local ft = iron.ll.get_buffer_ft(0)
 
   if ft ~= nil then
-    local linenr = nvim.nvim_win_get_cursor(0)[1]
-    local cur_line = nvim.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
-    if #cur_line == 0 then return end
 
-    iron.debug.ll.store{
-      linenr = linenr,
-      cur_line = cur_line,
-      where = "send_line",
-      level = iron.behavior.debug_level.info
-    }
+    local linenr = vim.api.nvim_win_get_cursor(0)[1]
+    local cur_line = vim.api.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
+    local width = vim.fn.strwidth(cur_line)
 
-    iron.ll.ensure_repl_exists(ft)
-    iron.ll.send_to_repl(ft, cur_line)
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.begin_last, linenr, 0, {})
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.end_last, linenr, width - 1, {})
+
+    if width == 0 then return end
+
+    iron.core.send(ft, cur_line)
   end
 end
 
-iron.core.send_motion = function(mtype)
+iron.core.send_chunk = function(mode, mtype)
+  local bstart, bend
+  local b_line, b_col, e_line, e_col, _
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
-  local b_line, b_col, e_line, e_col, _
-  _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"'["}))
-  _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"']"}))
+  if mode == "visual" then
+    bstart = "'<"
+    bend = "'>"
+  else
+    bstart = "'["
+    bend = "']"
+  end
 
-  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  -- getpos is 1-based
+  -- extmark, getlines are 0-based
+  _, b_line, b_col = unpack(vim.fn.getpos(bstart))
+  _, e_line, e_col = unpack(vim.fn.getpos(bend))
+
+
+  local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+
   if #lines == 0 then return end
-  if mtype == 'char' then
-    lines[#lines] = string.sub(lines[#lines], 1, e_col)
+
+  if b_col > 1 then
     lines[1] = string.sub(lines[1], b_col)
   end
+  if e_col > 1 then
+    lines[#lines] = string.sub(lines[#lines], 1, e_col)
+  end
 
-  iron.debug.ll.store{
-    b_col = b_col,
-    e_col = e_col,
-    b_line = b_line,
-    e_line = e_line,
-    lines = lines,
-    where = "send_motion",
-    level = iron.behavior.debug_level.info
-  }
+  iron.core.send(ft, lines)
 
-  iron.ll.ensure_repl_exists(ft)
-  iron.ll.send_to_repl(ft, lines)
+  local mark = vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.save_pos)
 
-  iron.last.b_line = b_line
-  iron.last.b_col = b_col
-  iron.last.e_col = e_col
-  iron.last.e_line = e_line
+  if #mark ~= 0 then
+    -- winrestview is 1-based
+    vim.fn.winrestview({lnum = mark[1] + 1, col = mark[2] + 1})
+    vim.api.nvim_buf_del_extmark(0, iron.namespace, 20)
+  end
+
+  vim.api.nvim_buf_set_extmark(
+    0,
+    iron.namespace,
+    iron.mark.begin_last,
+    b_line - 1,
+    b_col - 1,
+    {}
+  )
+
+  vim.api.nvim_buf_set_extmark(
+    0,
+    iron.namespace,
+    iron.mark.end_last,
+    e_line - 1,
+    e_col -1,
+    {}
+  )
+
 end
 
-iron.core.visual_send = function()
-  local ft = iron.ll.get_buffer_ft(0)
-  if ft == nil then return end
+iron.core.send_motion = function(mtype) iron.core.send_chunk("motion", mtype) end
 
-  local b_line, b_col, e_line, e_col, _
-  _, b_line, b_col = unpack(nvim.nvim_call_function("getpos", {"'<"}))
-  _, e_line, e_col = unpack(nvim.nvim_call_function("getpos", {"'>"}))
-
-  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-  lines[#lines] = string.sub(lines[#lines], 1, e_col)
-  lines[1] = string.sub(lines[1], b_col)
-
-  iron.debug.ll.store{
-    b_col = b_col,
-    e_col = e_col,
-    b_line = b_line,
-    e_line = e_line,
-    lines = lines,
-    where = "visual_send",
-    level = iron.behavior.debug_level.info
-  }
-
-  iron.ll.ensure_repl_exists(ft)
-  iron.ll.send_to_repl(ft, lines)
-
-  iron.last.b_line = b_line
-  iron.last.b_col = b_col
-  iron.last.e_col = e_col
-  iron.last.e_line = e_line
-end
+iron.core.visual_send = function() iron.core.send_chunk("visual") end
 
 iron.core.repeat_cmd = function()
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
   local b_line, b_col, e_line, e_col
-  b_line = iron.last.b_line
-  b_col = iron.last.b_col
-  e_line = iron.last.e_line
-  e_col = iron.last.e_col
 
-  local lines = nvim.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
-  lines[#lines] = string.sub(lines[#lines], 1, e_col)
-  lines[1] = string.sub(lines[1], b_col)
+  -- extmark is 0-based index
+  b_line, b_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.begin_last))
+  e_line, e_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.end_last))
 
-  iron.debug.ll.store{
-    b_col = b_col,
-    e_col = e_col,
-    b_line = b_line,
-    e_line = e_line,
-    lines = lines,
-    where = "repeat_cmd",
-    level = iron.behavior.debug_level.info
-  }
+  local lines = vim.api.nvim_buf_get_lines(0, b_line, e_line + 1, 0)
 
-  iron.ll.ensure_repl_exists(ft)
-  iron.ll.send_to_repl(ft, lines)
+  if b_col >= 1 then
+    lines[1] = string.sub(lines[1], b_col + 1)
+  end
+  if e_col >= 1 then
+    lines[#lines] = string.sub(lines[#lines], 1, e_col + 1)
+  end
+
+  iron.core.send(ft, lines)
 end
 
 iron.core.list_fts = function()
@@ -444,7 +425,7 @@ iron.core.list_definitions_for_ft = function(ft)
   local defs = ext.tables.get(iron.fts, ft)
 
   if defs == nil then
-    echoerr("There's no REPL definition for current filetype " .. ft)
+    vim.api.nvim_err_writeln("There's no REPL definition for current filetype " .. ft)
   else
     for k, v in pairs(defs) do
       table.insert(lst, {k, v})
@@ -452,104 +433,6 @@ iron.core.list_definitions_for_ft = function(ft)
   end
 
   return lst
-end
-
-iron.debug.ll.store = function(opt)
-  opt.level = opt.level or iron.behavior.debug_level.info
-  if opt.level > iron.config.debug_level then
-    table.insert(iron.debug.mem, opt)
-  end
-end
-
-iron.debug.dump = function(level, to_buff)
-  level = level or iron.behavior.debug_level.info
-  local inspect = require("vim.inspect")
-  local dump
-
-  if to_buff then
-    nvim.nvim_command("rightbelow vertical edit +set\\ nobl\\ bh=delete\\ bt=nofile iron://debug-logs")
-    dump = function(data)
-      nvim.nvim_call_function("writefile", {{data}, "iron://debug-logs"})
-    end
-  else
-    dump = function(data)
-      print(inspect(data))
-    end
-
-  end
-
-  for _, v in ipairs(iron.debug.mem) do
-    if v.level <= level then
-      dump(v)
-    end
-  end
-
-end
-
-iron.core.list_fts = function()
-  local lst = {}
-
-  for k, _ in pairs(iron.fts) do
-    table.insert(lst, k)
-  end
-
-  return lst
-end
-
-iron.core.list_definitions_for_ft = function(ft)
-  local lst = {}
-  local defs = ext.tables.get(iron.fts, ft)
-
-  if defs == nil then
-    echoerr ("There's no REPL definition for current filetype " .. ft)
-  else
-    for k, v in pairs(defs) do
-      table.insert(lst, {k, v})
-    end
-  end
-
-  return lst
-end
-
-iron.debug.ll.store = function(opt)
-  opt.level = opt.level or iron.behavior.debug_level.info
-  if opt.level > iron.config.debug_level then
-    table.insert(iron.debug.mem, opt)
-  end
-end
-
-iron.debug.dump = function(level, to_buff)
-  level = level or iron.behavior.debug_level.info
-  local inspect = require("vim.inspect")
-  local dump
-
-  if to_buff then
-    nvim.nvim_command("rightbelow vertical edit +set\\ nobl\\ bh=delete\\ bt=nofile iron://debug-logs")
-    dump = function(data)
-      nvim.nvim_call_function("writefile", {{data}, "iron://debug-logs"})
-    end
-  else
-    dump = function(data)
-      print(inspect(data))
-    end
-
-  end
-
-  for _, v in ipairs(iron.debug.mem) do
-    if v.level <= level then
-      dump(v)
-    end
-  end
-
-end
-
-iron.debug.definitions = function(lang)
-  local defs = lang and iron.fts[lang] or iron.fts
-  print(require("vim.inspect")(defs))
-end
-
-iron.debug.memory = function()
-  print(require("vim.inspect")(iron.memory))
 end
 
 -- [[ Setup ]] --
