@@ -354,11 +354,11 @@ iron.core.send_chunk = function(mode, mtype)
 
   if #lines == 0 then return end
 
-  if b_col > 1 then
-    lines[1] = string.sub(lines[1], b_col)
-  end
   if e_col > 1 then
     lines[#lines] = string.sub(lines[#lines], 1, e_col)
+  end
+  if b_col > 1 then
+    lines[1] = string.sub(lines[1], b_col)
   end
 
   iron.core.send(ft, lines)
