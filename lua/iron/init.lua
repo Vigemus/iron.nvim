@@ -346,11 +346,14 @@ iron.core.send_chunk = function(mode, mtype)
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
 
-  b_col,e_col = unpack(mtype=='line' and { 0,lines[#lines]:len() } or { b_col,e_col })
+  local b_line_len = vim.fn.strwidth(lines[1])
+  local e_line_len = vim.fn.strwidth(lines[#lines])
+
+  b_col,e_col = unpack(mtype=='line' and { 0,e_line_len} or { b_col,e_col })
 
   --handle eol
-  b_col = b_col > lines[1]:len() and lines[1]:len() or b_col
-  e_col = e_col > lines[#lines]:len() and lines[#lines]:len() or e_col
+  b_col = ( b_col > b_line_len ) and b_line_len or b_col
+  e_col = ( e_col > e_line_len ) and e_line_len or e_col
 
   if #lines == 0 then return end
 
