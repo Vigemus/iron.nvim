@@ -6,6 +6,7 @@ local fts = {
   elixir = require("iron.fts.elixir"),
   elm = require("iron.fts.elm"),
   erlang = require("iron.fts.erlang"),
+  fennel = require("iron.fts.fennel"),
   haskell = require("iron.fts.haskell"),
   javascript = require("iron.fts.javascript"),
   julia = require("iron.fts.julia"),
