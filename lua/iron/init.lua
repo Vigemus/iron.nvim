@@ -96,9 +96,9 @@ iron.ll.get_preferred_repl = function(ft)
   return repl_def
 end
 
-iron.ll.new_repl_window = function(buff)
+iron.ll.new_repl_window = function(buff, ft)
   if type(iron.config.repl_open_cmd) == "function" then
-    return iron.config.repl_open_cmd(buff)
+    return iron.config.repl_open_cmd(buff, ft)
   else
     return view.openwin(iron.config.repl_open_cmd, buff)
   end
@@ -115,7 +115,7 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
   local bufnr = vim.api.nvim_create_buf(false, true)
 
   if new_win then
-    winid = iron.ll.new_repl_window(bufnr)
+    winid = iron.ll.new_repl_window(bufnr, ft)
   else
     winid = iron.ll.get(ft).winid
   end
@@ -260,7 +260,7 @@ iron.core.repl_for = function(ft)
 
   if not created then
     local showfn = function()
-      return iron.ll.new_repl_window(mem.bufnr)
+      return iron.ll.new_repl_window(mem.bufnr, ft)
     end
     iron.config.visibility(mem.bufnr, showfn)
   else
@@ -274,7 +274,7 @@ iron.core.focus_on = function(ft)
   local mem = iron.ll.ensure_repl_exists(ft)
 
   local showfn = function()
-    return iron.ll.new_repl_window(mem.bufnr)
+    return iron.ll.new_repl_window(mem.bufnr, ft)
   end
 
   iron.behavior.visibility.focus(mem.bufnr, showfn)
