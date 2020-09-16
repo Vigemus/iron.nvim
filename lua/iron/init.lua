@@ -173,6 +173,14 @@ iron.ll.send_to_repl = function(ft, data)
   local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
   vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
 
+  local indent = ""
+  for i, v in ipairs(dt) do
+    if #v == 0 then
+      dt[i] = indent
+    else
+      indent = string.match(v, '^(%s)') or ""
+    end
+  end
   vim.api.nvim_call_function('chansend', {mem.job, dt})
 end
 
