@@ -117,7 +117,12 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
   if new_win then
     winid = iron.ll.new_repl_window(bufnr, ft)
   else
-    winid = iron.ll.get(ft).winid
+    if iron.ll.get(ft) == nil then
+      winid = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_set_buf(winid, bufnr)
+    else
+      winid = iron.ll.get(ft).winid
+    end
   end
 
   vim.api.nvim_set_current_win(winid)
