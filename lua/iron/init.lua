@@ -332,16 +332,18 @@ iron.core.send_line = function()
 end
 
 iron.core.send_chunk = function(mode, mtype)
-  local bstart, bend
+  local bstart, bend, bdelta
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
   if mode == "visual" then
     bstart = "'<"
     bend = "'>"
+    bdelta = 0
   else
     bstart = "'["
     bend = "']"
+    bdelta = 1
   end
 
   -- getpos is 1-based
@@ -385,7 +387,7 @@ iron.core.send_chunk = function(mode, mtype)
   vim.api.nvim_buf_set_extmark(
     0,
     iron.namespace,
-    b_line - 2,
+    b_line - 1 - bdelta,
     b_col - 1,
     {id = iron.mark.begin_last}
   )
