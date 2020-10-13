@@ -117,7 +117,12 @@ iron.ll.create_new_repl = function(ft, repl, new_win)
   if new_win then
     winid = iron.ll.new_repl_window(bufnr, ft)
   else
-    winid = iron.ll.get(ft).winid
+    if iron.ll.get(ft) == nil then
+      winid = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_set_buf(winid, bufnr)
+    else
+      winid = iron.ll.get(ft).winid
+    end
   end
 
   vim.api.nvim_set_current_win(winid)
@@ -332,16 +337,18 @@ iron.core.send_line = function()
 end
 
 iron.core.send_chunk = function(mode, mtype)
-  local bstart, bend
+  local bstart, bend, bdelta
   local ft = iron.ll.get_buffer_ft(0)
   if ft == nil then return end
 
   if mode == "visual" then
     bstart = "'<"
     bend = "'>"
+    bdelta = 0
   else
     bstart = "'["
     bend = "']"
+    bdelta = 1
   end
 
   -- getpos is 1-based
@@ -374,30 +381,28 @@ iron.core.send_chunk = function(mode, mtype)
 
   iron.core.send(ft, lines)
 
-  local mark = vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.save_pos)
+  local mark = vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.save_pos, {})
 
   if #mark ~= 0 then
     -- winrestview is 1-based
     vim.fn.winrestview({lnum = mark[1] + 1, col = mark[2] + 1})
-    vim.api.nvim_buf_del_extmark(0, iron.namespace, 20)
+    vim.api.nvim_buf_del_extmark(0, iron.namespace, iron.mark.save_pos)
   end
 
   vim.api.nvim_buf_set_extmark(
     0,
     iron.namespace,
-    iron.mark.begin_last,
-    b_line - 1,
+    b_line - 1 - bdelta,
     b_col - 1,
-    {}
+    {id = iron.mark.begin_last}
   )
 
   vim.api.nvim_buf_set_extmark(
     0,
     iron.namespace,
-    iron.mark.end_last,
     e_line - 1,
     e_col -1,
-    {}
+    {id = iron.mark.end_last}
   )
 
 end
@@ -413,8 +418,8 @@ iron.core.repeat_cmd = function()
   local b_line, b_col, e_line, e_col
 
   -- extmark is 0-based index
-  b_line, b_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.begin_last))
-  e_line, e_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.end_last))
+  b_line, b_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.begin_last, {}))
+  e_line, e_col = unpack(vim.api.nvim_buf_get_extmark_by_id(0, iron.namespace, iron.mark.end_last, {}))
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line, e_line + 1, 0)
 
