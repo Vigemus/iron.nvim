@@ -323,12 +323,12 @@ iron.core.send_line = function()
 
   if ft ~= nil then
 
-    local linenr = vim.api.nvim_win_get_cursor(0)[1]
-    local cur_line = vim.api.nvim_buf_get_lines(0, linenr-1, linenr, 0)[1]
+    local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local cur_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
     local width = vim.fn.strwidth(cur_line)
 
-    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.begin_last, linenr, 0, {})
-    vim.api.nvim_buf_set_extmark(0, iron.namespace, iron.mark.end_last, linenr, width - 1, {})
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, linenr, 0, {id = iron.mark.begin_last})
+    vim.api.nvim_buf_set_extmark(0, iron.namespace, linenr, width - 1, {id = iron.mark.end_last})
 
     if width == 0 then return end
 
