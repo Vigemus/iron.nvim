@@ -221,6 +221,7 @@ core.repeat_cmd = function()
   core.send(ft, lines)
 end
 
+-- TODO Remove from core, make it public elsewhere
 core.list_fts = function()
   local lst = {}
 
@@ -231,6 +232,7 @@ core.list_fts = function()
   return lst
 end
 
+-- TODO Remove from core, make it public elsewhere
 core.list_definitions_for_ft = function(ft)
   local lst = {}
   local defs = tables.get(fts, ft)
