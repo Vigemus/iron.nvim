@@ -147,7 +147,7 @@ core.send_line = function()
 end
 
 core.send_chunk = function(mode, mtype)
-  local bstart, bend, bdelta
+  local bstart, bend
   local ft = ll.get_buffer_ft(0)
 
   if ft == nil then return end
@@ -155,11 +155,9 @@ core.send_chunk = function(mode, mtype)
   if mode == "visual" then
     bstart = "'<"
     bend = "'>"
-    bdelta = 0
   else
     bstart = "'["
     bend = "']"
-    bdelta = 1
   end
 
   local b_line, b_col = unpack(vim.fn.getpos(bstart),2,3)
@@ -191,7 +189,7 @@ core.send_chunk = function(mode, mtype)
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
-    to_col = math.max(e_col, 0)
+    to_col = e_col
   }
 
   marks.winrestview()
