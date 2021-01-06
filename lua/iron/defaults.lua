@@ -20,7 +20,7 @@ local defaults = {
 return setmetatable({
     _defaults = function() return tables.clone(defaults) end
   }, {
-  __newindex = function(tbl, k v)
+  __newindex = function(tbl, k, v)
     error("Don't alter default table. Change iron.config instead", 2)
   end,
   __index = function(_, k)
