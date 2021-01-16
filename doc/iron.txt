@@ -50,6 +50,7 @@ Currently, Iron has support for the following programming languages:
     - intero
     - stack ghci
     - ghci
+  - hylang
   - javascript
   - julia
   - lisp
