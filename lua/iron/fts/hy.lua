@@ -4,4 +4,4 @@ hy.hy = {
   command = {"hy"}
 }
 
-return hylang
+return hy
