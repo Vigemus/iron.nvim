@@ -1,3 +1,4 @@
+-- luacheck: globals vim
 local fts = require("iron.fts")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
@@ -32,7 +33,7 @@ core.repl_restart = function()
   -- This is done without asking for confirmation, so user beware
   local bufnr_here = vim.fn.bufnr("%")
   local ft_here = ll.get_repl_ft_for_bufnr(bufnr_here)
-  local mem = nil
+  local mem
 
   if ft_here ~= nil then
     mem = ll.create_preferred_repl(ft_here, false)
@@ -41,14 +42,14 @@ core.repl_restart = function()
   else
     local ft = vim.api.nvim_buf_get_option(bufnr_here, 'filetype')
 
-    local mem = ll.get(ft)
+    mem = ll.get(ft)
     local exists = not (mem == nil or
                         vim.fn.bufname(mem.bufnr) == "")
 
     if exists then
       -- Wipe the old REPL and then create a new one
       vim.api.nvim_command('bwipeout! ' .. mem.bufnr)
-      mem, _ = ll.ensure_repl_exists(ft)
+      mem = ll.ensure_repl_exists(ft)
       vim.api.nvim_command('wincmd p')
     else
       -- no repl found, so nothing to do
@@ -204,8 +205,6 @@ core.repeat_cmd = function()
   if ft == nil then return end
 
   local pos = marks.get()
-
-  tap(pos)
 
   if pos == nil then return end
 

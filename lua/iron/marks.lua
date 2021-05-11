@@ -1,3 +1,4 @@
+-- luacheck: globals vim
 local config = require("iron.config")
 local marks = {}
 
