@@ -6,7 +6,7 @@ vim.api.nvim_set_hl(config.namespace, "IronLastSent", {
     bold = true
   })
 
-vim.api.nvim_set_hl_ns(config.namespace)
+vim.api.nvim__set_hl_ns(config.namespace)
 
 marks.set = function(opts)
   local extmark_config = {
