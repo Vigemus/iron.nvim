@@ -1,3 +1,4 @@
+-- luacheck: globals vim
 local view = require("iron.view")
 local tables = require("iron.util.tables")
 local namespace = vim.api.nvim_create_namespace("iron")
@@ -20,7 +21,7 @@ local defaults = {
 return setmetatable({
     _defaults = function() return tables.clone(defaults) end
   }, {
-  __newindex = function(tbl, k, v)
+  __newindex = function(_, _, _)
     error("Don't alter default table. Change iron.config instead", 2)
   end,
   __index = function(_, k)

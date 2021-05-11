@@ -2,16 +2,20 @@ local fns = {}
 
 fns.keys = function(tbl)
     local new = {}
-    for k, _ in pairs(tbl) do
-        table.insert(new, k)
+    if tbl ~= nil then
+      for k, _ in pairs(tbl) do
+          table.insert(new, k)
+      end
     end
     return new
 end
 
 fns.values = function(tbl)
     local new = {}
-    for _, v in pairs(tbl) do
-        table.insert(new, v)
+    if tbl ~= nil then
+      for _, v in pairs(tbl) do
+          table.insert(new, v)
+      end
     end
     return new
 end
@@ -38,7 +42,7 @@ fns.get_in = function(d, k)
   return p
 end
 
-fns.clone = function(orig)
+fns.clone = function(orig, _mt)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
@@ -46,7 +50,7 @@ fns.clone = function(orig)
         for orig_key, orig_value in next, orig, nil do
             copy[fns.clone(orig_key)] = fns.clone(orig_value)
         end
-        setmetatable(copy, fns.clone(getmetatable(orig)))
+        setmetatable(copy, fns.clone(_mt or getmetatable(orig)))
     else -- number, string, boolean, etc
         copy = orig
     end

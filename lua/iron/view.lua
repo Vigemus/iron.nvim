@@ -4,8 +4,8 @@ local curry2 = function(fn)
     if snd ~= nil then
       return fn(fst, snd)
     end
-    return function(snd)
-      return fn(fst, snd)
+    return function(new)
+      return fn(fst, new)
     end
   end
 end
@@ -28,7 +28,6 @@ end
 
 view.top = function(size, buff)
   local width = vim.o.columns
-  local height = vim.o.lines
 
   return view.openfoat({
     relative = "editor",
@@ -62,7 +61,7 @@ view.right = function(size, buff)
     height = height,
     row = 0,
     col = width - size
-  })
+  }, buff)
 end
 
 view.left = function(size, buff)
@@ -74,7 +73,7 @@ view.left = function(size, buff)
     height = height,
     row = 0,
     col = 0
-  })
+  }, buff)
 end
 
 view.center = function(size, buff)
@@ -85,9 +84,9 @@ view.center = function(size, buff)
     relative = "editor",
     width = math.ceil(width * 0.5),
     height = size,
-    row = math.ceil(height * 0.5) - math.ceil(offset * 0.5),
+    row = math.ceil(height * 0.5) - math.ceil(size * 0.5),
     col = math.ceil(width * 0.25)
-  })
+  }, buff)
 end
 
 return setmetatable({},

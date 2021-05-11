@@ -1,3 +1,4 @@
+-- luacheck: globals unpack vim
 local visibility = {}
 
 local hidden = function(bufid, showfn)

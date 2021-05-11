@@ -1,8 +1,10 @@
+-- luacheck: globals vim
 local tables = require("iron.util.tables")
 local strings = require("iron.util.strings")
-local repl = require("iron.fts.common").functions
 local config = require("iron.config")
 local fts = require("iron.fts")
+local format = require("iron.fts.common").functions.format
+local view = require("iron.view")
 
 local ll = {}
 ll.store = {}
@@ -124,7 +126,8 @@ ll.send_to_repl = function(ft, data)
   end
 
   local mem = ll.get(ft)
-  dt = repl.format(mem.repldef, dt)
+
+  dt = format(mem.repldef, dt)
 
   local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
   vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
