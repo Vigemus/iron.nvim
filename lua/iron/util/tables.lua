@@ -2,16 +2,20 @@ local fns = {}
 
 fns.keys = function(tbl)
     local new = {}
-    for k, _ in pairs(tbl) do
-        table.insert(new, k)
+    if tbl ~= nil then
+      for k, _ in pairs(tbl) do
+          table.insert(new, k)
+      end
     end
     return new
 end
 
 fns.values = function(tbl)
     local new = {}
-    for _, v in pairs(tbl) do
-        table.insert(new, v)
+    if tbl ~= nil then
+      for _, v in pairs(tbl) do
+          table.insert(new, v)
+      end
     end
     return new
 end
