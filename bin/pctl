@@ -20,17 +20,16 @@ setup(){
     }
   }
 
-  $LUAROCKS install busted
-  $LUAROCKS install luacheck
+  $LUAROCKS install $1
 }
 
 tests(){
-  exists busted || setup
+  exists busted || setup busted
   busted
 }
 
 linter(){
-  exists luacheck || setup
+  exists luacheck || setup luacheck
   luacheck lua/
 }
 

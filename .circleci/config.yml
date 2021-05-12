@@ -11,6 +11,3 @@ jobs:
       - run:
           name: Unit Tests
           command: bin/pctl tests
-      - run:
-          name: Linter
-          command: bin/pctl linter
