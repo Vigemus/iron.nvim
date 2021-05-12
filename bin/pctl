@@ -20,7 +20,7 @@ setup(){
     }
   }
 
-  $LUAROCKS install $1
+  $LUAROCKS install "$1"
 }
 
 tests(){
