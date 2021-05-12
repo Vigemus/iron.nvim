@@ -1,6 +1,7 @@
 # iron.nvim
 
-[![CircleCI](https://circleci.com/gh/Vigemus/iron.nvim.svg?style=svg)](https://circleci.com/gh/Vigemus/iron.nvim)
+[![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=svg)](https://circleci.com/gh/hkupty/iron.nvim)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bbd16045e0321b404ef9/maintainability)](https://codeclimate.com/github/hkupty/iron.nvim/maintainability)
 
 Interactive Repls Over Neovim
 
