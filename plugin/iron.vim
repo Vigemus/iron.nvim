@@ -17,7 +17,7 @@ function! s:send_wrapper(bang, ...)
     let s:ft = remove(s:args, 0)
   end
 
-  let s:tbl = join(s:args, " ")
+  let s:tbl = join(s:args, ' ')
 
   exec 'lua require("iron").core.send("'.s:ft.'", "'.s:tbl.'")'
 endfunction
@@ -75,12 +75,12 @@ endif
 
 function! IronWatchFile(fname, command) abort
   augroup IronWatch
-    exec "autocmd BufWritePost" a:fname "lua require(\"iron\").core.send(\"" . &ft . "\",\"".  a:command ."\")"
+    exec 'autocmd BufWritePost' a:fname 'lua require("iron").core.send("' . &ft . '","'.  a:command .'")'
   augroup END
 endfunction
 
 function! IronUnwatchFile(fname) abort
-  exec "autocmd! IronWatch BufWritePost" a:fname
+  exec 'autocmd! IronWatch BufWritePost' a:fname
 endfunction
 
 command! -nargs=* IronWatchCurrentFile call IronWatchFile(expand('%'), <q-args>)

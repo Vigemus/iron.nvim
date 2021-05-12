@@ -1,4 +1,4 @@
--- luacheck: globals vim
+-- luacheck: globals vim unpack
 local fts = require("iron.fts")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
