@@ -1,4 +1,3 @@
-local extend = require("iron.util.tables").extend
 local scala = {}
 
 local def = function(command)

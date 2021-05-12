@@ -31,7 +31,7 @@ tests(){
 
 linter(){
   exists luacheck || setup
-  luacheck lua/**/*.lua
+  luacheck lua/
 }
 
 run() {
