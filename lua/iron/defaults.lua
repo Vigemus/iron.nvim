@@ -22,7 +22,7 @@ return setmetatable({
     _defaults = function() return tables.clone(defaults) end
   }, {
   __newindex = function(_, _, _)
-    error("Don't alter default table. Change iron.config instead", 2)
+    vim.api.nvim_err_writeln("Don't alter default table. Change iron.config instead", 2)
   end,
   __index = function(_, k)
     return defaults[k]
