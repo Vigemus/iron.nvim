@@ -103,9 +103,8 @@ end
 
 -- TODO Move away/deprecate
 core.set_config = function(cfg)
-  config = require("iron.defaults")._defaults()
   for k, v in pairs(cfg) do
-    config[k] = v
+    require("iron.config")[k] = v
   end
 end
 

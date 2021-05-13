@@ -29,7 +29,7 @@ end
 view.top = function(size, buff)
   local width = vim.o.columns
 
-  return view.openfoat({
+  return view.openfloat({
     relative = "editor",
     width = width,
     height = size,
