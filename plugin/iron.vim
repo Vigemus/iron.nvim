@@ -1,7 +1,7 @@
 function! s:save_pos()
   let s:view = winsaveview()
 
-  call nvim_buf_set_extmark(0, nvim_create_namespace('iron'), s:view.lnum, s:view.col, {'id': 20})
+  call nvim_buf_set_extmark(0, nvim_create_namespace('iron'), s:view.lnum - 1, s:view.col, {'id': 20})
 endfunction
 
 function! s:ironSendMotion(mode)
