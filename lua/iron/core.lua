@@ -139,7 +139,7 @@ core.send_line = function()
       from_line = linenr,
       from_col = 0,
       to_line = linenr,
-      to_col = width
+      to_col = width - 1
     }
 
     core.send(ft, cur_line)
@@ -189,7 +189,7 @@ core.send_chunk = function(mode, mtype)
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
-    to_col = e_col
+    to_col = e_col - 1
   }
 
   marks.winrestview()
@@ -210,13 +210,13 @@ core.repeat_cmd = function()
   local lines = vim.api.nvim_buf_get_lines(0, pos.from_line, pos.to_line + 1, 0)
 
   if #lines == 1 then
-    lines[1] = string.sub(lines[1], pos.from_col + 1, pos.to_col)
+    lines[1] = string.sub(lines[1], pos.from_col + 1, pos.to_col + 1)
   else
     if pos.from_col >= 1 then
       lines[1] = string.sub(lines[1], pos.from_col + 1)
     end
     if pos.to_col >= 1 then
-      lines[#lines] = string.sub(lines[#lines], 1, pos.to_col)
+      lines[#lines] = string.sub(lines[#lines], 1, pos.to_col + 1)
     end
   end
 
