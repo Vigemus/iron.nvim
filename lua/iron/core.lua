@@ -210,12 +210,14 @@ core.repeat_cmd = function()
   local lines = vim.api.nvim_buf_get_lines(0, pos.from_line, pos.to_line + 1, 0)
 
   if #lines == 1 then
-    lines[1] = string.sub(lines[1], pos.from_col + 1, pos.to_col + 1)
+    if pos.from_col >= 1 or pos.to_col < string.len(lines[1]) - 1 then
+      lines[1] = string.sub(lines[1], pos.from_col + 1, pos.to_col + 1)
+    end
   else
     if pos.from_col >= 1 then
       lines[1] = string.sub(lines[1], pos.from_col + 1)
     end
-    if pos.to_col >= 1 then
+    if pos.to_col < string.len(lines[#lines]) - 1 then
       lines[#lines] = string.sub(lines[#lines], 1, pos.to_col + 1)
     end
   end
