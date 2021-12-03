@@ -183,14 +183,14 @@ core.send_chunk = function(mode, mtype)
     lines[1] = string.sub(lines[1], b_col)
   end
 
-  core.send(ft, lines)
-
   marks.set{
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
     to_col = e_col
   }
+
+  core.send(ft, lines)
 
   marks.winrestview()
 end
