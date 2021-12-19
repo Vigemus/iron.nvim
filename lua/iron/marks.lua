@@ -14,7 +14,7 @@ marks.set = function(opts)
     id = config.mark.send,
     -- to_line can be ignored if it's single line
     end_line = opts.to_line or opts.from_line,
-    end_col = opts.to_col
+    end_col = opts.to_col + 1
   }
 
   if opts.hl ~= nil then
@@ -54,7 +54,7 @@ marks.get = function()
     from_line = mark_pos[1],
     from_col = mark_pos[2],
     to_line = mark_pos[3].end_row,
-    to_col = mark_pos[3].end_col
+    to_col = mark_pos[3].end_col - 1
   }
 
 end
