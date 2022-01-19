@@ -44,7 +44,7 @@ return setmetatable({
     _defaults = function() return vim.deepcopy(defaults) end
   }, {
   __newindex = function(_, _, _)
-    vim.api.nvim_err_writeln("Don't alter default table. Change iron.config instead", 2)
+    vim.api.nvim_err_writeln("Don't alter default table. Change iron.config instead")
   end,
   __index = function(_, k)
     return defaults[k]
