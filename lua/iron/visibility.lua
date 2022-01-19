@@ -3,11 +3,11 @@ local visibility = {}
 
 local hidden = function(bufid, showfn)
   local was_hidden = false
-  local window = vim.fn.bufwinnr(bufid)
+  local window = vim.fn.bufwinid(bufid)
 
   if window == -1 then
     was_hidden = true
-    window = vim.fn.win_id2win(showfn())
+    window = showfn()
   end
 
   return window, was_hidden
@@ -20,15 +20,15 @@ end
 visibility.toggle = function(bufid, showfn)
   local window, was_hidden = hidden(bufid, showfn)
   if not was_hidden then
-    vim.api.nvim_command(window .. "wincmd c")
+    vim.api.nvim_win_hide(window)
   else
-    vim.api.nvim_command(window .. "wincmd p")
+    vim.api.nvim_set_current_win(window)
   end
 end
 
 visibility.focus = function(bufid, showfn)
   local window = hidden(bufid, showfn)
-  vim.api.nvim_command(window .. "wincmd w")
+    vim.api.nvim_set_current_win(window)
 end
 
 return visibility
