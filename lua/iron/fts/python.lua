@@ -29,7 +29,7 @@ local format = function(open, close, cr)
       for line=2, #lines do
         table.insert(new, lines[line])
       end
-      return extend(new, close)
+      return table.insert(new, close)
     end
   end
 end

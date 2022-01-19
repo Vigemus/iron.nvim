@@ -239,7 +239,7 @@ end
 -- TODO Remove from core, make it public elsewhere
 core.list_definitions_for_ft = function(ft)
   local lst = {}
-  local defs = tables.get(fts, ft)
+  local defs = fts[gt]
 
   if defs == nil then
     vim.api.nvim_err_writeln("There's no REPL definition for current filetype " .. ft)

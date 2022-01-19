@@ -7,6 +7,7 @@ local format = require("iron.fts.common").functions.format
 local view = require("iron.view")
 
 local ll = {}
+
 ll.store = {}
 
 ll.get = function(ft)
@@ -19,7 +20,7 @@ end
 
 ll.get_buffer_ft = function(bufnr)
   local ft = vim.api.nvim_buf_get_option(bufnr, 'filetype')
-  if tables.get(fts, ft) == nil then
+  if fts[ft] == nil then
     vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
   else
     return ft

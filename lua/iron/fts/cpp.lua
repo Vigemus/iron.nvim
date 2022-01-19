@@ -1,4 +1,3 @@
-local extend = require("iron.util.tables").extend
 
 local cpp = {}
 
@@ -37,7 +36,7 @@ local function format(lines)
                 aus = ''
             end
         end
-        return extend(new, '')
+        return table.insert(new, '')
     end
 end
 
