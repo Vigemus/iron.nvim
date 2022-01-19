@@ -17,7 +17,7 @@ ll.set = function(ft, fn)
 end
 
 ll.get_buffer_ft = function(bufnr)
-  local ft = vim.api.nvim_buf_get_option(bufnr, 'filetype')
+  local ft = vim.b[bufnr].filetype
   if fts[ft] == nil then
     vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
   else
@@ -25,6 +25,7 @@ ll.get_buffer_ft = function(bufnr)
   end
 end
 
+-- Deprecated
 ll.get_preferred_repl = function(ft)
   local repl_definitions = fts[ft]
   local preference = config.preferred[ft]
@@ -56,6 +57,28 @@ ll.new_repl_window = function(buff, ft)
   end
 end
 
+
+--- Creates the repl in the current window
+-- This function effectively creates the repl without caring
+-- about window management. It is expected that the client
+-- ensures the right window is created and active before calling this function
+-- @param repl definition of the repl being created
+-- @param repl.command table with the command to be invoked.
+ll.create_repl_on_current_window = function(repl)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_win_set_buf(winid, bufnr)
+  local job_id = vim.fn.termopen(repl.command)
+
+  return {
+    bufnr = bufnr,
+    job = job_id,
+    repldef = repl,
+    winid = vim.api.nvim_get_current_win()
+  }
+
+end
+
+-- Deprecated
 ll.create_new_repl = function(ft, repl, new_win)
   -- make creation of new windows optional
   if new_win == nil then
@@ -95,6 +118,7 @@ ll.create_new_repl = function(ft, repl, new_win)
   return ll.set(ft, inst)
 end
 
+-- Deprecated
 ll.create_preferred_repl = function(ft, new_win)
     local repl = ll.get_preferred_repl(ft)
 
