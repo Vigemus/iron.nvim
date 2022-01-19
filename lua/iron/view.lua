@@ -16,11 +16,12 @@ view.openfloat = function(config, buff)
   return vim.api.nvim_open_win(buff, false, config)
 end
 
+-- Deprecated
 view.openwin = function(nvim_cmd, buff)
   vim.cmd(nvim_cmd)
   vim.api.nvim_set_current_buf(buff)
 
-  local winid = vim.fn.win_getid(vim.fn.bufwinnr(buff))
+  local winid = vim.fn.bufwinid(buff)
   vim.api.nvim_win_set_option(winid, "winfixwidth", true)
   return winid
 end
