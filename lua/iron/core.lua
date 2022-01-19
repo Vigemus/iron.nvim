@@ -38,17 +38,16 @@ core.repl_restart = function()
   if ft_here ~= nil then
     mem = ll.create_preferred_repl(ft_here, false)
     -- created a new one, now have to kill the old one
-    vim.api.nvim_command('bwipeout! ' .. bufnr_here)
+    vim.api.nvim_buf_delete(bufnr_here, {force = true})
   else
-    local ft = vim.api.nvim_buf_get_option(bufnr_here, 'filetype')
+    local ft = vim.b[bufnr_here].filetype
 
     mem = ll.get(ft)
-    local exists = not (mem == nil or
-                        vim.fn.bufname(mem.bufnr) == "")
+    local exists = mem ~= nil and vim.api.nvim_buf_is_loaded(mem.bufnr)
 
     if exists then
       -- Wipe the old REPL and then create a new one
-      vim.api.nvim_command('bwipeout! ' .. mem.bufnr)
+      vim.api.nvim_buf_delete(mem.bufnr, {force = true})
       mem = ll.ensure_repl_exists(ft)
       vim.api.nvim_command('wincmd p')
     else
