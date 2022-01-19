@@ -1,6 +1,4 @@
 -- luacheck: globals vim
-local tables = require("iron.util.tables")
-local strings = require("iron.util.strings")
 local config = require("iron.config")
 local fts = require("iron.fts")
 local format = require("iron.fts.common").functions.format
@@ -123,7 +121,7 @@ ll.send_to_repl = function(ft, data)
   local dt = data
 
   if type(data) == "string" then
-    dt = strings.split(data, '\n')
+    dt = vim.split(data, '\n')
   end
 
   local mem = ll.get(ft)
