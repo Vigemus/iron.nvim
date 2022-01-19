@@ -17,7 +17,7 @@ view.openfloat = function(config, buff)
 end
 
 view.openwin = function(nvim_cmd, buff)
-  vim.api.nvim_command(nvim_cmd)
+  vim.cmd(nvim_cmd)
   vim.api.nvim_set_current_buf(buff)
 
   local winid = vim.fn.win_getid(vim.fn.bufwinnr(buff))
@@ -93,4 +93,3 @@ return setmetatable({},
   {__index = function(_, key)
       return curry2(view[key])
    end})
-
