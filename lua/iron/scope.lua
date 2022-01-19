@@ -1,4 +1,4 @@
-local nvim = vim.api -- luacheck: ignore
+-- luacheck: globals vim
 local scope = {}
 
 local ensure_key = function(map, key)
@@ -25,13 +25,13 @@ scope.tab_based = {
 
 scope.path_based = {
   set = function(memory, ft, repl_data)
-    local pwd = vim.fn.getcwr()
+    local pwd = vim.fn.getcwd()
     default_map_set(memory, ft, "pwd_" .. pwd, repl_data)
     return repl_data
   end,
   get = function(memory, ft)
     ensure_key(memory, ft)
-    local pwd = vim.fn.getcwr()
+    local pwd = vim.fn.getcwd()
     return memory[ft]["pwd_" .. pwd]
   end
 }
