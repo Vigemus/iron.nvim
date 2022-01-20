@@ -149,7 +149,8 @@ core.add_repl_definitions = function(defns)
 end
 
 core.send = function(ft, data)
-  ll.ensure_repl_exists(ft)
+  -- If the repl doesn't exist, it will be created
+  ll.if_repl_exists(ft, nil, core.repl_for)
   ll.send_to_repl(ft, data)
 end
 
