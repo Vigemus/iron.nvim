@@ -2,10 +2,14 @@
 local view = require("iron.view")
 local namespace = vim.api.nvim_create_namespace("iron")
 
+--- Default configurations for iron.nvim
+-- @table defaults set of default configs
+-- @field scratch_repl When enabled, the repl buffer will be a scratch buffer [default=false]
 local defaults = {
   highlight_last = "IronLastSent",
   visibility = require("iron.visibility").toggle,
   scope = require("iron.scope").path_based,
+  scratch_repl = false,
   preferred = setmetatable({}, {
     __newindex = function(tbl, k, v)
       vim.api.nvim_err_writeln("iron: Setting preferred repl is deprecated.")
@@ -31,7 +35,7 @@ local defaults = {
       end
     end
   }),
-  repl_open_cmd = view.openwin('topleft vertical 100 split'),
+  repl_open_cmd = 'topleft vertical 100 split',
   namespace = namespace,
   mark = { -- Arbitrary numbers
     save_pos = 20,

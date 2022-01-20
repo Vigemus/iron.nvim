@@ -1,24 +1,13 @@
 -- luacheck: globals unpack vim
-local curry2 = function(fn)
-  return function(fst, snd)
-    if snd ~= nil then
-      return fn(fst, snd)
-    end
-    return function(new)
-      return fn(fst, new)
-    end
-  end
-end
-
-local view =  {}
+local view = {}
 
 view.openfloat = function(config, buff)
   return vim.api.nvim_open_win(buff, false, config)
 end
 
 -- Deprecated
-view.openwin = function(nvim_cmd, buff)
-  vim.cmd(nvim_cmd)
+view.openwin = function(cmd, buff)
+  vim.cmd(cmd)
   vim.api.nvim_set_current_buf(buff)
 
   local winid = vim.fn.bufwinid(buff)
@@ -90,7 +79,4 @@ view.center = function(size, buff)
   }, buff)
 end
 
-return setmetatable({},
-  {__index = function(_, key)
-      return curry2(view[key])
-   end})
+return view
