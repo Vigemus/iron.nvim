@@ -8,59 +8,72 @@ local tables = require("iron.util.tables")
 
 local core = {}
 
--- TODO Unify repl creation fns
+--- Creates a repl in the current window
+-- @param ft the filetype of the repl to be created
 core.repl_here = function(ft)
-  -- first check if the repl for the current filetype already exists
-  local mem = ll.get(ft)
-  local exists = not (mem == nil or vim.fn.bufname(mem.bufnr) == "")
-
-  if exists then
+  return ll.if_repl_exists(ft, function(mem)
     vim.api.nvim_set_current_buf(mem.bufnr)
-  else
-    -- the repl does not exist, so we have to create a new one,
-    -- but in the current window
-    mem = ll.create_preferred_repl(ft, false)
-  end
+    return mem
+  end,
+  function()
+    local repl = ll.get_repl_def(ft)
+    local meta = ll.create_repl_on_current_window(repl)
+    ll.set(ft, meta)
 
-  return mem
+    return meta
+  end)
 end
 
--- TODO unify repl creation fns
-core.repl_restart = function()
-  -- First, check if the cursor is on top or a REPL
-  -- Then, start a new REPL of the same type and enter it into the window
-  -- Afterwards, wipe out the old REPL buffer
-  -- This is done without asking for confirmation, so user beware
-  local bufnr_here = vim.fn.bufnr("%")
-  local ft_here = ll.get_repl_ft_for_bufnr(bufnr_here)
-  local mem
 
-  if ft_here ~= nil then
-    mem = ll.create_preferred_repl(ft_here, false)
+--- Restarts the repl for the current buffer
+-- First, check if the cursor is on top or a REPL
+-- Then, start a new REPL of the same type and enter it into the window
+-- Afterwards, wipe out the old REPL buffer
+-- This is done without asking for confirmation, so user beware
+-- TODO Split into "restart a repl" and "do X for current buffer's repl"
+core.repl_restart = function()
+  local bufnr_here = vim.fn.bufnr("%")
+  local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
+
+  if ft ~= nil then
+    local repl = ll.get_repl_def(ft)
+    local meta = ll.create_repl_on_current_window(repl)
+    ll.set(ft, meta)
+
     -- created a new one, now have to kill the old one
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
+    return meta
   else
-    local ft = vim.b[bufnr_here].filetype
+    ft = vim.bo[bufnr_here].filetype
 
-    mem = ll.get(ft)
-    local exists = mem ~= nil and vim.api.nvim_buf_is_loaded(mem.bufnr)
+    return ll.if_repl_exists(ft, function(mem)
+      local replwin = vim.fn.bufwinid(mem.bufnr)
+      local currwin = vim.api.nvim_get_current_win()
 
-    if exists then
-      -- Wipe the old REPL and then create a new one
+      local repl = ll.get_repl_def(ft)
+
+      if replwin == nil or replwin == -1 then
+        replwin = ll.new_window()
+      else
+        vim.api.nvim_set_current_win(replwin)
+      end
+
+      local meta = ll.create_repl_on_current_window(repl)
+      ll.set(ft, meta)
+
+      vim.api.nvim_set_current_win(currwin)
       vim.api.nvim_buf_delete(mem.bufnr, {force = true})
-      mem = ll.ensure_repl_exists(ft)
-      vim.api.nvim_command('wincmd p')
-    else
+
+      return meta
+      end, function()
       -- no repl found, so nothing to do
       vim.api.nvim_err_writeln('No repl found in current buffer; cannot restart')
-    end
+    end)
   end
-
-  return mem
 end
 
--- TODO unify repl creation fns
 core.repl_by_name = function(repl_name, ft)
+  vim.api.nvim_err_writeln("iron: repl_by_name is deprecated.")
   ft = ft or vim.bo.ft
   local repl = fts[ft][repl_name]
 
@@ -72,32 +85,47 @@ core.repl_by_name = function(repl_name, ft)
   return ll.create_new_repl(ft, repl)
 end
 
--- TODO unify repl creation fns
 core.repl_for = function(ft)
-  local mem, created = ll.ensure_repl_exists(ft)
+  return ll.if_repl_exists(ft, function(mem)
+    config.visibility(mem.bufnr, function()
+           local winid = ll.new_window()
+           vim.api.nvim_win_set_buf(winid, mem.bufnr)
+           return winid
+        end)
+        return mem
+    end, function()
+      local currwin = vim.api.nvim_get_current_win()
+      local replwin = ll.new_window()
+      local repl = ll.get_repl_def(ft)
 
-  if not created then
-    local showfn = function()
-      return ll.new_repl_window(mem.bufnr, ft)
-    end
-    config.visibility(mem.bufnr, showfn)
-  else
-    vim.api.nvim_command('wincmd p')
-  end
+      vim.api.nvim_set_current_win(replwin)
+      local meta = ll.create_repl_on_current_window(repl)
+      ll.set(ft, meta)
 
-  return mem
+      vim.api.nvim_set_current_win(currwin)
+      return meta
+    end)
 end
 
 core.focus_on = function(ft)
-  local mem = ll.ensure_repl_exists(ft)
+  return ll.if_repl_exists(ft, function(mem)
+    focus(mem.bufnr, function()
+           local winid = ll.new_window()
+           vim.api.nvim_win_set_buf(winid, mem.bufnr)
+           return winid
+        end)
+        return mem
+    end,
+    function()
+      local replwin = ll.new_window()
+      local repl = ll.get_repl_def(ft)
 
-  local showfn = function()
-    return ll.new_repl_window(mem.bufnr, ft)
-  end
+      vim.api.nvim_set_current_win(replwin)
+      local meta = ll.create_repl_on_current_window(repl)
+      ll.set(ft, meta)
 
-  focus(mem.bufnr, showfn)
-
-  return mem
+      return meta
+    end)
 end
 
 -- TODO Move away/deprecate
@@ -108,6 +136,8 @@ core.set_config = function(cfg)
 end
 
 core.add_repl_definitions = function(defns)
+  vim.api.nvim_err_writeln("iron: `add_repl_definitions` is deprecated")
+  vim.api.nvim_err_writeln("      Use `core.setup{repl_definition = {<ft> = {<definition>}}}`")
   for ft, defn in pairs(defns) do
     if fts[ft] == nil then
       fts[ft] = {}
