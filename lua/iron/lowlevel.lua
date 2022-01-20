@@ -85,7 +85,7 @@ ll.if_repl_exists = function(ft, when_true_action, when_false_action)
     when_true_action ~= nil) then
     return when_true_action(mem), true
   elseif when_false_action ~= nil then
-    return when_false_action(), false
+    return when_false_action(ft), false
   end
 
   return nil, nil
