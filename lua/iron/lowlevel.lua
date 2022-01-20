@@ -17,7 +17,7 @@ ll.set = function(ft, fn)
 end
 
 ll.get_buffer_ft = function(bufnr)
-  local ft = vim.b[bufnr].filetype
+  local ft = vim.bo[bufnr].filetype
   if fts[ft] == nil then
     vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
   else
@@ -28,27 +28,27 @@ end
 --- Creates the repl in the current window
 -- This function effectively creates the repl without caring
 -- about window management. It is expected that the client
--- ensures the right window is created and active before calling this function
+-- ensures the right window is created and active before calling this function.
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
+-- @return unsaved metadata about created repl
 ll.create_repl_on_current_window = function(repl)
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_win_set_buf(winid, bufnr)
+  local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
+  vim.api.nvim_win_set_buf(0, bufnr)
   local job_id = vim.fn.termopen(repl.command)
 
   return {
     bufnr = bufnr,
     job = job_id,
-    repldef = repl,
-    winid = vim.api.nvim_get_current_win()
+    repldef = repl
   }
-
 end
 
 --- Wrapper function for getting repl definition from config
 -- This allows for an easier transition between old and new methods
+-- @param ft filetype of the desired repl
 ll.get_repl_def = function(ft)
-  local repl = config.repl_definitions[ft]
+  local repl = config.repl_definition[ft]
   if repl == nil then
     -- TODO Remove after deprecated fns are cleaned
     return ll.get_preferred_repl(ft)
@@ -65,11 +65,11 @@ ll.new_window = function()
   -- Ideally, they create scratch buffers until the actual
   -- buffer is placed on the window, but since this is missing,
   -- we provide a scratch buffer ourselves here
-  local bufnr = vim.api.nvim_create_buf(false, true)
+  local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
   if type(config.repl_open_cmd) == "function" then
     return config.repl_open_cmd(buff)
   else
-    return view.openwin(config.repl_open_cmd, buff)
+    return view.openwin(config.repl_open_cmd, bufnr)
   end
 end
 
@@ -80,7 +80,9 @@ end
 ll.if_repl_exists = function(ft, when_true_action, when_false_action)
   local mem = ll.get(ft)
 
-  if mem ~= nil and when_true_action ~= nil then
+  if (mem ~= nil and
+    vim.api.nvim_buf_is_loaded(mem.bufnr) and
+    when_true_action ~= nil) then
     return when_true_action(mem), true
   elseif when_false_action ~= nil then
     return when_false_action(), false
@@ -89,36 +91,31 @@ ll.if_repl_exists = function(ft, when_true_action, when_false_action)
   return nil, nil
 end
 
+--- Sends data to an existing repl of given filetype
+-- @param ft name of the filetype
+-- @param data A multiline string or a table containing lines to be sent to the repl
 ll.send_to_repl = function(ft, data)
   local dt = data
+  local mem = ll.get(ft)
 
   if type(data) == "string" then
     dt = vim.split(data, '\n')
   end
 
-  local mem = ll.get(ft)
-
   dt = format(mem.repldef, dt)
 
-  local window = vim.fn.win_getid(vim.fn.bufwinnr(mem.bufnr))
+  local window = vim.fn.bufwinid(mem.bufnr)
   vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
 
-  local indent = ""
-  for i, v in ipairs(dt) do
-    if #v == 0 then
-      dt[i] = indent
-    else
-      indent = string.match(v, '^(%s)') or ""
-    end
-  end
   vim.api.nvim_call_function('chansend', {mem.job, dt})
+  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
 end
 
+--- Given a buffer number, tries to look up the corresponding
+-- filetype of the REPL
+-- If the corresponding buffer number does not exist or is not
+-- a REPL, then return nil
 ll.get_repl_ft_for_bufnr = function(bufnr)
-  -- given a buffer number, tries to look up the corresponding
-  -- filetype of the REPL
-  -- If the corresponding buffer number does not exist or is not
-  -- a REPL, then return nil
   local ft_found = nil
   for ft in pairs(ll.store) do
     local mem = ll.get(ft)
@@ -135,6 +132,7 @@ end
 -- [[ Below this line are deprecated functions to be removed ]] --
 
 -- Deprecated
+-- Usages migrated
 ll.get_preferred_repl = function(ft)
   local repl_definitions = fts[ft]
   local preference = config.preferred[ft]
@@ -210,7 +208,7 @@ end
 
 -- Deprecated
 ll.create_preferred_repl = function(ft, new_win)
-    local repl = ll.get_preferred_repl(ft)
+    local repl = ll.get_repl_def(ft)
 
     if repl ~= nil then
       return ll.create_new_repl(ft, repl, new_win)
