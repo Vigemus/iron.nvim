@@ -85,16 +85,14 @@ ll.if_repl_exists = function(ft, when_true_action, when_false_action)
 
   local mem = ll.get(ft)
 
-  if (mem ~= nil and
-    vim.api.nvim_buf_is_loaded(mem.bufnr)) then
+  if (mem ~= nil and vim.api.nvim_buf_is_loaded(mem.bufnr)) then
+    -- Split from the if above so a nil true-action doesn't trigger a false-action.
     if when_true_action ~= nil then
       return when_true_action(mem), true
     end
   elseif when_false_action ~= nil then
     return when_false_action(ft), false
   end
-
-  return nil, nil
 end
 
 --- Sends data to an existing repl of given filetype
