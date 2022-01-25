@@ -78,6 +78,11 @@ end
 -- Since this pattern repeats frequently, this is a way of wrapping the complexity
 -- and skipping the need to "ensure a repl exists", for example.
 ll.if_repl_exists = function(ft, when_true_action, when_false_action)
+  if ft == nil or ft == "" then
+    vim.api.nvim_err_writeln("iron: Empty filetype. Aborting")
+    return
+    end
+
   local mem = ll.get(ft)
 
   if (mem ~= nil and
