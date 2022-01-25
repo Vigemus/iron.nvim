@@ -268,31 +268,96 @@ core.repeat_cmd = function()
   core.send(ft, lines)
 end
 
--- TODO Remove from core, make it public elsewhere
-core.list_fts = function()
-  local lst = {}
 
-  for k, _ in pairs(fts) do
-    table.insert(lst, k)
-  end
+--- List of commands created by iron.nvim
+-- They'll only be set up after calling the @{//core.setup} function
+-- which makes it possible to delay initialization and make startup faster.
+local commands = {
+  {"IronRepl", function(opts) core.repl_for(opts.args[1] or vim.bo[0].filetype) end, {}},
+  {"IronSend", function(opts)
+    local ft
+    if opts.bang then
+      ft = opts.args[1]
+      opts.args[1] = ""
+    else
+      ft = vim.bo[0].filetype
+    end
+    local data = table.join(vim.tbl_filter(function(x) return x == "" end, opts.args), " ")
 
-  return lst
+    core.send(ft, data)
+  end, {bang = true}},
+  {"IronFocus", function(opts) core.focus_on(opts.args[1] or vim.bo[0].filetype) end, {}},
+  {"IronReplHere", function(opts) core.repl_here(opts.args[1] or vim.bo[0].filetype) end, {}},
+  {"IronRestart", function(opts) core.repl_restart() end, {}}
+}
+
+core.set_motion = function(motion_fn_name)
+  marks.winsaveview()
+  vim.o.operatorfunc = 'v.lua.package.loaded.iron.core.' .. motion_fn_name
 end
 
--- TODO Remove from core, make it public elsewhere
-core.list_definitions_for_ft = function(ft)
-  local lst = {}
-  local defs = fts[gt]
 
-  if defs == nil then
-    vim.api.nvim_err_writeln("There's no REPL definition for current filetype " .. ft)
-  else
-    for k, v in pairs(defs) do
-      table.insert(lst, {k, v})
+--- List of keymaps
+--
+-- if @{//iron.config.should_map_plug} is set to true,
+-- then they will also be mapped to `<plug>` keymaps.
+local named_maps = {
+  -- basic interaction with the repl
+  send_motion = {{'n', 'v'}, '<Cmd>lua require("iron.core").set_motion("send_motion")<CR>g@' },
+  repeat_cmd = {{'n'}, core.repeat_cmd},
+  send_line = {{'n'}, core.send_line},
+  visual_send = {{'v'}, core.visual_send},
+
+  -- Force clear highlight
+  clear_hl = {{'v'}, marks.clear_hl},
+
+  -- Sending special characters to the repl
+  cr = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(13)) end},
+  interrupt = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(03)) end},
+  exit = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(04)) end},
+  clear = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(12)) end},
+}
+
+-- TODO move this fn
+local snake_to_kebab = function(name)
+  return name:gsub("_", "-")
+end
+
+
+core.setup = function(opts)
+  -- TODO do not hijack supplied opts.config
+  opts.config.namespace = vim.api.nvim_create_namespace("iron")
+  core.set_config(opts.config)
+
+  -- TODO Isolate ui/init functions
+  vim.api.nvim_set_hl(config.namespace, "IronLastSent", {
+      bold = true
+    })
+
+  vim.api.nvim__set_hl_ns(config.namespace)
+
+  for _, command in ipairs(commands) do
+     vim.api.nvim_add_user_command(unpack(command))
+  end
+
+  if config.should_map_plug then
+    for key, keymap in ipairs(named_maps) do
+      local mapping = vim.deepcopy(keymap)
+      table.insert(mapping, 2, "<plug>(iron-" .. snake_to_kebab(key) .. ")")
+      table.insert(mapping, {silent = true})
+      vim.keymap.set(unpack(mapping))
     end
   end
 
-  return lst
+  if opts.keymaps ~= nil then
+    for key, lhs in pairs(opts.keymaps) do
+      local mapping = vim.deepcopy(named_maps[key])
+      table.insert(mapping, 2, lhs)
+      table.insert(mapping, {silent = true})
+
+      vim.keymap.set(unpack(mapping))
+    end
+  end
 end
 
 

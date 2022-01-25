@@ -2,13 +2,6 @@
 local config = require("iron.config")
 local marks = {}
 
--- TODO: Externalize, load on demand or upon "init" function
-vim.api.nvim_set_hl(config.namespace, "IronLastSent", {
-    bold = true
-  })
-
-vim.api.nvim__set_hl_ns(config.namespace)
-
 marks.set = function(opts)
   local extmark_config = {
     id = config.mark.send,

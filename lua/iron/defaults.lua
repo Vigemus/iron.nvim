@@ -1,6 +1,5 @@
 -- luacheck: globals vim
 local view = require("iron.view")
-local namespace = vim.api.nvim_create_namespace("iron")
 
 --- Default configurations for iron.nvim
 -- @table defaults set of default configs
@@ -35,6 +34,7 @@ local defaults = {
       end
     end
   }),
+  should_map_plug = true,
   repl_open_cmd = 'topleft vertical 100 split',
   namespace = namespace,
   mark = { -- Arbitrary numbers
