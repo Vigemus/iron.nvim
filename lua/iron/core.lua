@@ -8,22 +8,46 @@ local tables = require("iron.util.tables")
 
 local core = {}
 
+--- Local helpers for creating a new repl.
+-- Should be used by core functions, but not
+-- exposed to the end-user
+local new_repl = {}
+
+--- Create a new repl on the current window
+-- Simple wrapper around the low level functions
+-- Useful to avoid rewriting the get_def + create + save pattern
+-- @param ft filetype
+-- @return saved snapshot of repl metadata
+new_repl.create = function(ft)
+    local repl = ll.get_repl_def(ft)
+    local meta = ll.create_repl_on_current_window(repl)
+    ll.set(ft, meta)
+
+    return meta
+end
+
+--- Create a new repl on a new repl window
+-- Adds a layer on top of @{//new_repl.create},
+-- ensuring it is created on a new window
+-- @param ft filetype
+-- @return saved snapshot of repl metadata
+new_repl.create_on_new_window = function(ft)
+      local replwin = ll.new_window()
+
+      vim.api.nvim_set_current_win(replwin)
+      local meta = new_repl.create(ft)
+
+      return meta
+end
+
 --- Creates a repl in the current window
 -- @param ft the filetype of the repl to be created
 core.repl_here = function(ft)
   return ll.if_repl_exists(ft, function(mem)
     vim.api.nvim_set_current_buf(mem.bufnr)
     return mem
-  end,
-  function()
-    local repl = ll.get_repl_def(ft)
-    local meta = ll.create_repl_on_current_window(repl)
-    ll.set(ft, meta)
-
-    return meta
-  end)
+  end, new_repl.create)
 end
-
 
 --- Restarts the repl for the current buffer
 -- First, check if the cursor is on top or a REPL
@@ -36,9 +60,7 @@ core.repl_restart = function()
   local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
 
   if ft ~= nil then
-    local repl = ll.get_repl_def(ft)
-    local meta = ll.create_repl_on_current_window(repl)
-    ll.set(ft, meta)
+    new_repl.create(ft)
 
     -- created a new one, now have to kill the old one
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
@@ -49,17 +71,14 @@ core.repl_restart = function()
     return ll.if_repl_exists(ft, function(mem)
       local replwin = vim.fn.bufwinid(mem.bufnr)
       local currwin = vim.api.nvim_get_current_win()
-
-      local repl = ll.get_repl_def(ft)
+      local meta
 
       if replwin == nil or replwin == -1 then
-        replwin = ll.new_window()
+        meta = new_repl.create_on_new_window(ft)
       else
         vim.api.nvim_set_current_win(replwin)
+        meta = new_repl.create(ft)
       end
-
-      local meta = ll.create_repl_on_current_window(repl)
-      ll.set(ft, meta)
 
       vim.api.nvim_set_current_win(currwin)
       vim.api.nvim_buf_delete(mem.bufnr, {force = true})
@@ -85,6 +104,10 @@ core.repl_by_name = function(repl_name, ft)
   return ll.create_new_repl(ft, repl)
 end
 
+--- Creates a repl for a given filetype
+-- It should open a new repl on a new window for the filetype
+-- supplied as argument.
+-- @param ft filetype
 core.repl_for = function(ft)
   return ll.if_repl_exists(ft, function(mem)
     config.visibility(mem.bufnr, function()
@@ -93,20 +116,18 @@ core.repl_for = function(ft)
            return winid
         end)
         return mem
-    end, function()
+    end, function(ft)
       local currwin = vim.api.nvim_get_current_win()
-      local replwin = ll.new_window()
-      local repl = ll.get_repl_def(ft)
-
-      vim.api.nvim_set_current_win(replwin)
-      local meta = ll.create_repl_on_current_window(repl)
-      ll.set(ft, meta)
-
+      local meta = new_repl.create_on_new_window(ft)
       vim.api.nvim_set_current_win(currwin)
       return meta
     end)
 end
 
+--- Moves to the repl for given filetype
+-- When it doesn't exist, a new repl is created
+-- directly moving the focus to it.
+-- @param ft filetype
 core.focus_on = function(ft)
   return ll.if_repl_exists(ft, function(mem)
     focus(mem.bufnr, function()
@@ -115,28 +136,20 @@ core.focus_on = function(ft)
            return winid
         end)
         return mem
-    end,
-    function()
-      local replwin = ll.new_window()
-      local repl = ll.get_repl_def(ft)
-
-      vim.api.nvim_set_current_win(replwin)
-      local meta = ll.create_repl_on_current_window(repl)
-      ll.set(ft, meta)
-
-      return meta
-    end)
+    end, new_repl.create_on_new_window)
 end
 
--- TODO Move away/deprecate
+--- [Deprecated] Sets configuration
+-- See @{//core.setup}
 core.set_config = function(cfg)
   for k, v in pairs(cfg) do
-    require("iron.config")[k] = v
+    config[k] = v
   end
 end
 
+--- [Deprecated]
 core.add_repl_definitions = function(defns)
-  vim.api.nvim_err_writeln("iron: `add_repl_definitions` is deprecated")
+  vim.api.nvim_err_writeln("iron: The function `add_repl_definitions` is deprecated")
   vim.api.nvim_err_writeln("      Use `core.setup{repl_definition = {<ft> = {<definition>}}}`")
   for ft, defn in pairs(defns) do
     if fts[ft] == nil then
