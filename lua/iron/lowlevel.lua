@@ -1,4 +1,14 @@
 -- luacheck: globals vim
+--- Low level functions for iron
+-- This is needed to reduce the complexity of the user API functions.
+-- There are a few rules to the functions in this document:
+-- * They should not interact with each other
+--    * An exception for this is @{//ll.get_repl_def} during the transition to v3
+--    * The other exception is @{//ll.if_repl_exists}, which hides the complexity
+--      of managing the session of a repl.
+-- * They should do one small thing only
+-- * They should not care about setting/cleaning up state (i.e. moving back to another window)
+-- * They must be explicit in their documentation about the state changes they cause.
 local config = require("iron.config")
 local fts = require("iron.fts")
 local format = require("iron.fts.common").functions.format
@@ -47,6 +57,7 @@ end
 --- Wrapper function for getting repl definition from config
 -- This allows for an easier transition between old and new methods
 -- @param ft filetype of the desired repl
+-- @return repl definition
 ll.get_repl_def = function(ft)
   local repl = config.repl_definition[ft]
   if repl == nil then
@@ -60,11 +71,9 @@ end
 -- Expected to be called before creating the repl.
 -- It knows nothing about the repl and only takes in account the
 -- configuration.
+-- @warning changes the current window
+-- @return window id of the newly created window
 ll.new_window = function()
-  -- Buffer is created because old view APIs required.
-  -- Ideally, they create scratch buffers until the actual
-  -- buffer is placed on the window, but since this is missing,
-  -- we provide a scratch buffer ourselves here
   local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
   if type(config.repl_open_cmd) == "function" then
     return config.repl_open_cmd(buff)
@@ -77,6 +86,11 @@ end
 -- This fn wraps the logic of doing something if a repl exists or not.
 -- Since this pattern repeats frequently, this is a way of wrapping the complexity
 -- and skipping the need to "ensure a repl exists", for example.
+-- @tparam ft string filetype for the repl to be checked
+-- @tparam when_true_action function(mem) action to perform when a repl exists
+-- @tparam when_false_action function(ft) action to perform when a repl does not exist
+-- @return result of the called function (either when_true_action or when_false_action)
+-- @treturn boolean whether the repl existed or not when the function was called
 ll.if_repl_exists = function(ft, when_true_action, when_false_action)
   if ft == nil or ft == "" then
     vim.api.nvim_err_writeln("iron: Empty filetype. Aborting")
@@ -96,6 +110,11 @@ ll.if_repl_exists = function(ft, when_true_action, when_false_action)
 end
 
 --- Sends data to an existing repl of given filetype
+-- The content supplied is ensured to be a table of lines,
+-- being coerced if supplied as a string.
+-- As a side-effect of pasting the contents to the repl,
+-- it changes the scroll position of that window.
+-- Does not affect currently active window and its cursor position.
 -- @param ft name of the filetype
 -- @param data A multiline string or a table containing lines to be sent to the repl
 ll.send_to_repl = function(ft, data)
@@ -115,12 +134,13 @@ ll.send_to_repl = function(ft, data)
   vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
 end
 
---- Given a buffer number, tries to look up the corresponding
--- filetype of the REPL
--- If the corresponding buffer number does not exist or is not
--- a REPL, then return nil
+--- Tries to look up the corresponding filetype of a REPL
+-- If the corresponding buffer number is a repl,
+-- return its filetype otherwise return nil
+-- @param bufnr number of the buffer being checked
+-- @treturn string filetype of the buffer's repl (or nil if it doesn't have a repl associated)
 ll.get_repl_ft_for_bufnr = function(bufnr)
-  local ft_found = nil
+  local ft_found
   for ft in pairs(ll.store) do
     local mem = ll.get(ft)
     if mem ~= nil and bufnr == mem.bufnr then
@@ -130,8 +150,6 @@ ll.get_repl_ft_for_bufnr = function(bufnr)
   end
   return ft_found
 end
-
-
 
 -- [[ Below this line are deprecated functions to be removed ]] --
 
