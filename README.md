@@ -2,6 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=svg)](https://circleci.com/gh/hkupty/iron.nvim)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bbd16045e0321b404ef9/maintainability)](https://codeclimate.com/github/hkupty/iron.nvim/maintainability)
+[![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#iron.nvim:matrix.org)
 
 Interactive Repls Over Neovim
 
