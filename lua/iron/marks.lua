@@ -64,7 +64,7 @@ end
 
 marks.winsaveview = function()
   local pos = vim.fn.winsaveview()
-  vim.api.nvim_buf_set_extmark(0, config.namespace, pos.lnum, pos.col, {id = config.mark.save_pos})
+  vim.api.nvim_buf_set_extmark(0, config.namespace, pos.lnum - 1, pos.col, {id = config.mark.save_pos})
 end
 
 return marks
