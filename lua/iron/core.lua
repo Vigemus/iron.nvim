@@ -91,6 +91,18 @@ core.repl_restart = function()
   end
 end
 
+--- Sends a close request to the repl
+-- if @{config.values.close_window_on_exit} is set to true,
+-- all windows associated with that repl will be closed.
+-- Otherwise, this will only finish the process.
+-- @param ft filetype
+core.close_repl = function(ft)
+  ft = ft or ll.get_buffer_ft(0)
+  if ft == nil then return end
+
+  ll.send_to_repl(ft, string.char(04))
+end
+
 core.repl_by_name = function(repl_name, ft)
   vim.api.nvim_err_writeln("iron: repl_by_name is deprecated.")
   ft = ft or vim.bo.ft
