@@ -173,39 +173,54 @@ core.add_repl_definitions = function(defns)
   end
 end
 
+--- Sends data to the repl
+-- This is a top-level wrapper over the low-level
+-- functions. It should send data to the repl, ensuring
+-- it exists.
+-- @param ft filetype (will be inferred if not supplied)
+-- @tparam string|table data data to be sent to the repl.
 core.send = function(ft, data)
+  ft = ft or ll.get_buffer_ft(0)
+  if ft == nil then return end
   -- If the repl doesn't exist, it will be created
   ll.if_repl_exists(ft, nil, core.repl_for)
   ll.send_to_repl(ft, data)
 end
 
+--- Sends the line under the cursor to the repl
+-- Builds upon @{core.send}, extracting
+-- the data beforehand.
 core.send_line = function()
-  local ft = ll.get_buffer_ft(0)
+  local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
+  local cur_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
+  local width = vim.fn.strwidth(cur_line)
 
-  if ft ~= nil then
+  if width == 0 then return end
 
-    local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
-    local cur_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
-    local width = vim.fn.strwidth(cur_line)
+  marks.set{
+    from_line = linenr,
+    from_col = 0,
+    to_line = linenr,
+    to_col = width - 1
+  }
 
-    if width == 0 then return end
-
-    marks.set{
-      from_line = linenr,
-      from_col = 0,
-      to_line = linenr,
-      to_col = width - 1
-    }
-
-    core.send(ft, cur_line)
-  end
+  core.send(nil, cur_line)
 end
 
+--- Sends a chunk of text to the repl
+-- This is the lua counterpart of a opfunc, extended
+-- to be used by visual as well.
+-- It extracts data from marks and uses @{core.send} to
+-- deliver the lines to the repl.
+-- It marks the block sent to the repl, so resending the same chunk can be done
+-- by @{core.repeat_cmd}. The block can be highlighted if
+-- @{config.values.highlight_last} is not set to false.
+-- Don't use this function directly, but rather either @{core.send_motion}
+-- or @{core.visual_send}.
+-- @param mode either "visual" or "motion"
+-- @param mtype mode type, as supplied by map-operator.
 core.send_chunk = function(mode, mtype)
   local bstart, bend
-  local ft = ll.get_buffer_ft(0)
-
-  if ft == nil then return end
 
   if mode == "visual" then
     bstart = "'<"
@@ -245,19 +260,21 @@ core.send_chunk = function(mode, mtype)
     to_col = e_col - 1
   }
 
-  core.send(ft, lines)
-
-  marks.winrestview()
+  core.send(nil, lines)
 end
 
+--- Sends data to a repl through a opfunc
+-- Shouldn't be directly supplied but instead called through a wrapper.
 core.send_motion = function(mtype) core.send_chunk("motion", mtype) end
 
+--- Sends visually selected data to a repl
 core.visual_send = function() core.send_chunk("visual") end
 
+--- Re-sends latest chunk of text.
+-- Sends text contained within a block delimited by
+-- the last sent chunk. Uses @{marks.get} to retrieve
+-- the boundaries.
 core.repeat_cmd = function()
-  local ft = ll.get_buffer_ft(0)
-  if ft == nil then return end
-
   local pos = marks.get()
 
   if pos == nil then return end
@@ -277,42 +294,73 @@ core.repeat_cmd = function()
     end
   end
 
-  core.send(ft, lines)
+  core.send(nil, lines)
 end
 
 
 --- List of commands created by iron.nvim
--- They'll only be set up after calling the @{//core.setup} function
+-- They'll only be set up after calling the @{core.setup} function
 -- which makes it possible to delay initialization and make startup faster.
+-- @local
+-- @table commands
+-- @field IronRepl command for @{core.repl_for}
 local commands = {
-  {"IronRepl", function(opts) core.repl_for(opts.args[1] or vim.bo[0].filetype) end, {}},
+  {"IronRepl", function(opts)
+    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    if ft == nil then return end
+    core.repl_for(ft)
+  end, {}},
   {"IronSend", function(opts)
     local ft
     if opts.bang then
       ft = opts.args[1]
       opts.args[1] = ""
     else
-      ft = vim.bo[0].filetype
+      ft = ll.get_buffer_ft(0)
     end
+    if ft == nil then return end
     local data = table.join(vim.tbl_filter(function(x) return x == "" end, opts.args), " ")
 
     core.send(ft, data)
   end, {bang = true}},
-  {"IronFocus", function(opts) core.focus_on(opts.args[1] or vim.bo[0].filetype) end, {}},
-  {"IronReplHere", function(opts) core.repl_here(opts.args[1] or vim.bo[0].filetype) end, {}},
+  {"IronFocus", function(opts)
+    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    if ft == nil then return end
+
+    core.focus_on(ft)
+  end, {}},
+  {"IronReplHere", function(opts)
+    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    if ft == nil then return end
+
+    core.repl_here(ft)
+  end, {}},
   {"IronRestart", function(opts) core.repl_restart() end, {}}
 }
 
+--- Wrapper for calling functions through motion.
+-- This should take care of the vim side of calling opfuncs.
+-- @param motion_fn_name name of the function in @{core} to be mapped
 core.set_motion = function(motion_fn_name)
   marks.winsaveview()
-  vim.o.operatorfunc = 'v.lua.package.loaded.iron.core.' .. motion_fn_name
+  vim.o.operatorfunc = 'v:lua.package.loaded.iron.core.' .. motion_fn_name
+  marks.winrestview()
 end
 
 
 --- List of keymaps
---
--- if @{//iron.config.should_map_plug} is set to true,
+-- if @{config}.should\_map\_plug is set to true,
 -- then they will also be mapped to `<plug>` keymaps.
+-- @table named_maps
+-- @field send_motion mapping to send a motion/chunk to the repl
+-- @field repeat_cmd repeats last executed motion
+-- @field send_line sends current line to repl
+-- @field visual_send sends visual selection to repl
+-- @field clear_hl clears highlighted chunk
+-- @field cr sends a <CR> to the repl
+-- @field interrupt sends a <C-c> to the repl
+-- @field exit closes the repl
+-- @field clear clears the text buffer of the repl
 local named_maps = {
   -- basic interaction with the repl
   send_motion = {{'n', 'v'}, '<Cmd>lua require("iron.core").set_motion("send_motion")<CR>g@' },
@@ -324,29 +372,34 @@ local named_maps = {
   clear_hl = {{'v'}, marks.clear_hl},
 
   -- Sending special characters to the repl
-  cr = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(13)) end},
-  interrupt = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(03)) end},
-  exit = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(04)) end},
-  clear = {{'n'}, function() core.send(vim.bo[0].filetype, string.char(12)) end},
+  cr = {{'n'}, function() core.send(nil, string.char(13)) end},
+  interrupt = {{'n'}, function() core.send(nil, string.char(03)) end},
+  exit = {{'n'}, core.close_repl},
+  clear = {{'n'}, function() core.send(nil, string.char(12)) end},
 }
 
--- TODO move this fn
+
 local snake_to_kebab = function(name)
   return name:gsub("_", "-")
 end
 
 
+--- Sets up the configuration for iron to run.
+-- Also, defines commands and keybindings for iron to run.
+-- @param opts table of the configuration to be applied
+-- @tparam table opts.config set of config values to override default on @{config}
+-- @tparam table opts.keymaps set of keymaps to apply, based on @{named_maps}
 core.setup = function(opts)
-  -- TODO do not hijack supplied opts.config
-  opts.config.namespace = vim.api.nvim_create_namespace("iron")
   core.set_config(opts.config)
 
-  -- TODO Isolate ui/init functions
-  vim.api.nvim_set_hl(config.namespace, "IronLastSent", {
-      bold = true
-    })
+  if config.highlight_last ~= false then
+    config.namespace = vim.api.nvim_create_namespace("iron")
+    vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
+        bold = true
+      })
 
-  vim.api.nvim__set_hl_ns(config.namespace)
+    vim.api.nvim__set_hl_ns(config.namespace)
+  end
 
   for _, command in ipairs(commands) do
      vim.api.nvim_add_user_command(unpack(command))
