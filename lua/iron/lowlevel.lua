@@ -39,13 +39,28 @@ end
 -- This function effectively creates the repl without caring
 -- about window management. It is expected that the client
 -- ensures the right window is created and active before calling this function.
+-- If @{\\config.close_window_on_exit} is set to true, it will plug a callback
+-- to the repl so the window will automatically close when the process finishes
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @return unsaved metadata about created repl
 ll.create_repl_on_current_window = function(repl)
   local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
   vim.api.nvim_win_set_buf(0, bufnr)
-  local job_id = vim.fn.termopen(repl.command)
+  local opts = {}
+  -- TODO check whether verifying close_window_on_exit should be done
+  -- on `on_exit` instead.
+  if config.close_window_on_exit then
+    opts.on_exit = function()
+      local bufwinid = vim.fn.bufwinid(bufnr)
+      while bufwinid ~= -1 do
+        vim.api.nvim_win_close(bufwinid, true)
+        bufwinid = vim.fn.bufwinid(bufnr)
+      end
+    end
+  end
+
+  local job_id = vim.fn.termopen(repl.command, opts)
 
   return {
     bufnr = bufnr,
