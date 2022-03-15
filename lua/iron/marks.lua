@@ -1,7 +1,21 @@
 -- luacheck: globals vim
 local config = require("iron.config")
+
+--- Marks management for iron
+-- This is an intermediary layer between iron and neovim's
+-- extmarks. Used primarily to manage the text sent to the repl,
+-- but can also be used to set hightlight and possibly virtualtext.
 local marks = {}
 
+--- Sets a mark for given options
+-- The mark is set for a preconfigured position id, which will be used by
+-- @{marks.get} for retrieval.
+-- @tparam table opts table with the directives
+-- @tparam number opts.from_line line where the mark starts
+-- @tparam number opts.to_line line where the mark ends. Can be ignored on single line marks
+-- @tparam number opts.from_col column where the mark starts
+-- @tparam number opts.to_col column where the mark ends
+-- @tparam string|false opts.hl Highlight group to be used or false if no highlight should be done.
 marks.set = function(opts)
   local extmark_config = {
     id = config.mark.send,
@@ -36,6 +50,7 @@ marks.clear_hl = function()
   marks.set(payload)
 end
 
+--- Retrieves the mark with a position id.
 marks.get = function()
   local mark_pos = vim.api.nvim_buf_get_extmark_by_id(0, config.namespace, config.mark.send, {details = true})
 
