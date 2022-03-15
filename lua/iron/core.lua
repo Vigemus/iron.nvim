@@ -1,4 +1,5 @@
 -- luacheck: globals vim unpack
+
 local fts = require("iron.fts")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
@@ -69,7 +70,8 @@ core.repl_restart = function()
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
     return meta
   else
-    ft = vim.bo[bufnr_here].filetype
+    ft = ll.get_buffer_ft(0)
+    if ft == nil then return end
 
     return ll.if_repl_exists(ft, function(mem)
       local replwin = vim.fn.bufwinid(mem.bufnr)
@@ -440,6 +442,5 @@ core.setup = function(opts)
     end
   end
 end
-
 
 return core
