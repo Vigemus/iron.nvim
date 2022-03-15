@@ -6,11 +6,14 @@ local config = require("iron.config")
 local marks = require("iron.marks")
 local tables = require("iron.util.tables")
 
+--- Core functions of iron
+-- @module core
 local core = {}
 
 --- Local helpers for creating a new repl.
 -- Should be used by core functions, but not
 -- exposed to the end-user
+-- @local
 local new_repl = {}
 
 --- Create a new repl on the current window
@@ -27,7 +30,7 @@ new_repl.create = function(ft)
 end
 
 --- Create a new repl on a new repl window
--- Adds a layer on top of @{//new_repl.create},
+-- Adds a layer on top of @{new_repl.create},
 -- ensuring it is created on a new window
 -- @param ft filetype
 -- @return saved snapshot of repl metadata
@@ -54,7 +57,7 @@ end
 -- Then, start a new REPL of the same type and enter it into the window
 -- Afterwards, wipe out the old REPL buffer
 -- This is done without asking for confirmation, so user beware
--- TODO Split into "restart a repl" and "do X for current buffer's repl"
+-- @todo Split into "restart a repl" and "do X for current buffer's repl"
 core.repl_restart = function()
   local bufnr_here = vim.fn.bufnr("%")
   local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
@@ -103,6 +106,13 @@ core.close_repl = function(ft)
   ll.send_to_repl(ft, string.char(04))
 end
 
+--- [Deprecated] sets up a repl by its name
+-- The concept of named repls is confusing and while it makes
+-- sense for storing them (or maybe not) the most important
+-- thing is a direct configuration for the user, so this function
+-- should be avoided
+-- @param repl_name name of the configured repl
+-- @param ft filetype
 core.repl_by_name = function(repl_name, ft)
   vim.api.nvim_err_writeln("iron: repl_by_name is deprecated.")
   ft = ft or vim.bo.ft
@@ -152,14 +162,20 @@ core.focus_on = function(ft)
 end
 
 --- [Deprecated] Sets configuration
--- See @{//core.setup}
+-- Sets the configuration.
+-- This is only a fraction of the actual setup and should not be directly used
+-- @see core.setup
 core.set_config = function(cfg)
   for k, v in pairs(cfg) do
     config[k] = v
   end
 end
 
---- [Deprecated]
+--- [Deprecated] adds repls definition to the set of configurations
+-- Adds a repl definition to the collection of known repls.
+-- It should not be used since this is a complicated way of configuring
+-- the user experience.
+-- @see core.setup
 core.add_repl_definitions = function(defns)
   vim.api.nvim_err_writeln("iron: The function `add_repl_definitions` is deprecated")
   vim.api.nvim_err_writeln("      Use `core.setup{repl_definition = {<ft> = {<definition>}}}`")
