@@ -251,6 +251,9 @@ The keys for configuring iron are the following:
 * `repl_open_cmd`:
   Command to be run when creating a new window for the repl.
   It can be a string or a function.
+* `buflisted`:
+  Whether should set the repl buffer to be "buflisted",
+  see |:h buflisted| for further details. Default: false.
 
 An example of configuration would be the following:
 
