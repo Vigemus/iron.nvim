@@ -65,7 +65,7 @@ ll.create_new_repl = function(ft, repl, new_win)
 
   local winid
   local prevwin = vim.api.nvim_get_current_win()
-  local bufnr = vim.api.nvim_create_buf(false, true)
+  local bufnr = vim.api.nvim_create_buf(config.buflisted, true)
 
   if new_win then
     winid = ll.new_repl_window(bufnr, ft)

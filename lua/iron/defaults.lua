@@ -16,6 +16,7 @@ local defaults = {
     begin_last = 99, -- Deprecated
     end_last = 100 -- Deprecated
   },
+  buflisted = false,
 }
 
 return setmetatable({
