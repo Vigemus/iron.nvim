@@ -41,15 +41,15 @@ command! -nargs=? -complete=filetype IronReplHere
 command! IronRestart exec 'lua require("iron").core.repl_restart()'
 
 
-map <silent> <Plug>(iron-repeat-cmd)   :lua require("iron").core.repeat_cmd()<CR>
+map <silent> <Plug>(iron-repeat-cmd)    <Cmd>lua require("iron").core.repeat_cmd()<CR>
 map <silent> <Plug>(iron-cr)            <Cmd>IronSend! \13<CR>
 map <silent> <Plug>(iron-interrupt)     <Cmd>IronSend! \03<CR>
 map <silent> <Plug>(iron-exit)          <Cmd>IronSend! \04<CR>
 map <silent> <Plug>(iron-clear)         <Cmd>IronSend! \12<CR>
 map <silent> <Plug>(iron-send-motion)   <Cmd>call <SID>save_pos()<bar>set opfunc=<SID>ironSendMotion<CR>g@
 map <silent> <Plug>(iron-send-lines)    <Cmd>set opfunc=<SID>ironSendMotion<bar>exe 'norm! 'v:count1.'g@_'<CR>
-map <silent> <Plug>(iron-send-line)     :lua require("iron").core.send_line()<CR>
-map <silent> <Plug>(iron-visual-send)   :lua require("iron").core.visual_send()<CR>
+map <silent> <Plug>(iron-send-line)     <Cmd>lua require("iron").core.send_line()<CR>
+map <silent> <Plug>(iron-visual-send)   <esc><Cmd>lua require("iron").core.visual_send()<CR>
 
 if !exists('g:iron_map_defaults')
   let g:iron_map_defaults = 1
