@@ -94,7 +94,7 @@ end
 ll.new_window = function()
   local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
   if type(config.repl_open_cmd) == "function" then
-    return config.repl_open_cmd(buff)
+    return config.repl_open_cmd(bufnr)
   else
     return view.openwin(config.repl_open_cmd, bufnr)
   end
