@@ -72,7 +72,7 @@ marks.winrestview = function()
 
   if #mark ~= 0 then
     -- winrestview is 1-based
-    vim.fn.winrestview({lnum = mark[1], col = mark[2]})
+    vim.fn.winrestview({lnum = mark[1] + 1, col = mark[2]})
     vim.api.nvim_buf_del_extmark(0, config.namespace, config.mark.save_pos)
   end
 end
