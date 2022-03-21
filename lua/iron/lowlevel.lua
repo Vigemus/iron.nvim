@@ -146,10 +146,15 @@ ll.send_to_repl = function(ft, data)
   dt = format(mem.repldef, dt)
 
   local window = vim.fn.bufwinid(mem.bufnr)
-  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+  if window ~= -1 then
+    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+  end
 
   vim.api.nvim_call_function('chansend', {mem.job, dt})
-  vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+
+  if window ~= -1 then
+    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+  end
 end
 
 --- Tries to look up the corresponding filetype of a REPL
