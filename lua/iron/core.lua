@@ -284,7 +284,6 @@ core.get_motion_selection = function(mtype)
     b_col = math.max(b_col, vim.fn.strwidth(lines[1]))
     e_col = math.max(e_col, vim.fn.strwidth(lines[#lines]))
   end
-  print(vim.inspect{{b_line, b_col}, {e_line, e_col}, mtype})
 
   if e_col > 1 then
     lines[#lines] = string.sub(lines[#lines], 1, e_col)
