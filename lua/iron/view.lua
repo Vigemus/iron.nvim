@@ -79,4 +79,16 @@ view.center = function(size, buff)
   }, buff)
 end
 
+view.curry = setmetatable({}, {
+  __index = function(tbl, v)
+    local originalfn = rawget(view, v)
+    return function(size)
+      return function(bufnr)
+        return originalfn(size, bufnr)
+      end
+    end
+  end
+})
+
+
 return view
