@@ -200,6 +200,7 @@ end
 core.send = function(ft, data)
   ft = ft or ll.get_buffer_ft(0)
   if ft == nil then return end
+  if data == nil then return end
   -- If the repl doesn't exist, it will be created
   ll.if_repl_exists(ft, nil, core.repl_for)
   ll.send_to_repl(ft, data)
@@ -303,32 +304,21 @@ core.get_motion_selection = function(mtype)
 
 end
 
-
-
---- Sends a chunk of text to the repl
--- This is the lua counterpart of a opfunc, extended
--- to be used by visual as well.
--- It extracts data from marks and uses @{core.send} to
--- deliver the lines to the repl.
--- It marks the block sent to the repl, so resending the same chunk can be done
--- by @{core.repeat_cmd}. The block can be highlighted if
--- @{config.values.highlight_last} is not set to false.
--- Don't use this function directly, but rather either @{core.send_motion}
--- or @{core.visual_send}.
--- @param mode either "visual" or "motion"
--- @param mtype mode type, as supplied by map-operator.
-core.send_chunk = function(mode, mtype)
-  core.send(nil, lines)
-end
-
---- Sends data to a repl through a opfunc
--- Shouldn't be directly supplied but instead called through a wrapper.
+--- Sends a chunk of text from a motion to the repl
+-- It is a simple wrapper over @{core.get_motion_selection}
+-- in which the data is extracted by that function and sent to the repl.
+-- @{core.send} will handle the null cases.
+-- Additionally, it restores the cursor position as a side-effect.
+-- @param mtype motion type
 core.send_motion = function(mtype)
   core.send(nil, core.get_motion_selection(mtype))
   marks.winrestview()
 end
 
---- Sends visually selected data to a repl
+--- Sends a chunk of text from a visual selection to the repl
+-- this is a simple wrapper over @{core.get_visual_selection} where
+-- the data is forwarded to the repl through @{core.send},
+-- which will handle the null cases.
 core.visual_send = function()
   core.send(nil, core.get_visual_selection())
 end
