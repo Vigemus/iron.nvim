@@ -225,44 +225,65 @@ core.send_line = function()
   core.send(nil, cur_line)
 end
 
---- Sends a chunk of text to the repl
--- This is the lua counterpart of a opfunc, extended
--- to be used by visual as well.
--- It extracts data from marks and uses @{core.send} to
--- deliver the lines to the repl.
--- It marks the block sent to the repl, so resending the same chunk can be done
--- by @{core.repeat_cmd}. The block can be highlighted if
--- @{config.values.highlight_last} is not set to false.
--- Don't use this function directly, but rather either @{core.send_motion}
--- or @{core.visual_send}.
--- @param mode either "visual" or "motion"
--- @param mtype mode type, as supplied by map-operator.
-core.send_chunk = function(mode, mtype)
-  local bstart, bend
+-- TODO Move out to separate ns
+core.get_visual_selection = function()
+  -- HACK Break out of visual mode
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', false, true, true), 'nx', false)
+  local b_line, b_col
+  local e_line, e_col
 
-  if mode == "visual" then
-    bstart = "'<"
-    bend = "'>"
-  else
-    bstart = "'["
-    bend = "']"
+  local mode = vim.fn.visualmode()
+
+  b_line, b_col = unpack(vim.fn.getpos("'<"),2,3)
+  e_line, e_col = unpack(vim.fn.getpos("'>"),2,3)
+
+  if e_line < b_line or (e_line == b_line and e_col < b_col) then
+    e_line, b_line = b_line, e_line
+    e_col, b_col = b_col, e_col
   end
-
-  local b_line, b_col = unpack(vim.fn.getpos(bstart),2,3)
-  local e_line, e_col = unpack(vim.fn.getpos(bend),2,3)
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
 
   if #lines == 0 then return end
 
-  local b_line_len = vim.fn.strwidth(lines[1])
-  local e_line_len = vim.fn.strwidth(lines[#lines])
+  if mode == "\22" then
+    for ix, line in ipairs(lines) do
+      lines[ix] = string.sub(line, math.max(1, b_col), math.min(e_col, vim.fn.strwidth(line)))
+    end
+  elseif mode == "v" then
+    local last = #lines
+    -- Questionable whether we should do this here...
+    lines[1] = string.sub(lines[1], math.min(b_col, vim.fn.strwidth(lines[1])))
+    lines[last] = string.sub(lines[last], 1, math.min(e_col, vim.fn.strwidth(lines[last])))
+  end
 
-  b_col, e_col = unpack(mtype=='line' and { 0, e_line_len } or { b_col, e_col })
+  marks.set{
+    from_line = b_line - 1,
+    from_col = math.max(b_col - 1, 0),
+    to_line = e_line - 1,
+    to_col = math.min(e_col, vim.fn.strwidth(lines[#lines])) - 1 -- TODO Check whether this is actually true
+  }
 
-  --handle eol
-  b_col = ( b_col > b_line_len ) and b_line_len or b_col
-  e_col = ( e_col > e_line_len ) and e_line_len or e_col
+  return lines
+end
+
+core.get_motion_selection = function(mtype)
+  local b_line, b_col
+  local e_line, e_col
+
+  b_line, b_col = unpack(vim.fn.getpos("'["),2,3)
+  e_line, e_col = unpack(vim.fn.getpos("']"),2,3)
+
+  local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
+  if #lines == 0 then return end
+
+  if mtype=='line' then
+    b_col, e_col = 0, vim.fn.strwidth(lines[#lines])
+  else
+    b_col = math.max(b_col, vim.fn.strwidth(lines[1]))
+    e_col = math.max(e_col, vim.fn.strwidth(lines[#lines]))
+  end
+  print(vim.inspect{{b_line, b_col}, {e_line, e_col}, mtype})
 
   if e_col > 1 then
     lines[#lines] = string.sub(lines[#lines], 1, e_col)
@@ -278,15 +299,39 @@ core.send_chunk = function(mode, mtype)
     to_col = e_col - 1
   }
 
+  return lines
+
+end
+
+
+
+--- Sends a chunk of text to the repl
+-- This is the lua counterpart of a opfunc, extended
+-- to be used by visual as well.
+-- It extracts data from marks and uses @{core.send} to
+-- deliver the lines to the repl.
+-- It marks the block sent to the repl, so resending the same chunk can be done
+-- by @{core.repeat_cmd}. The block can be highlighted if
+-- @{config.values.highlight_last} is not set to false.
+-- Don't use this function directly, but rather either @{core.send_motion}
+-- or @{core.visual_send}.
+-- @param mode either "visual" or "motion"
+-- @param mtype mode type, as supplied by map-operator.
+core.send_chunk = function(mode, mtype)
   core.send(nil, lines)
 end
 
 --- Sends data to a repl through a opfunc
 -- Shouldn't be directly supplied but instead called through a wrapper.
-core.send_motion = function(mtype) core.send_chunk("motion", mtype) end
+core.send_motion = function(mtype)
+  core.send(nil, core.get_motion_selection(mtype))
+  marks.winrestview()
+end
 
 --- Sends visually selected data to a repl
-core.visual_send = function() core.send_chunk("visual") end
+core.visual_send = function()
+  core.send(nil, core.get_visual_selection())
+end
 
 --- Re-sends latest chunk of text.
 -- Sends text contained within a block delimited by
@@ -359,10 +404,10 @@ local commands = {
 --- Wrapper for calling functions through motion.
 -- This should take care of the vim side of calling opfuncs.
 -- @param motion_fn_name name of the function in @{core} to be mapped
-core.set_motion = function(motion_fn_name)
+core.run_motion = function(motion_fn_name)
   marks.winsaveview()
   vim.o.operatorfunc = 'v:lua.package.loaded.iron.core.' .. motion_fn_name
-  marks.winrestview()
+  vim.api.nvim_feedkeys("g@", "ni", false)
 end
 
 
@@ -381,7 +426,7 @@ end
 -- @field clear clears the text buffer of the repl
 local named_maps = {
   -- basic interaction with the repl
-  send_motion = {{'n', 'v'}, '<Cmd>lua require("iron.core").set_motion("send_motion")<CR>g@' },
+  send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
   repeat_cmd = {{'n'}, core.repeat_cmd},
   send_line = {{'n'}, core.send_line},
   visual_send = {{'v'}, core.visual_send},
