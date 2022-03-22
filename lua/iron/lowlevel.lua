@@ -47,6 +47,7 @@ end
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @param bufnr Buffer to be used
+-- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
 ll.create_repl_on_current_window = function(repl, bufnr)
   vim.api.nvim_win_set_buf(0, bufnr)
@@ -89,7 +90,7 @@ end
 -- Expected to be called before creating the repl.
 -- It knows nothing about the repl and only takes in account the
 -- configuration.
--- @warning changes the current window
+-- @warning might change the current window
 -- @param bufnr buffer to be used
 -- @return window id of the newly created window
 ll.new_window = function(bufnr)
@@ -141,6 +142,7 @@ end
 -- Does not affect currently active window and its cursor position.
 -- @tparam string ft name of the filetype
 -- @tparam string|table data A multiline string or a table containing lines to be sent to the repl
+-- @warning changes cursor position if window is visible
 ll.send_to_repl = function(ft, data)
   local dt = data
   local mem = ll.get(ft)
