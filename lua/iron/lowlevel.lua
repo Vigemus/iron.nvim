@@ -46,9 +46,9 @@ end
 -- to the repl so the window will automatically close when the process finishes
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
+-- @param bufnr Buffer to be used
 -- @return unsaved metadata about created repl
-ll.create_repl_on_current_window = function(repl)
-  local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
+ll.create_repl_on_current_window = function(repl, bufnr)
   vim.api.nvim_win_set_buf(0, bufnr)
   local opts = {}
   -- TODO check whether verifying close_window_on_exit should be done
@@ -90,14 +90,20 @@ end
 -- It knows nothing about the repl and only takes in account the
 -- configuration.
 -- @warning changes the current window
+-- @param bufnr buffer to be used
 -- @return window id of the newly created window
-ll.new_window = function()
-  local bufnr = vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
+ll.new_window = function(bufnr)
   if type(config.repl_open_cmd) == "function" then
     return config.repl_open_cmd(bufnr)
   else
     return view.openwin(config.repl_open_cmd, bufnr)
   end
+end
+
+--- Creates a new buffer to be used by the repl
+-- @return the buffer id
+ll.new_buffer = function()
+  return vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
 end
 
 --- Conditional execution depending on repl existence

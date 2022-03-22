@@ -21,13 +21,17 @@ local new_repl = {}
 -- Simple wrapper around the low level functions
 -- Useful to avoid rewriting the get_def + create + save pattern
 -- @param ft filetype
+-- @param bufnr buffer to be used. Will be created if nil.
 -- @return saved snapshot of repl metadata
-new_repl.create = function(ft)
-    local repl = ll.get_repl_def(ft)
-    local meta = ll.create_repl_on_current_window(repl)
-    ll.set(ft, meta)
+new_repl.create = function(ft, bufnr)
+  local repl = ll.get_repl_def(ft)
+  if bufnr == nil then
+    bufnr = ll.new_buffer()
+  end
+  local meta = ll.create_repl_on_current_window(repl, bufnr)
+  ll.set(ft, meta)
 
-    return meta
+  return meta
 end
 
 --- Create a new repl on a new repl window
@@ -36,12 +40,13 @@ end
 -- @param ft filetype
 -- @return saved snapshot of repl metadata
 new_repl.create_on_new_window = function(ft)
-      local replwin = ll.new_window()
+  local bufnr = ll.new_buffer()
+  local replwin = ll.new_window(bufnr)
 
-      vim.api.nvim_set_current_win(replwin)
-      local meta = new_repl.create(ft)
+  vim.api.nvim_set_current_win(replwin)
+  local meta = new_repl.create(ft, bufnr)
 
-      return meta
+  return meta
 end
 
 --- Creates a repl in the current window
@@ -135,7 +140,7 @@ end
 core.repl_for = function(ft)
   return ll.if_repl_exists(ft, function(mem)
     config.visibility(mem.bufnr, function()
-           local winid = ll.new_window()
+           local winid = ll.new_window(mem.bufnr)
            vim.api.nvim_win_set_buf(winid, mem.bufnr)
            return winid
         end)
@@ -155,7 +160,7 @@ end
 core.focus_on = function(ft)
   return ll.if_repl_exists(ft, function(mem)
     focus(mem.bufnr, function()
-           local winid = ll.new_window()
+           local winid = ll.new_window(mem.bufnr)
            vim.api.nvim_win_set_buf(winid, mem.bufnr)
            return winid
         end)
