@@ -5,7 +5,6 @@ local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
-local tables = require("iron.util.tables")
 
 --- Core functions of iron
 -- @module core
@@ -64,12 +63,13 @@ end
 -- Afterwards, wipe out the old REPL buffer
 -- This is done without asking for confirmation, so user beware
 -- @todo Split into "restart a repl" and "do X for current buffer's repl"
+-- @return saved snapshotof repl metadata
 core.repl_restart = function()
   local bufnr_here = vim.fn.bufnr("%")
   local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
 
   if ft ~= nil then
-    new_repl.create(ft)
+    local meta = new_repl.create(ft)
 
     -- created a new one, now have to kill the old one
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
@@ -145,9 +145,9 @@ core.repl_for = function(ft)
            return winid
         end)
         return mem
-    end, function(ft)
+    end, function(_ft)
       local currwin = vim.api.nvim_get_current_win()
-      local meta = new_repl.create_on_new_window(ft)
+      local meta = new_repl.create_on_new_window(_ft)
       vim.api.nvim_set_current_win(currwin)
       return meta
     end)
@@ -392,7 +392,7 @@ local commands = {
 
     core.repl_here(ft)
   end, {}},
-  {"IronRestart", function(opts) core.repl_restart() end, {}}
+  {"IronRestart", function(_) core.repl_restart() end, {}}
 }
 
 --- Wrapper for calling functions through motion.

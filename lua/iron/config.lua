@@ -9,7 +9,8 @@ local config
 -- @table config.values
 -- @tfield false|string highlight_last Either false or the name of a highlight group
 -- @field scratch_repl When enabled, the repl buffer will be a scratch buffer
--- @field should_map_plug when enabled iron will provide its mappings as `<plug>(..)` as well, for backwards compatibility
+-- @field should_map_plug when enabled iron will provide its mappings as `<plug>(..)` as well,
+-- for backwards compatibility
 -- @field close_window_on_exit closes repl window on process exit
 local values = {
   highlight_last = "IronLastSent",
@@ -21,7 +22,7 @@ local values = {
     __newindex = function(tbl, k, v)
       vim.api.nvim_err_writeln("iron: Setting preferred repl is deprecated.")
       vim.api.nvim_err_writeln("      Use `repl_definition` key instead supplying the complete repl definition")
-      rawset(tbl, k, b)
+      rawset(tbl, k, v)
     end
   }),
   repl_definition = setmetatable({}, {
@@ -44,7 +45,6 @@ local values = {
   }),
   should_map_plug = true,
   repl_open_cmd = view.curry.bottom(40),
-  namespace = namespace,
   mark = { -- Arbitrary numbers
     save_pos = 20,
     send = 77,
