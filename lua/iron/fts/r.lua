@@ -21,10 +21,8 @@ local format = function(open, close, cr)
 end
 
 r.radian = {
-    radian = {
-        command = { "radian" },
-        format = format("\27[200~", "\27[201~\13", "\13"),
-    },
+    command = { "radian" },
+    format = format("\27[200~", "\27[201~\13", "\13"),
 }
 
 return r
