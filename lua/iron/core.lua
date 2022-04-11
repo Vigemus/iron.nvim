@@ -459,7 +459,7 @@ core.setup = function(opts)
   end
 
   for _, command in ipairs(commands) do
-     vim.api.nvim_add_user_command(unpack(command))
+     vim.api.nvim_create_user_command(unpack(command))
   end
 
   if config.should_map_plug then
