@@ -27,6 +27,7 @@ local fts = {
   scala = require("iron.fts.scala"),
   scheme = require("iron.fts.scheme"),
   sh = require("iron.fts.sh"),
+  stata = require("iron.fts.stata"),
   tcl = require("iron.fts.tcl"),
   typescript = require("iron.fts.typescript"),
   zsh = require("iron.fts.zsh")
