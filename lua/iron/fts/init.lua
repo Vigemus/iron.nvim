@@ -8,6 +8,7 @@ local fts = {
   elm = require("iron.fts.elm"),
   erlang = require("iron.fts.erlang"),
   fennel = require("iron.fts.fennel"),
+  forth = require("iron.fts.forth"),
   haskell = require("iron.fts.haskell"),
   hy = require("iron.fts.hy"),
   javascript = require("iron.fts.javascript"),
