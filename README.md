@@ -1,15 +1,10 @@
 # iron.nvim
 
-[![CircleCI](https://circleci.com/gh/hkupty/iron.nvim.svg?style=svg)](https://circleci.com/gh/hkupty/iron.nvim)
+[![Sponsor me](https://img.shields.io/github/sponsors/hkupty?style=flat-square)](https://github.com/sponsors/hkupty)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bbd16045e0321b404ef9/maintainability)](https://codeclimate.com/github/hkupty/iron.nvim/maintainability)
 [![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#iron.nvim:matrix.org)
 
 Interactive Repls Over Neovim
-
-## Support iron.nvim
-
-Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
-Cheers!
 
 ## What is iron.nvim
 
@@ -24,43 +19,40 @@ you need to use `<C-\><C-N>`.
 
 ## How to configure
 
-Create a lua configuration file on your `~/.config/nvim` folder (for example
-named `plugins.lua`) like this:
+Below is a very simple configuration for iron:
 
 ```lua
-local iron = require('iron')
+local iron = require("iron.core")
 
-iron.core.add_repl_definitions {
-  python = {
-    mycustom = {
-      command = {"mycmd"}
+iron.setup {
+  config = {
+    -- If iron should expose `<plug>(...)` mappings for the plugins
+    should_map_plug = false,
+    -- Whether a repl should be discarded or not
+    scratch_repl = true,
+    -- Your repl definitions come here
+    repl_definition = {
+      sh = {
+        command = {"zsh"}
+      }
     }
   },
-  clojure = {
-    lein_connect = {
-      command = {"lein", "repl", ":connect"}
-    }
-  }
-}
-
-iron.core.set_config {
-  preferred = {
-    python = "ipython",
-    clojure = "lein"
+  -- Iron doesn't set keymaps by default anymore. Set them here
+  -- or use `should_map_plug = true` and map from you vim files
+  keymaps = {
+    send_motion = "<space>sc",
+    visual_send = "<space>sc",
+    send_line = "<space>sl",
+    repeat_cmd = "<space>s.",
+    cr = "<space>s<cr>",
+    interrupt = "<space>s<space>",
+    exit = "<space>sq",
+    clear = "<space>cl",
   }
 }
 ```
 
-And on your init.vim, simply do the following:
+## Support iron.nvim
 
-```vim
-luafile $HOME/.config/nvim/plugins.lua
-```
-
-### Important notice
-
-The python remote plugin mechanism was dropped and removed from master.
-The latest commit containing it was [ead377f](https://github.com/Vigemus/iron.nvim/commits/ead377f).
-
-If you want to use that instead, please for the repository or use the
-stale branch [legacy](https://github.com/Vigemus/iron.nvim/commits/legacy) for that.
+Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
+Cheers!
