@@ -1,4 +1,5 @@
 -- luacheck: globals vim
+-- TODO Remvoe config from this layer
 local config = require("iron.config")
 local fts = require("iron.fts")
 local format = require("iron.fts.common").functions.format
@@ -47,13 +48,15 @@ end
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @param bufnr Buffer to be used
+-- @param opts Options passed throught to the terminal
 -- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
-ll.create_repl_on_current_window = function(repl, bufnr)
+ll.create_repl_on_current_window = function(repl, bufnr, opts)
   vim.api.nvim_win_set_buf(0, bufnr)
-  local opts = {}
-  -- TODO check whether verifying close_window_on_exit should be done
-  -- on `on_exit` instead.
+  -- TODO Move this out of this function
+  -- Checking config should be done on an upper layer.
+  -- This layer should be simpler
+  opts = opts or {}
   if config.close_window_on_exit then
     opts.on_exit = function()
       local bufwinid = vim.fn.bufwinid(bufnr)
@@ -81,6 +84,7 @@ ll.get_repl_def = function(ft)
   local repl = config.repl_definition[ft]
   if repl == nil then
     -- TODO Remove after deprecated fns are cleaned
+    -- Should be replaced with logic to get the first executable matching
     return ll.get_preferred_repl(ft)
   end
   return repl
