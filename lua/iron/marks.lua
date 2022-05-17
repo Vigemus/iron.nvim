@@ -1,14 +1,21 @@
 -- luacheck: globals vim
 local config = require("iron.config")
+
+--- Marks management for iron
+-- This is an intermediary layer between iron and neovim's
+-- extmarks. Used primarily to manage the text sent to the repl,
+-- but can also be used to set hightlight and possibly virtualtext.
 local marks = {}
 
--- TODO: Externalize, load on demand or upon "init" function
-vim.api.nvim_set_hl(config.namespace, "IronLastSent", {
-    bold = true
-  })
-
-vim.api.nvim__set_hl_ns(config.namespace)
-
+--- Sets a mark for given options
+-- The mark is set for a preconfigured position id, which will be used by
+-- @{marks.get} for retrieval.
+-- @tparam table opts table with the directives
+-- @tparam number opts.from_line line where the mark starts
+-- @tparam number opts.to_line line where the mark ends. Can be ignored on single line marks
+-- @tparam number opts.from_col column where the mark starts
+-- @tparam number opts.to_col column where the mark ends
+-- @tparam string|false opts.hl Highlight group to be used or false if no highlight should be done.
 marks.set = function(opts)
   local extmark_config = {
     id = config.mark.send,
@@ -43,6 +50,7 @@ marks.clear_hl = function()
   marks.set(payload)
 end
 
+--- Retrieves the mark with a position id.
 marks.get = function()
   local mark_pos = vim.api.nvim_buf_get_extmark_by_id(0, config.namespace, config.mark.send, {details = true})
 
@@ -64,15 +72,14 @@ marks.winrestview = function()
 
   if #mark ~= 0 then
     -- winrestview is 1-based
-    vim.fn.winrestview({lnum = mark[1], col = mark[2]})
+    vim.fn.winrestview({lnum = mark[1] + 1, col = mark[2]})
     vim.api.nvim_buf_del_extmark(0, config.namespace, config.mark.save_pos)
   end
 end
 
 marks.winsaveview = function()
   local pos = vim.fn.winsaveview()
-  vim.api.nvim_buf_set_extmark(0, config.namespace, pos.lnum, pos.col, {id = config.mark.save_pos})
+  vim.api.nvim_buf_set_extmark(0, config.namespace, pos.lnum - 1, pos.col, {id = config.mark.save_pos})
 end
 
 return marks
-

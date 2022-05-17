@@ -1,3 +1,5 @@
+--- Sets the level of debug
+--@module debug_level
 local debug_level = {}
 
 debug_level.fatal = 1
