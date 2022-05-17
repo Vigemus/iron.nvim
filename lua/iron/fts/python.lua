@@ -1,5 +1,4 @@
 -- luacheck: globals vim
-local extend = require("iron.util.tables").extend
 local python = {}
 
 local has = function(feature)
