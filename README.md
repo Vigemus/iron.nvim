@@ -8,14 +8,10 @@ Interactive Repls Over Neovim
 
 ## What is iron.nvim
 
-Iron is both a plugin and a library to allow users to deal with repls.
+[![asciicast](https://asciinema.org/a/495376.svg)](https://asciinema.org/a/495376)
+Iron allows you to quickly interact with the repl without having to leave your work buffer
 
-It keeps mechanisms to track REPLs for different file types and bindings
-to send data directly from the current buffer to it.
-
-It is build on top of neovims `terminal` feature. The default terminal
-keybindings are kept for the terminal, meaning that to exit the insert mode,
-you need to use `<C-\><C-N>`.
+It both a plugin and a library, allowing for better user experience and extensibility at the same time.
 
 ## How to configure
 
