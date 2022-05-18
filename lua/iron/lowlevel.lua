@@ -108,7 +108,7 @@ end
 --- Creates a new buffer to be used by the repl
 -- @return the buffer id
 ll.new_buffer = function()
-  return vim.api.nvim_create_buf(not config.scratch_repl, config.scratch_repl)
+  return vim.api.nvim_create_buf(config.buflisted, config.scratch_repl)
 end
 
 --- Conditional execution depending on repl existence
