@@ -48,6 +48,8 @@ Currently, Iron has support for the following programming languages:
   - elixir
   - elm
   - erlang
+  - fennel
+  - forth
   - haskell
     - intero
     - stack ghci
@@ -88,6 +90,7 @@ Currently, Iron has support for the following programming languages:
     - zsh
     - bash
     - sh
+  - stata
   - tcl
   - typescript
   - zsh
@@ -107,107 +110,134 @@ Iron provides the following commands for interacting with REPLs:
 :IronRestart
   Restart the current REPL.
 
-:IronSend! some [text...]
+:IronSend[!] some [text...]
   Sends the supplied chunk of text to the repl for current filetype.
-
-:IronSend ft some [text...]
-  Sends the supplied chunk of text to given filetype.
+  If used with a `!`, the first argument is the filetype
+  This allows for invoking a new repl immediatelly:
+      > :IronSend! python print(20 * 32)
 
 :IronFocus [ft]
   Focuses on the repl for current or given file type.
-
-:IronWatchCurrentFile some [text...]
-  Sends the given argument string to the repl of current filetype when the file is saved.
-
-:IronUnwatchCurrentFile
-  Removes watch from current file.
 
 
 ===============================================================================
 Functions                                                      *iron-functions*
 
-Iron provides the following functions for interacting with REPLs:
+Iron is a lua plugin as as so all its functionality is exposed through lua
+functions.
 
-IronWatchFile(fname, command)
-  Sends the given command to the repl current filetype when the file is saved.
+The code is mainly divided in two major namespaces:
+- `iron.core`, for most user-facing functions and
+- `iron.lowlevel` for the functions that interact with the repl directly
 
+The code is well documented, so we'll skip `iron.lowlevel` in this doc.
 
-IronUnwatchFile(fname)
-  Removes watch from given file.
+Below are the core functions:
 
+* core.repl_here(ft)        Creates a repl in the same window
+
+* core.repl_restart()       Restarts the repl in the current window or for the
+                            current buffer's filetype
+
+* core.close_repl(ft)       Closes the repl for supplied filetype
+
+* core.repl_for(ft)         Creates a repl for given filetype in a new window
+
+* core.focus_on(ft)         Moves to (or creates) the repl for given filetype
+
+* core.send(ft, data)       Sends data (a table) to the repl for given filetype
+
+* core.send_line()          Sends line below the cursor to the repl
+
+* core.send_motion(motion)  Applies given motion and sends the result to the repl
+                            see `send_motion` in |iron-mappings|
+
+* core.repeat_cmd()         Re-sends the last block to the repl
+
+* core.setup(config)        Configures iron. See |iron-customizing|
 
 ===============================================================================
 Customizing                                                  *iron-customizing*
 
-To change iron's behavior, change the following variables:
+Iron is configured through `core.setup`
 
-g:iron_map_defaults
-  Provide default global mappings (see |iron-mappings|) to send a chunk of text
-  to a REPL (ctr) and to repeat the previous command (cp). Default value = 1.
+Below is a sample config:
 
-g:iron_map_extended
-  Maps additional keybindings to iron. Default value = 1.
+```
+local iron = require("iron.core")
+
+iron.setup{
+  config = {
+    -- Highlights the last sent block with bold
+    highlight_last = "IronLastSent",
+
+    -- Toggling behavior is on by default.
+    -- Other options are: `single` and `focus`
+    visibility = require("iron.visibility").toggle,
+
+    -- Scope of the repl
+    -- By default it is one for the same `pwd`
+    -- Other options are `tab_based` and `singleton`
+    scope = require("iron.scope").path_based,
+
+    -- Wether the repl buffer is a "throwaway" buffer or not
+    scratch_repl = false,
+
+    -- Automatically closes the repl window on process end
+    close_window_on_exit = true,
+    repl_definition = {
+     -- forcing a default
+      python = require("iron.fts.python").ipython
+
+     -- new, custom repl
+      lua = {
+        command = {"my-lua-repl", "-arg"}
+      }
+    },
+    -- Wether iron should map the `<plug>(..)` mappings
+    should_map_plug = true,
+
+    -- Repl position. Check `iron.view` for more options
+    repl_open_cmd = require("iron.view").curry.bottom(40),
+
+    -- If the repl buffer is listed
+    buflisted = false,
+  },
+
+  -- All the keymaps are set individually
+  -- Below is a suggested default
+  keymaps = {
+    send_motion = "<space>sc",
+    visual_send = "<space>sc",
+    send_line = "<space>sl",
+    repeat_cmd = "<space>s.",
+    cr = "<space>s<cr>",
+    interrupt = "<space>s<space>",
+    exit = "<space>sq",
+    clear = "<space>cl",
+  }
+}
+```
 
 ===============================================================================
 Mappings                                                        *iron-mappings*
 
-ctr
-  send a chunk of text to REPL. Works with motions.
-cp
-  repeat the previous command
+Iron by default doesn't map the keybindings, only those supplied in the
+core.setup function.
+
+- send_motion: Sends a motion to the repl
+- visual_send: Sends the visual selection to the repl
+- send_line: Sends the line below the cursor to the repl
+- repeat_cmd: Repeats the last sent block
+- cr: Sends a return to the repl
+- interrupt: Sends a `<C-c>` signal to the repl
+- exit: Exits the repl
+- clear: Clears the repl window
 
 
-Extended Mappings
-
-c<CR>
-  Send new line to REPL
-cst
-  Send an Interrupt to REPL
-cq
-  Exit REPL
-cl
-  Clear the REPL
-
-
-Those hereabove mappings can be redefined by the user, i.e: >
-
-  nmap <localleader>t    <Plug>(iron-send-motion)
-  vmap <localleader>v    <Plug>(iron-visual-send)
-  nmap <localleader>r    <Plug>(iron-repeat-cmd)
-  nmap <localleader>l    <Plug>(iron-send-line)
-  nmap <localleader><CR> <Plug>(iron-cr)
-  nmap <localleader>i    <plug>(iron-interrupt)
-  nmap <localleader>q    <Plug>(iron-exit)
-  nmap <localleader>c    <Plug>(iron-clear)
-<
-
-  -------------------------------------------------------------~
-   LHS(default)     RHS                                  MODE~
-  -------------------------------------------------------------~
-   ctr              |<Plug>(iron-send-motion)|              `n`
-   ctr              |<Plug>(iron-visual-send)|              `v`
-   cp               |<Plug>(iron-repeat-cmd)|               `n`
-   <localleader>sl  |<Plug>(iron-send-line)|                `n`
-   c<CR>            |<Plug>(iron-cr)|                       `n`
-   cst              |<Plug>(iron-interrupt)|                `n`
-   cq               |<Plug>(iron-exit)|                     `n`
-   cl               |<Plug>(iron-clear)|                    `n`
-  -------------------------------------------------------------~
 
 ===============================================================================
 Extending                                                      *iron-extending*
-
-Iron is written in lua where all the logic can easily be managed and extended.
-To do that, add the following snippet to your init.vim:
-
-lua << EOF
-local iron = require("iron")
-
-iron.core.set_config{
-  -- your configuration goes here
-}
-
-EOF
 
 Iron provides some modules that can be used on your configuration to change the
 behavior:
@@ -222,13 +252,6 @@ behavior:
   * `singleton`:
     It will never create two repls for the same filetype.
 
-* `iron.debug_level`:
-  It changes how iron logs the messages:
-  * `fatal`
-  * `err`
-  * `warn`
-  * `info`
-
 * `iron.visibility`:
   It changes the behavior on how iron deals with windows for the repl.
   * `single`:
@@ -237,118 +260,6 @@ behavior:
     Alternates between opening and closing the window
   * `focus`:
     Moves the focus to the repl window.
-
-The keys for configuring iron are the following:
-
-* `manager`:
-  For the memory management function
-* `visibility`:
-  For the window visibility function
-* `debug_level`:
-  For the debug level
-* `preferred`:
-  Preferred repl definition for a filetype
-* `repl_open_cmd`:
-  Command to be run when creating a new window for the repl.
-  It can be a string or a function.
-* `buflisted`:
-  Whether should set the repl buffer to be "buflisted",
-  see |:h buflisted| for further details. Default: false.
-
-An example of configuration would be the following:
-
-lua << EOF
-local iron = require("iron")
-
-local vis = function(buffer_id, show_fn)
-  -- Check if window exists, is visible...
-end
-
-local open_repl = function(buffer)
-  vim.api.nvim_open_win(buffer, ....)
-end
-
-iron.core.set_config{
-  preferred = {
-    python = 'ipython'
-  },
-  repl_open_cmd = open_repl
-}
-
-EOF
-
-===============================================================================
-LuaFunctions                                               *iron-lua-functions*
-
-The following are public iron functions that can be used to spawn a repl,
-send data to a repl or configure iron is some way:
-
-* `iron.core.repl_for(ft)`:
-  Creates a repl for given ft.
-
-* `iron.core.focus_on(ft)`:
-  Focuses on a repl for given ft.
-  Creates if it doesn't exist.
-
-* `iron.core.set_config(cfg)`:
-  Sets configuration based on the given parameters.
-  It merges the given options with the default values.
-
-* `iron.core.add_repl_definitions(defns)`:
-  Adds repl definitions to iron.
-  Example:
-lua << EOF
-local iron = require("iron")
-
-iron.core.add_repl_definitions{
-  myft = {
-    mydefn = {
-      command = {"my-command"},
-      open = ":begin", -- multiline block begin
-      close = {":end", ""} -- multiline block end with two lines
-    }
-  }
-EOF
-
-
-* `iron.core.send(ft, data)`:
-  Sends data repl for given ft.
-  Creates if it doesn't exist.
-
-* `iron.core.send_line()`:
-  Sends current line to repl (for current filetype).
-  Creates if it doesn't exist.
-
-* `iron.core.send_motion(mtype)`:
-  Sends the current motion to the repl.
-  Creates if it doesn't exist.
-
-* `iron.core.visual_send()`:
-  Sends visual selection to the repl.
-  Creates if it doesn't exist.
-
-* `iron.core.repeat_cmd()`:
-  Resends the last block to the repl.
-  Creates if it doesn't exist.
-
-* `iron.core.list_fts()`:
-  Returns a list of current file types iron supports.
-
-* `iron.core.list_definitions_for_ft(ft)`:
-  Returns a table with the definitions supported for given filetype.
-
-* `iron.debug.dump(level, to_buff)`:
-  Prints the log messages.
-  If level is omitted, prints everything.
-  If to_buff is supplied, prints to a buffer instead of message.
-
-* `iron.debug.definitions(lang)`:
-  Prints the definitions for language.
-  if lang is omitted, prints everything.
-
-* `iron.debug.memory()`:
-  Prints current memory module.
-
 
 ===============================================================================
 Credits                                                          *iron-credits*
