@@ -11,7 +11,6 @@ CONTENTS                                                            *iron-help*
   Customizing.............................|iron-customizing|
   Mappings................................|iron-mappings|
   Extending...............................|iron-extending|
-  LuaFunctions............................|iron-lua-functions|
   Credits.................................|iron-credits|
 
 ===============================================================================
@@ -156,6 +155,8 @@ Below are the core functions:
 
 * core.setup(config)        Configures iron. See |iron-customizing|
 
+For more information, check the luadocs in the functions.
+
 ===============================================================================
 Customizing                                                  *iron-customizing*
 
@@ -233,8 +234,6 @@ core.setup function.
 - interrupt: Sends a `<C-c>` signal to the repl
 - exit: Exits the repl
 - clear: Clears the repl window
-
-
 
 ===============================================================================
 Extending                                                      *iron-extending*
