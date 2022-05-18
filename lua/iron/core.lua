@@ -217,7 +217,7 @@ end
 core.send_line = function()
   local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
   local cur_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
-  local width = vim.fn.strwidth(cur_line)
+  local width = vim.fn.strdisplaywidth(cur_line)
 
   if width == 0 then return end
 
@@ -253,21 +253,31 @@ core.get_visual_selection = function()
   if #lines == 0 then return end
 
   if mode == "\22" then
+    local b_offset = math.max(1, b_col) - 1
     for ix, line in ipairs(lines) do
-      lines[ix] = string.sub(line, math.max(1, b_col), math.min(e_col, vim.fn.strwidth(line)))
+      -- On a block, remove all preciding chars unless b_col is 0/negative
+      lines[ix] = vim.fn.strcharpart(line, b_offset , math.min(e_col, vim.fn.strdisplaywidth(line)))
     end
   elseif mode == "v" then
     local last = #lines
-    -- Questionable whether we should do this here...
-    lines[1] = string.sub(lines[1], math.min(b_col, vim.fn.strwidth(lines[1])))
-    lines[last] = string.sub(lines[last], 1, math.min(e_col, vim.fn.strwidth(lines[last])))
+    if b_col > 1 then
+      -- on a normal visual selection, if the start column is not 1, trim the beginning part
+      lines[1] = vim.fn.strcharpart(lines[1], b_col - 1)
+    end
+
+    local line_size = vim.fn.strdisplaywidth(lines[last])
+    local max_width = math.min(e_col, line_size)
+    if (max_width < line_size) then
+      -- If the selected width is smaller then total line, trim the excess
+      lines[last] = vim.fn.strcharpart(lines[last], 0, max_width)
+    end
   end
 
   marks.set{
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
-    to_col = math.min(e_col, vim.fn.strwidth(lines[#lines])) - 1 -- TODO Check whether this is actually true
+    to_col = math.min(e_col, vim.fn.strdisplaywidth(lines[#lines])) - 1 -- TODO Check whether this is actually true
   }
 
   return lines
@@ -284,17 +294,18 @@ core.get_motion_selection = function(mtype)
   if #lines == 0 then return end
 
   if mtype=='line' then
-    b_col, e_col = 0, vim.fn.strwidth(lines[#lines])
+    b_col, e_col = 0, vim.fn.strdisplaywidth(lines[#lines])
   else
-    b_col = math.max(b_col, vim.fn.strwidth(lines[1]))
-    e_col = math.max(e_col, vim.fn.strwidth(lines[#lines]))
+    -- TODO check whether this adjusment makes sense
+    b_col = math.min(b_col, vim.fn.strdisplaywidth(lines[1]))
+    e_col = math.max(e_col, vim.fn.strdisplaywidth(lines[#lines]))
   end
 
   if e_col > 1 then
-    lines[#lines] = string.sub(lines[#lines], 1, e_col)
+    lines[#lines] = vim.fn.strcharpart(lines[#lines], 0, e_col)
   end
   if b_col > 1 then
-    lines[1] = string.sub(lines[1], b_col)
+    lines[1] = vim.fn.strcharpart(lines[1], b_col - 1)
   end
 
   marks.set{
@@ -339,15 +350,15 @@ core.repeat_cmd = function()
   local lines = vim.api.nvim_buf_get_lines(0, pos.from_line, pos.to_line + 1, 0)
 
   if #lines == 1 then
-    if pos.from_col >= 1 or pos.to_col < string.len(lines[1]) - 1 then
-      lines[1] = string.sub(lines[1], pos.from_col + 1, pos.to_col + 1)
+    if pos.from_col >= 1 or pos.to_col < vim.fn.strdisplaywidth(lines[1]) - 1 then
+      lines[1] = vim.fn.strcharpart(lines[1], pos.from_col, pos.to_col + 1)
     end
   else
     if pos.from_col >= 1 then
-      lines[1] = string.sub(lines[1], pos.from_col + 1)
+      lines[1] = vim.fn.strcharpart(lines[1], pos.from_col)
     end
-    if pos.to_col < string.len(lines[#lines]) - 1 then
-      lines[#lines] = string.sub(lines[#lines], 1, pos.to_col + 1)
+    if pos.to_col < vim.fn.strdisplaywidth(lines[#lines]) - 1 then
+      lines[#lines] = vim.fn.strcharpart(lines[#lines], 0, pos.to_col + 1)
     end
   end
 
