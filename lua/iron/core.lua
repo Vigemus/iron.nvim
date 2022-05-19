@@ -50,11 +50,15 @@ end
 
 --- Creates a repl in the current window
 -- @param ft the filetype of the repl to be created
+-- @treturn table metadata of the repl
 core.repl_here = function(ft)
-  return ll.if_repl_exists(ft, function(mem)
-    vim.api.nvim_set_current_buf(mem.bufnr)
-    return mem
-  end, new_repl.create)
+  local meta = ll.get(ft)
+  if ll.repl_exists(meta) then
+    vim.api.nvim_set_current_buf(meta.bufnr)
+    return meta
+  else
+    return new_repl.create(ft)
+  end
 end
 
 --- Restarts the repl for the current buffer
@@ -78,26 +82,26 @@ core.repl_restart = function()
     ft = ll.get_buffer_ft(0)
     if ft == nil then return end
 
-    return ll.if_repl_exists(ft, function(mem)
-      local replwin = vim.fn.bufwinid(mem.bufnr)
+    local meta = ll.get(ft)
+    if ll.repl_exists(meta) then
+      local replwin = vim.fn.bufwinid(meta.bufnr)
       local currwin = vim.api.nvim_get_current_win()
-      local meta
+      local new_meta
 
       if replwin == nil or replwin == -1 then
-        meta = new_repl.create_on_new_window(ft)
+        new_meta = new_repl.create_on_new_window(ft)
       else
         vim.api.nvim_set_current_win(replwin)
-        meta = new_repl.create(ft)
+        new_meta = new_repl.create(ft)
       end
 
       vim.api.nvim_set_current_win(currwin)
-      vim.api.nvim_buf_delete(mem.bufnr, {force = true})
+      vim.api.nvim_buf_delete(meta.bufnr, {force = true})
 
-      return meta
-      end, function()
-      -- no repl found, so nothing to do
+      return new_meta
+    else
       vim.api.nvim_err_writeln('No repl found in current buffer; cannot restart')
-    end)
+    end
   end
 end
 
@@ -138,19 +142,20 @@ end
 -- supplied as argument.
 -- @param ft filetype
 core.repl_for = function(ft)
-  return ll.if_repl_exists(ft, function(mem)
-    config.visibility(mem.bufnr, function()
-           local winid = ll.new_window(mem.bufnr)
-           vim.api.nvim_win_set_buf(winid, mem.bufnr)
-           return winid
-        end)
-        return mem
-    end, function(_ft)
-      local currwin = vim.api.nvim_get_current_win()
-      local meta = new_repl.create_on_new_window(_ft)
-      vim.api.nvim_set_current_win(currwin)
-      return meta
+  local meta = ll.get(ft)
+  if ll.repl_exists(meta) then
+    config.visibility(meta.bufnr, function()
+      local winid = ll.new_window(meta.bufnr)
+      vim.api.nvim_win_set_buf(winid, meta.bufnr)
+      return winid
     end)
+    return meta
+  else
+    local currwin = vim.api.nvim_get_current_win()
+    local meta = new_repl.create_on_new_window(ft)
+    vim.api.nvim_set_current_win(currwin)
+    return meta
+  end
 end
 
 --- Moves to the repl for given filetype
@@ -158,14 +163,17 @@ end
 -- directly moving the focus to it.
 -- @param ft filetype
 core.focus_on = function(ft)
-  return ll.if_repl_exists(ft, function(mem)
-    focus(mem.bufnr, function()
-           local winid = ll.new_window(mem.bufnr)
-           vim.api.nvim_win_set_buf(winid, mem.bufnr)
-           return winid
-        end)
-        return mem
-    end, new_repl.create_on_new_window)
+  local meta = ll.get(ft)
+  if ll.repl_exists(meta) then
+    focus(meta.bufnr, function()
+      local winid = ll.new_window(meta.bufnr)
+      vim.api.nvim_win_set_buf(winid, meta.bufnr)
+      return winid
+    end)
+    return meta
+  else
+    return new_repl.create_on_new_window(ft)
+  end
 end
 
 --- [Deprecated] Sets configuration
@@ -207,8 +215,12 @@ core.send = function(ft, data)
   if ft == nil then return end
   if data == nil then return end
   -- If the repl doesn't exist, it will be created
-  ll.if_repl_exists(ft, nil, core.repl_for)
-  ll.send_to_repl(ft, data)
+  local meta = ll.get(ft)
+
+  if not ll.repl_exists(meta) then
+    meta = core.repl_for(ft)
+  end
+  ll.send_to_repl(meta, data)
 end
 
 --- Sends the line under the cursor to the repl
