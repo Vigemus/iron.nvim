@@ -2,7 +2,7 @@
 -- TODO Remvoe config from this layer
 local config = require("iron.config")
 local fts = require("iron.fts")
-local format = require("iron.fts.common").functions.format
+local format = require("iron.fts.common").format
 local view = require("iron.view")
 
 --- Low level functions for iron
@@ -162,7 +162,8 @@ ll.send_to_repl = function(ft, data)
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
   end
 
-  vim.api.nvim_call_function('chansend', {mem.job, dt})
+  --TODO check vim.api.nvim_chan_send
+  vim.fn.chansend(mem.job, dt)
 
   if window ~= -1 then
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
