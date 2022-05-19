@@ -10,8 +10,6 @@ local view = require("iron.view")
 -- There are a few rules to the functions in this document:
 --    * They should not interact with each other
 --        * An exception for this is @{lowlevel.get_repl_def} during the transition to v3
---        * The other exception is @{lowlevel.if_repl_exists}, which hides the complexity
---      of managing the session of a repl.
 --    * They should do one small thing only
 --    * They should not care about setting/cleaning up state (i.e. moving back to another window)
 --    * They must be explicit in their documentation about the state changes they cause.
@@ -111,31 +109,12 @@ ll.new_buffer = function()
   return vim.api.nvim_create_buf(config.buflisted, config.scratch_repl)
 end
 
---- Conditional execution depending on repl existence
--- This fn wraps the logic of doing something if a repl exists or not.
--- Since this pattern repeats frequently, this is a way of wrapping the complexity
--- and skipping the need to "ensure a repl exists", for example.
--- @tparam string ft filetype for the repl to be checked
--- @tparam function(mem) when_true_action action to perform when a repl exists
--- @tparam function(ft) when_false_action action to perform when a repl does not exist
--- @return result of the called function (either when_true_action or when_false_action)
--- @treturn boolean whether the repl existed or not when the function was called
-ll.if_repl_exists = function(ft, when_true_action, when_false_action)
-  if ft == nil or ft == "" then
-    vim.api.nvim_err_writeln("iron: Empty filetype. Aborting")
-    return
-    end
-
-  local mem = ll.get(ft)
-
-  if (mem ~= nil and vim.api.nvim_buf_is_loaded(mem.bufnr)) then
-    -- Split from the if above so a nil true-action doesn't trigger a false-action.
-    if when_true_action ~= nil then
-      return when_true_action(mem), true
-    end
-  elseif when_false_action ~= nil then
-    return when_false_action(ft), false
-  end
+--- Wraps the condition checking of whether a repl exists
+-- created for convenience
+-- @tparam table meta metadata for repl. Can be nil.
+-- @treturn boolean whether the repl exists
+ll.repl_exists = function(meta)
+  return meta ~= nil and vim.api.nvim_buf_is_loaded(meta.bufnr)
 end
 
 --- Sends data to an existing repl of given filetype
