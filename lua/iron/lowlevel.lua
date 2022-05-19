@@ -48,13 +48,14 @@ end
 -- ensures the right window is created and active before calling this function.
 -- If @{\\config.close_window_on_exit} is set to true, it will plug a callback
 -- to the repl so the window will automatically close when the process finishes
+-- @param ft filetype of the current repl
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @param bufnr Buffer to be used
 -- @param opts Options passed throught to the terminal
 -- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
-ll.create_repl_on_current_window = function(repl, bufnr, opts)
+ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
   vim.api.nvim_win_set_buf(0, bufnr)
   -- TODO Move this out of this function
   -- Checking config should be done on an upper layer.
@@ -73,6 +74,7 @@ ll.create_repl_on_current_window = function(repl, bufnr, opts)
   local job_id = vim.fn.termopen(repl.command, opts)
 
   return {
+    ft = ft,
     bufnr = bufnr,
     job = job_id,
     repldef = repl

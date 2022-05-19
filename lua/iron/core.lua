@@ -27,7 +27,7 @@ new_repl.create = function(ft, bufnr)
   if bufnr == nil then
     bufnr = ll.new_buffer()
   end
-  local meta = ll.create_repl_on_current_window(repl, bufnr)
+  local meta = ll.create_repl_on_current_window(ft, repl, bufnr)
   ll.set(ft, meta)
 
   return meta
