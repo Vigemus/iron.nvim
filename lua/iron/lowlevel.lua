@@ -161,15 +161,13 @@ end
 -- @tparam int bufnr number of the buffer being checked
 -- @treturn string filetype of the buffer's repl (or nil if it doesn't have a repl associated)
 ll.get_repl_ft_for_bufnr = function(bufnr)
-  local ft_found
-  for ft in pairs(ll.store) do
-    local mem = ll.get(ft)
-    if mem ~= nil and bufnr == mem.bufnr then
-      ft_found = ft
-      break
+  for _, values  in pairs(ll.store) do
+    for _, meta in pairs(values) do
+      if meta.bufnr == bufnr then
+        return meta.ft
+      end
     end
   end
-  return ft_found
 end
 
 -- [[ Below this line are deprecated functions to be removed ]] --
