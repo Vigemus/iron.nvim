@@ -80,7 +80,6 @@ core.repl_restart = function()
     return meta
   else
     ft = ll.get_buffer_ft(0)
-    if ft == nil then return end
 
     local meta = ll.get(ft)
     if ll.repl_exists(meta) then
@@ -112,29 +111,9 @@ end
 -- @param ft filetype
 core.close_repl = function(ft)
   ft = ft or ll.get_buffer_ft(0)
-  if ft == nil then return end
+  local meta = ll.get(ft)
 
-  ll.send_to_repl(ft, string.char(04))
-end
-
---- [Deprecated] sets up a repl by its name
--- The concept of named repls is confusing and while it makes
--- sense for storing them (or maybe not) the most important
--- thing is a direct configuration for the user, so this function
--- should be avoided
--- @param repl_name name of the configured repl
--- @param ft filetype
-core.repl_by_name = function(repl_name, ft)
-  vim.api.nvim_err_writeln("iron: repl_by_name is deprecated.")
-  ft = ft or vim.bo.ft
-  local repl = fts[ft][repl_name]
-
-  if repl == nil then
-    vim.api.nvim_err_writeln('Repl definition of name "' .. repl_name .. '" not found for file type: '.. ft)
-    return
-  end
-
-  return ll.create_new_repl(ft, repl)
+  ll.send_to_repl(meta, string.char(04))
 end
 
 --- Creates a repl for a given filetype
@@ -212,7 +191,6 @@ end
 -- @tparam string|table data data to be sent to the repl.
 core.send = function(ft, data)
   ft = ft or ll.get_buffer_ft(0)
-  if ft == nil then return end
   if data == nil then return end
   -- If the repl doesn't exist, it will be created
   local meta = ll.get(ft)
@@ -376,7 +354,6 @@ end
 local commands = {
   {"IronRepl", function(opts)
     local ft = opts.args[1] or ll.get_buffer_ft(0)
-    if ft == nil then return end
     core.repl_for(ft)
   end, {}},
   {"IronSend", function(opts)
