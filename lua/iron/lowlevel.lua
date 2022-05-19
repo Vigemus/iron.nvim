@@ -123,28 +123,28 @@ end
 -- As a side-effect of pasting the contents to the repl,
 -- it changes the scroll position of that window.
 -- Does not affect currently active window and its cursor position.
+-- @tparam table meta metadata for repl. Should not be nil
 -- @tparam string ft name of the filetype
 -- @tparam string|table data A multiline string or a table containing lines to be sent to the repl
 -- @warning changes cursor position if window is visible
-ll.send_to_repl = function(ft, data)
+ll.send_to_repl = function(meta, data)
   local dt = data
-  local mem = ll.get(ft)
 
   if type(data) == "string" then
     dt = vim.split(data, '\n')
   end
 
-  dt = format(mem.repldef, dt)
+  dt = format(meta.repldef, dt)
 
-  local window = vim.fn.bufwinid(mem.bufnr)
+  local window = vim.fn.bufwinid(meta.bufnr)
   if window ~= -1 then
-    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
   end
 
-  vim.api.nvim_call_function('chansend', {mem.job, dt})
+  vim.api.nvim_call_function('chansend', {meta.job, dt})
 
   if window ~= -1 then
-    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(mem.bufnr), 0})
+    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
   end
 end
 
