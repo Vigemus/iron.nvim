@@ -19,7 +19,7 @@ common.format = function(repldef, lines)
   end
 
   if #new > 0 then
-    new[#new] = new[#new] .. "\13"
+    new[#new] = new[#new] .. cr
   end
 
   return new
@@ -34,7 +34,7 @@ common.bracketed_paste = function(lines)
       table.insert(new, lines[line])
     end
 
-    table.insert(new, close_code)
+    table.insert(new, close_code .. cr)
 
     return new
   end
