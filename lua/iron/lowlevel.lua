@@ -89,6 +89,7 @@ ll.get_repl_def = function(ft)
   local repl = config.repl_definition[ft]
   if repl == nil then
     -- TODO Remove after deprecated fns are cleaned
+    -- TODO Implement repl provider
     -- Should be replaced with logic to get the first executable matching
     return ll.get_preferred_repl(ft)
   end
