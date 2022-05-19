@@ -19,22 +19,27 @@ local ll = {}
 
 ll.store = {}
 
+-- TODO This should not be part of lowlevel
 ll.get = function(ft)
+  if ft == nil or ft == "" then
+    error("Empty filetype", 0)
+  end
   return config.scope.get(ll.store, ft)
 end
 
+-- TODO this should not be part of lowlevel
 ll.set = function(ft, fn)
   return config.scope.set(ll.store, ft, fn)
 end
 
 ll.get_buffer_ft = function(bufnr)
   local ft = vim.bo[bufnr].filetype
-  if fts[ft] == nil then
-    vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
-    return nil
-  else
-    return ft
+  if ft == nil or ft == "" then
+    error("Empty filetype", 0)
+  elseif fts[ft] == nil then
+    error("There's no REPL definition for current filetype "..ft, 0)
   end
+  return ft
 end
 
 --- Creates the repl in the current window
