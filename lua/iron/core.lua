@@ -155,34 +155,6 @@ core.focus_on = function(ft)
   end
 end
 
---- [Deprecated] Sets configuration
--- Sets the configuration.
--- This is only a fraction of the actual setup and should not be directly used
--- @see core.setup
-core.set_config = function(cfg)
-  for k, v in pairs(cfg) do
-    config[k] = v
-  end
-end
-
---- [Deprecated] adds repls definition to the set of configurations
--- Adds a repl definition to the collection of known repls.
--- It should not be used since this is a complicated way of configuring
--- the user experience.
--- @see core.setup
-core.add_repl_definitions = function(defns)
-  vim.api.nvim_err_writeln("iron: The function `add_repl_definitions` is deprecated")
-  vim.api.nvim_err_writeln("      Use `core.setup{repl_definition = {<ft> = {<definition>}}}`")
-  for ft, defn in pairs(defns) do
-    if fts[ft] == nil then
-      fts[ft] = {}
-    end
-    for repl, repldfn in pairs(defn) do
-      fts[ft][repl] = repldfn
-    end
-  end
-end
-
 --- Sends data to the repl
 -- This is a top-level wrapper over the low-level
 -- functions. It should send data to the repl, ensuring
@@ -461,11 +433,9 @@ local named_maps = {
   clear = {{'n'}, function() core.send(nil, string.char(12)) end},
 }
 
-
 local snake_to_kebab = function(name)
   return name:gsub("_", "-")
 end
-
 
 --- Sets up the configuration for iron to run.
 -- Also, defines commands and keybindings for iron to run.
@@ -473,8 +443,11 @@ end
 -- @tparam table opts.config set of config values to override default on @{config}
 -- @tparam table opts.keymaps set of keymaps to apply, based on @{named_maps}
 core.setup = function(opts)
-  core.set_config(opts.config)
   config.namespace = vim.api.nvim_create_namespace("iron")
+
+  for k, v in pairs(opts.config) do
+    config[k] = v
+  end
 
   if config.highlight_last ~= false then
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
