@@ -411,7 +411,7 @@ local commands = {
 -- @param motion_fn_name name of the function in @{core} to be mapped
 core.run_motion = function(motion_fn_name)
   marks.winsaveview()
-  vim.o.operatorfunc = 'v:lua.package.loaded.iron.core.' .. motion_fn_name
+  vim.o.operatorfunc = "v:lua.require'iron.core'." .. motion_fn_name
   vim.api.nvim_feedkeys("g@", "ni", false)
 end
 
