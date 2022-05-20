@@ -355,6 +355,21 @@ core.repeat_cmd = function()
   core.send(nil, lines)
 end
 
+--- Provide filtered list of supported fts
+-- Auxiliary function to be used by commands to show the user which fts they have
+-- available to start repls with
+-- @param partial input string
+-- @return table with supported filetypes matching input string
+local complete_fts = function(partial)
+  local starts_with_partial = function(key) return key:sub(1, #partial) == partial end
+  local custom_fts = vim.tbl_filter(starts_with_partial, vim.tbl_keys(config.repl_definition))
+  vim.list_extend(custom_fts, vim.tbl_filter(
+    function(i) return (not vim.tbl_contains(custom_fts, i)) and starts_with_partial(i) end,
+    vim.tbl_keys(require("iron.fts")))
+  )
+
+  return custom_fts
+end
 
 --- List of commands created by iron.nvim
 -- They'll only be set up after calling the @{core.setup} function
@@ -364,35 +379,40 @@ end
 -- @field IronRepl command for @{core.repl_for}
 local commands = {
   {"IronRepl", function(opts)
-    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
     core.repl_for(ft)
-  end, {}},
+  end, {nargs="?", complete = complete_fts}},
   {"IronSend", function(opts)
     local ft
     if opts.bang then
-      ft = opts.args[1]
-      opts.args[1] = ""
+      ft = opts.fargs[1]
+      opts.fargs[1] = ""
     else
       ft = ll.get_buffer_ft(0)
     end
     if ft == nil then return end
-    local data = table.join(vim.tbl_filter(function(x) return x == "" end, opts.args), " ")
+    local data = table.concat(opts.fargs, " ")
 
     core.send(ft, data)
-  end, {bang = true}},
+  end, {bang = true, nargs = "+", complete = function(arg_lead, cmd_line, cursor_pos)
+      local cmd = vim.split(cmd_line, " ")
+      if #cmd <= 2 and string.find(cmd[1], "!") then
+        return complete_fts(arg_lead)
+      end
+    end}},
   {"IronFocus", function(opts)
-    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
     if ft == nil then return end
 
     core.focus_on(ft)
-  end, {}},
+  end, {nargs = "?", complete = complete_fts}},
   {"IronReplHere", function(opts)
-    local ft = opts.args[1] or ll.get_buffer_ft(0)
+    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
     if ft == nil then return end
 
     core.repl_here(ft)
-  end, {}},
-  {"IronRestart", function(_) core.repl_restart() end, {}}
+  end, {nargs = "?", complete = complete_fts}},
+  {"IronRestart", function(_) core.repl_restart() end, {nargs = 0}}
 }
 
 --- Wrapper for calling functions through motion.
