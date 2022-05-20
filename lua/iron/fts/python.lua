@@ -1,4 +1,5 @@
 -- luacheck: globals vim
+local bracketed_paste = require("iron.fts.common").bracketed_paste
 local python = {}
 
 local has = function(feature)
@@ -19,24 +20,11 @@ end
 local is_windows = has('win32') and true or false
 local pyversion  = executable('python3') and 'python3' or 'python'
 
-local format = function(open, close, cr)
-  return function(lines)
-    if #lines == 1 then
-      return { lines[1] .. cr }
-    else
-      local new = { open .. lines[1] }
-      for line=2, #lines do
-        table.insert(new, lines[line])
-      end
-      return table.insert(new, close)
-    end
-  end
-end
 
 local def = function(cmd)
   return {
     command = cmd,
-    format = format("\27[200~", "\27[201~\13", "\13")
+    format = bracketed_paste
   }
 end
 

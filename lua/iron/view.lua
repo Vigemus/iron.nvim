@@ -15,9 +15,16 @@ view.openwin = function(cmd, buff)
   return winid
 end
 
+local function check_size(value, ...)
+  if type(value) == "function" then
+    return value(...)
+  end
+  return value
+end
 
 view.top = function(size, buff)
   local width = vim.o.columns
+  size = check_size(size, buff)
 
   return view.openfloat({
     relative = "editor",
@@ -31,6 +38,7 @@ end
 view.bottom = function(size, buff)
   local width = vim.o.columns
   local height = vim.o.lines
+  size = check_size(size, buff)
 
   return view.openfloat({
     relative = "editor",
@@ -44,6 +52,7 @@ end
 view.right = function(size, buff)
   local width = vim.o.columns
   local height = vim.o.lines
+  size = check_size(size, buff)
 
   return view.openfloat({
     relative = "editor",
@@ -56,6 +65,7 @@ end
 
 view.left = function(size, buff)
   local height = vim.o.lines
+  size = check_size(size, buff)
 
   return view.openfloat({
     relative = "editor",
@@ -69,6 +79,7 @@ end
 view.center = function(size, buff)
   local width = vim.o.columns
   local height = vim.o.lines
+  size = check_size(size, buff)
 
   return view.openfloat({
     relative = "editor",
