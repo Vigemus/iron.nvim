@@ -20,7 +20,7 @@ local new_repl = {}
 -- Simple wrapper around the low level functions
 -- Useful to avoid rewriting the get_def + create + save pattern
 -- @param ft filetype
--- @param bufnr buffer to be used. Will be created if nil.
+-- @param bufnr buffer to be used.
 -- @tparam cleanup function Function to cleanup if call fails
 -- @return saved snapshot of repl metadata
 new_repl.create = function(ft, bufnr, cleanup)
@@ -31,10 +31,6 @@ new_repl.create = function(ft, bufnr, cleanup)
     error(repl, 0)
   end
 
-
-  if bufnr == nil then
-    bufnr = ll.new_buffer()
-  end
   local success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
   if success then
     ll.set(ft, meta)
@@ -73,7 +69,10 @@ core.repl_here = function(ft)
     vim.api.nvim_set_current_buf(meta.bufnr)
     return meta
   else
-    return new_repl.create(ft)
+    local bufnr = ll.new_buffer()
+    return new_repl.create(ft, bufnr, function()
+      vim.api.nvim_buf_delete(bufnr, {force = true})
+    end)
   end
 end
 
@@ -89,7 +88,10 @@ core.repl_restart = function()
   local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
 
   if ft ~= nil then
-    local meta = new_repl.create(ft)
+    local bufnr = ll.new_buffer()
+    local meta = new_repl.create(ft, bufnr, function()
+      vim.api.nvim_buf_delete(bufnr, {force = true})
+    end)
 
     -- created a new one, now have to kill the old one
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
@@ -107,7 +109,10 @@ core.repl_restart = function()
         new_meta = new_repl.create_on_new_window(ft)
       else
         vim.api.nvim_set_current_win(replwin)
-        new_meta = new_repl.create(ft)
+        local bufnr = ll.new_buffer()
+        meta = new_repl.create(ft, bufnr, function()
+          vim.api.nvim_buf_delete(bufnr, {force = true})
+        end)
       end
 
       vim.api.nvim_set_current_win(currwin)
