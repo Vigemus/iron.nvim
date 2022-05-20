@@ -1,6 +1,5 @@
 -- luacheck: globals vim unpack
 
-local fts = require("iron.fts")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
@@ -24,6 +23,7 @@ local new_repl = {}
 -- @tparam cleanup function Function to cleanup if call fails
 -- @return saved snapshot of repl metadata
 new_repl.create = function(ft, bufnr, cleanup)
+  local meta
   local success, repl = pcall(ll.get_repl_def, ft)
 
   if not success and cleanup ~= nil then
@@ -31,7 +31,7 @@ new_repl.create = function(ft, bufnr, cleanup)
     error(repl, 0)
   end
 
-  local success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
+  success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
   if success then
     ll.set(ft, meta)
     return meta
@@ -52,7 +52,7 @@ new_repl.create_on_new_window = function(ft)
   local replwin = ll.new_window(bufnr)
 
   vim.api.nvim_set_current_win(replwin)
-  local success, meta = new_repl.create(ft, bufnr, function()
+  local meta = new_repl.create(ft, bufnr, function()
     vim.api.nvim_win_close(replwin, true)
     vim.api.nvim_buf_delete(bufnr, {force = true})
   end)

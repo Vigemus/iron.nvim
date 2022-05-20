@@ -1,3 +1,4 @@
+-- luacheck: globals vim
 local fts = require("iron.fts")
 
 local providers = {}
@@ -17,7 +18,7 @@ providers.first_matching_binary = function(ft)
 
   local repl_def
 
-  for k, v in pairs(repl_definitions) do
+  for _, v in pairs(repl_definitions) do
     if vim.fn.executable(v.command[1]) == 1 then
       repl_def = v
       break
