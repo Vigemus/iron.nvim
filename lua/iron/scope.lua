@@ -39,11 +39,11 @@ scope.path_based = {
 scope.singleton = {
   set = function(memory, ft, repl_data)
     ensure_key(memory, ft)
-    memory[ft] = repl_data
+    default_map_set(memory, ft, "singleton", repl_data)
     return repl_data
   end,
   get = function(memory, ft)
-    return memory[ft]
+    return memory[ft]["singleton"]
   end
 }
 
