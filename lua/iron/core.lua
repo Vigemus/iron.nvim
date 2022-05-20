@@ -21,16 +21,29 @@ local new_repl = {}
 -- Useful to avoid rewriting the get_def + create + save pattern
 -- @param ft filetype
 -- @param bufnr buffer to be used. Will be created if nil.
+-- @tparam cleanup function Function to cleanup if call fails
 -- @return saved snapshot of repl metadata
-new_repl.create = function(ft, bufnr)
-  local repl = ll.get_repl_def(ft)
+new_repl.create = function(ft, bufnr, cleanup)
+  local success, repl = pcall(ll.get_repl_def, ft)
+
+  if not success and cleanup ~= nil then
+    cleanup()
+    error(repl, 0)
+  end
+
+
   if bufnr == nil then
     bufnr = ll.new_buffer()
   end
-  local meta = ll.create_repl_on_current_window(ft, repl, bufnr)
-  ll.set(ft, meta)
+  local success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
+  if success then
+    ll.set(ft, meta)
+    return meta
+  elseif cleanup ~= nil then
+    cleanup()
+  end
 
-  return meta
+  error(meta, 0)
 end
 
 --- Create a new repl on a new repl window
@@ -43,7 +56,10 @@ new_repl.create_on_new_window = function(ft)
   local replwin = ll.new_window(bufnr)
 
   vim.api.nvim_set_current_win(replwin)
-  local meta = new_repl.create(ft, bufnr)
+  local success, meta = new_repl.create(ft, bufnr, function()
+    vim.api.nvim_win_close(replwin, true)
+    vim.api.nvim_buf_delete(bufnr, {force = true})
+  end)
 
   return meta
 end
