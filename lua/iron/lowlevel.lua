@@ -150,7 +150,7 @@ ll.send_to_repl = function(meta, data)
   end
 
   --TODO check vim.api.nvim_chan_send
-  vim.fn.chansend(mem.job, dt)
+  vim.fn.chansend(meta.job, dt)
 
   if window ~= -1 then
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
