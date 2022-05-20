@@ -394,7 +394,7 @@ local commands = {
     local data = table.concat(opts.fargs, " ")
 
     core.send(ft, data)
-  end, {bang = true, nargs = "+", complete = function(arg_lead, cmd_line, cursor_pos)
+  end, {bang = true, nargs = "+", complete = function(arg_lead, cmd_line)
       local cmd = vim.split(cmd_line, " ")
       if #cmd <= 2 and string.find(cmd[1], "!") then
         return complete_fts(arg_lead)
