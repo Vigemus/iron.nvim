@@ -2,6 +2,7 @@
 -- TODO Remvoe config from this layer
 local config = require("iron.config")
 local fts = require("iron.fts")
+local providers = require("iron.providers")
 local format = require("iron.fts.common").format
 local view = require("iron.view")
 
@@ -86,14 +87,8 @@ end
 -- @tparam string ft filetype of the desired repl
 -- @return repl definition
 ll.get_repl_def = function(ft)
-  local repl = config.repl_definition[ft]
-  if repl == nil then
-    -- TODO Remove after deprecated fns are cleaned
-    -- TODO Implement repl provider
-    -- Should be replaced with logic to get the first executable matching
-    return ll.get_preferred_repl(ft)
-  end
-  return repl
+  -- TODO should not call providers directly, but from config
+  return config.repl_definition[ft] or providers.first_matching_binary(ft)
 end
 
 --- Creates a new window for placing a repl.
@@ -170,33 +165,6 @@ ll.get_repl_ft_for_bufnr = function(bufnr)
       end
     end
   end
-end
-
--- [[ Below this line are deprecated functions to be removed ]] --
-
--- Deprecated
--- Usages migrated
-ll.get_preferred_repl = function(ft)
-  local repl_definitions = fts[ft]
-  local preference = config.preferred[ft]
-  local repl_def = nil
-
-  if preference ~= nil then
-    repl_def = repl_definitions[preference]
-  elseif repl_definitions ~= nil then
-    for _, v in pairs(repl_definitions) do
-      if vim.fn.executable(v.command[1]) == 1 then
-        repl_def = v
-        break
-      end
-    end
-    if repl_def == nil then
-      vim.api.nvim_err_writeln("Failed to locate REPL executable, aborting")
-    end
-  else
-    vim.api.nvim_err_writeln("There's no REPL definition for current filetype "..ft)
-  end
-  return repl_def
 end
 
 return ll
