@@ -131,7 +131,7 @@ core.repl_for = function(ft)
     return meta
   else
     local currwin = vim.api.nvim_get_current_win()
-    local meta = new_repl.create_on_new_window(ft)
+    meta = new_repl.create_on_new_window(ft)
     vim.api.nvim_set_current_win(currwin)
     return meta
   end
