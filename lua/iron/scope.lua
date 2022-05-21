@@ -43,6 +43,7 @@ scope.singleton = {
     return repl_data
   end,
   get = function(memory, ft)
+    ensure_key(memory, ft)
     return memory[ft]["singleton"]
   end
 }
