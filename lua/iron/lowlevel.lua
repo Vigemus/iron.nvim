@@ -36,7 +36,7 @@ ll.get_buffer_ft = function(bufnr)
   local ft = vim.bo[bufnr].filetype
   if ft == nil or ft == "" then
     error("Empty filetype")
-  elseif fts[ft] == nil or config.repl_definition[ft] == nil then
+  elseif fts[ft] == nil and config.repl_definition[ft] == nil then
     error("There's no REPL definition for current filetype "..ft)
   end
   return ft
