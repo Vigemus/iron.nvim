@@ -371,6 +371,13 @@ local complete_fts = function(partial)
   return custom_fts
 end
 
+local get_ft = function(arg)
+  if arg and arg ~= "" then
+    return arg
+  end
+  return ll.get_buffer_ft(0)
+end
+
 --- List of commands created by iron.nvim
 -- They'll only be set up after calling the @{core.setup} function
 -- which makes it possible to delay initialization and make startup faster.
@@ -379,8 +386,7 @@ end
 -- @field IronRepl command for @{core.repl_for}
 local commands = {
   {"IronRepl", function(opts)
-    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
-    core.repl_for(ft)
+    core.repl_for(get_ft(opts.fargs[1]))
   end, {nargs="?", complete = complete_fts}},
   {"IronSend", function(opts)
     local ft
@@ -401,13 +407,13 @@ local commands = {
       end
     end}},
   {"IronFocus", function(opts)
-    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
+    local ft = get_ft(opts.fargs[1])
     if ft == nil then return end
 
     core.focus_on(ft)
   end, {nargs = "?", complete = complete_fts}},
   {"IronReplHere", function(opts)
-    local ft = opts.fargs[1] or ll.get_buffer_ft(0)
+    local ft = get_ft(opts.fargs[1])
     if ft == nil then return end
 
     core.repl_here(ft)
