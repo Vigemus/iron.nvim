@@ -22,7 +22,7 @@ ll.store = {}
 -- TODO This should not be part of lowlevel
 ll.get = function(ft)
   if ft == nil or ft == "" then
-    error("Empty filetype", 0)
+    error("Empty filetype")
   end
   return config.scope.get(ll.store, ft)
 end
@@ -35,9 +35,9 @@ end
 ll.get_buffer_ft = function(bufnr)
   local ft = vim.bo[bufnr].filetype
   if ft == nil or ft == "" then
-    error("Empty filetype", 0)
-  elseif fts[ft] == nil then
-    error("There's no REPL definition for current filetype "..ft, 0)
+    error("Empty filetype")
+  elseif fts[ft] == nil or config.repl_definition[ft] == nil then
+    error("There's no REPL definition for current filetype "..ft)
   end
   return ft
 end
