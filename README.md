@@ -32,6 +32,9 @@ iron.setup {
         command = {"zsh"}
       }
     }
+    repl_open_cmd = require('iron.view').curry.bottom(40),
+    -- how the REPL window will be opened, the default is opening
+    -- a float window of height 40 at the bottom.
   },
   -- Iron doesn't set keymaps by default anymore. Set them here
   -- or use `should_map_plug = true` and map from you vim files
