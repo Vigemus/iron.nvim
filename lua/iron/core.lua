@@ -489,7 +489,7 @@ core.setup = function(opts)
   end
 
   if config.should_map_plug then
-    for key, keymap in ipairs(named_maps) do
+    for key, keymap in pairs(named_maps) do
       local mapping = vim.deepcopy(keymap)
       table.insert(mapping, 2, "<plug>(iron-" .. snake_to_kebab(key) .. ")")
       table.insert(mapping, {silent = true})
