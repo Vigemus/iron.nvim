@@ -32,8 +32,7 @@ marks.set = function(opts)
       extmark_config.hl_group = opts.hl
     end
 
-  elseif (config.highlight_last ~= false and
-      config.highlight_last ~= nil) then
+  elseif config.highlight_last then
     extmark_config.hl_group = config.highlight_last
   end
 
