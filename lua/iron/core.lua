@@ -474,9 +474,9 @@ end
 -- @tparam table opts.keymaps set of keymaps to apply, based on @{named_maps}
 core.setup = function(opts)
   core.set_config(opts.config)
+  config.namespace = vim.api.nvim_create_namespace("iron")
 
   if config.highlight_last ~= false then
-    config.namespace = vim.api.nvim_create_namespace("iron")
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
         bold = true
       })
