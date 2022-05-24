@@ -15,6 +15,7 @@ local fts = {
   julia = require("iron.fts.julia"),
   lisp = require("iron.fts.lisp"),
   lua = require("iron.fts.lua"),
+  mma = require("iron.fts.mma"),
   ocaml = require("iron.fts.ocaml"),
   php = require("iron.fts.php"),
   prolog = require("iron.fts.prolog"),
