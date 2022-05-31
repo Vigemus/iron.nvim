@@ -194,6 +194,10 @@ core.send = function(ft, data)
   ll.send_to_repl(meta, data)
 end
 
+core.send_file = function(ft)
+  core.send(ft, vim.api.nvim_buf_get_lines(0, 0, -1, false))
+end
+
 --- Sends the line under the cursor to the repl
 -- Builds upon @{core.send}, extracting
 -- the data beforehand.
@@ -442,6 +446,7 @@ local named_maps = {
   send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
   repeat_cmd = {{'n'}, core.repeat_cmd},
   send_line = {{'n'}, core.send_line},
+  send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
 
   -- Force clear highlight
