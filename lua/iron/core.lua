@@ -534,7 +534,6 @@ core.setup = function(opts)
 
     vim.api.nvim__set_hl_ns(config.namespace)
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, hl_cfg)
-    print(vim.inspect(hl_cfg))
   end
 
   for _, command in ipairs(commands) do
