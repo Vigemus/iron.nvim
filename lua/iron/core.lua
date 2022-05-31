@@ -28,7 +28,7 @@ new_repl.create = function(ft, bufnr, cleanup)
 
   if not success and cleanup ~= nil then
     cleanup()
-    error(repl, 0)
+    error(repl)
   end
 
   success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
@@ -39,7 +39,7 @@ new_repl.create = function(ft, bufnr, cleanup)
     cleanup()
   end
 
-  error(meta, 0)
+  error(meta)
 end
 
 --- Create a new repl on a new repl window
@@ -471,11 +471,10 @@ core.setup = function(opts)
   end
 
   if config.highlight_last ~= false then
+    vim.api.nvim__set_hl_ns(config.namespace)
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
         bold = true
       })
-
-    vim.api.nvim__set_hl_ns(config.namespace)
   end
 
   for _, command in ipairs(commands) do
