@@ -1,6 +1,5 @@
 -- luacheck: globals vim unpack
 
-local fts = require("iron.fts")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
@@ -20,17 +19,27 @@ local new_repl = {}
 -- Simple wrapper around the low level functions
 -- Useful to avoid rewriting the get_def + create + save pattern
 -- @param ft filetype
--- @param bufnr buffer to be used. Will be created if nil.
+-- @param bufnr buffer to be used.
+-- @tparam cleanup function Function to cleanup if call fails
 -- @return saved snapshot of repl metadata
-new_repl.create = function(ft, bufnr)
-  local repl = ll.get_repl_def(ft)
-  if bufnr == nil then
-    bufnr = ll.new_buffer()
-  end
-  local meta = ll.create_repl_on_current_window(ft, repl, bufnr)
-  ll.set(ft, meta)
+new_repl.create = function(ft, bufnr, cleanup)
+  local meta
+  local success, repl = pcall(ll.get_repl_def, ft)
 
-  return meta
+  if not success and cleanup ~= nil then
+    cleanup()
+    error(repl)
+  end
+
+  success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr)
+  if success then
+    ll.set(ft, meta)
+    return meta
+  elseif cleanup ~= nil then
+    cleanup()
+  end
+
+  error(meta)
 end
 
 --- Create a new repl on a new repl window
@@ -43,7 +52,10 @@ new_repl.create_on_new_window = function(ft)
   local replwin = ll.new_window(bufnr)
 
   vim.api.nvim_set_current_win(replwin)
-  local meta = new_repl.create(ft, bufnr)
+  local meta = new_repl.create(ft, bufnr, function()
+    vim.api.nvim_win_close(replwin, true)
+    vim.api.nvim_buf_delete(bufnr, {force = true})
+  end)
 
   return meta
 end
@@ -57,7 +69,10 @@ core.repl_here = function(ft)
     vim.api.nvim_set_current_buf(meta.bufnr)
     return meta
   else
-    return new_repl.create(ft)
+    local bufnr = ll.new_buffer()
+    return new_repl.create(ft, bufnr, function()
+      vim.api.nvim_buf_delete(bufnr, {force = true})
+    end)
   end
 end
 
@@ -73,7 +88,10 @@ core.repl_restart = function()
   local ft = ll.get_repl_ft_for_bufnr(bufnr_here)
 
   if ft ~= nil then
-    local meta = new_repl.create(ft)
+    local bufnr = ll.new_buffer()
+    local meta = new_repl.create(ft, bufnr, function()
+      vim.api.nvim_buf_delete(bufnr, {force = true})
+    end)
 
     -- created a new one, now have to kill the old one
     vim.api.nvim_buf_delete(bufnr_here, {force = true})
@@ -91,7 +109,10 @@ core.repl_restart = function()
         new_meta = new_repl.create_on_new_window(ft)
       else
         vim.api.nvim_set_current_win(replwin)
-        new_meta = new_repl.create(ft)
+        local bufnr = ll.new_buffer()
+        meta = new_repl.create(ft, bufnr, function()
+          vim.api.nvim_buf_delete(bufnr, {force = true})
+        end)
       end
 
       vim.api.nvim_set_current_win(currwin)
@@ -152,34 +173,6 @@ core.focus_on = function(ft)
     return meta
   else
     return new_repl.create_on_new_window(ft)
-  end
-end
-
---- [Deprecated] Sets configuration
--- Sets the configuration.
--- This is only a fraction of the actual setup and should not be directly used
--- @see core.setup
-core.set_config = function(cfg)
-  for k, v in pairs(cfg) do
-    config[k] = v
-  end
-end
-
---- [Deprecated] adds repls definition to the set of configurations
--- Adds a repl definition to the collection of known repls.
--- It should not be used since this is a complicated way of configuring
--- the user experience.
--- @see core.setup
-core.add_repl_definitions = function(defns)
-  vim.api.nvim_err_writeln("iron: The function `add_repl_definitions` is deprecated")
-  vim.api.nvim_err_writeln("      Use `core.setup{repl_definition = {<ft> = {<definition>}}}`")
-  for ft, defn in pairs(defns) do
-    if fts[ft] == nil then
-      fts[ft] = {}
-    end
-    for repl, repldfn in pairs(defn) do
-      fts[ft][repl] = repldfn
-    end
   end
 end
 
@@ -461,11 +454,9 @@ local named_maps = {
   clear = {{'n'}, function() core.send(nil, string.char(12)) end},
 }
 
-
 local snake_to_kebab = function(name)
   return name:gsub("_", "-")
 end
-
 
 --- Sets up the configuration for iron to run.
 -- Also, defines commands and keybindings for iron to run.
@@ -473,15 +464,17 @@ end
 -- @tparam table opts.config set of config values to override default on @{config}
 -- @tparam table opts.keymaps set of keymaps to apply, based on @{named_maps}
 core.setup = function(opts)
-  core.set_config(opts.config)
   config.namespace = vim.api.nvim_create_namespace("iron")
 
+  for k, v in pairs(opts.config) do
+    config[k] = v
+  end
+
   if config.highlight_last ~= false then
+    vim.api.nvim__set_hl_ns(config.namespace)
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
         bold = true
       })
-
-    vim.api.nvim__set_hl_ns(config.namespace)
   end
 
   for _, command in ipairs(commands) do
@@ -489,6 +482,8 @@ core.setup = function(opts)
   end
 
   if config.should_map_plug then
+    vim.api.nvim_err_writeln("iron.nvim: Mapping to <plug>.. is deprecated and will be removed in a later version")
+    vim.api.nvim_err_writeln("Please configure your mappings through iron.core.setup{keymaps = ...}")
     for key, keymap in pairs(named_maps) do
       local mapping = vim.deepcopy(keymap)
       table.insert(mapping, 2, "<plug>(iron-" .. snake_to_kebab(key) .. ")")

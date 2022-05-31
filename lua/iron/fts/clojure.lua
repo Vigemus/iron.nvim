@@ -8,4 +8,8 @@ clojure.lein = {
   command = {"lein", "repl"},
 }
 
+clojure.clj = {
+  command = {"clj"},
+}
+
 return clojure
