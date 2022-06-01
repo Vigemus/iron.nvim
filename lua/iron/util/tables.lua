@@ -1,3 +1,4 @@
+-- luacheck: globals vim
 local fns = {}
 
 fns.extend = function(...)
