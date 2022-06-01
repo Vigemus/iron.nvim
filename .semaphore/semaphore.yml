@@ -11,13 +11,11 @@ blocks:
         - name: Checkout
           commands:
             - checkout
-        - name: Install dependencies
-          commands:
-            - sudo apt-get update
-            - sudo apt-get install -y lua-check
   - name: Checks
     task:
       jobs:
-        - name: 'Job #1'
+        - name: Lint
           commands:
+            - sudo apt-get update
+            - sudo apt-get install -y lua-check
             - luacheck lua/**
