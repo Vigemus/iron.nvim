@@ -11,6 +11,7 @@ local fts = {
   forth = require("iron.fts.forth"),
   haskell = require("iron.fts.haskell"),
   hy = require("iron.fts.hy"),
+  janet = require("iron.fts.janet"),
   javascript = require("iron.fts.javascript"),
   julia = require("iron.fts.julia"),
   lisp = require("iron.fts.lisp"),
