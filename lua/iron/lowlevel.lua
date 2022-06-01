@@ -108,7 +108,7 @@ ll.new_window = function(bufnr)
       return result
     end
   else
-    return view.openwin(config.repl_open_cmd, bufnr)
+    return view.split(vim.tbl_filter(function(i) return i ~= "split" end, vim.split(config.repl_open_cmd)))
   end
 end
 
