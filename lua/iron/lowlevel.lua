@@ -69,6 +69,7 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
         vim.api.nvim_win_close(bufwinid, true)
         bufwinid = vim.fn.bufwinid(bufnr)
       end
+      vim.api.nvim_buf_delete(bufnr, {force = true})
     end
   end
 
