@@ -133,27 +133,35 @@ The code is well documented, so we'll skip `iron.lowlevel` in this doc.
 
 Below are the core functions:
 
-* core.repl_here(ft)        Creates a repl in the same window
+* core.repl_here(ft)         Creates a repl in the same window
 
-* core.repl_restart()       Restarts the repl in the current window or for the
-                            current buffer's filetype
+* core.repl_restart()        Restarts the repl in the current window or for the
+                             current buffer's filetype
 
-* core.close_repl(ft)       Closes the repl for supplied filetype
+* core.close_repl(ft)        Closes the repl for supplied filetype
 
-* core.repl_for(ft)         Creates a repl for given filetype in a new window
+* core.repl_for(ft)          Creates a repl for given filetype in a new window
 
-* core.focus_on(ft)         Moves to (or creates) the repl for given filetype
+* core.focus_on(ft)          Moves to (or creates) the repl for given filetype
 
-* core.send(ft, data)       Sends data (a table) to the repl for given filetype
+* core.send(ft, data)        Sends data (a table) to the repl for given filetype
 
-* core.send_line()          Sends line below the cursor to the repl
+* core.send_line()           Sends line below the cursor to the repl
 
-* core.send_motion(motion)  Applies given motion and sends the result to the repl
-                            see `send_motion` in |iron-mappings|
+* core.send_motion(motion)   Applies given motion and sends the result to the repl
+                             see `send_motion` in |iron-mappings|
 
-* core.repeat_cmd()         Re-sends the last block to the repl
+* core.send_mark()           Sends the marked chunk
 
-* core.setup(config)        Configures iron. See |iron-customizing|
+* core.mark_visual()         Adds a mark around the visual selection
+
+* core.mark_motion()         Adds a mark around the motion object
+
+* core.watch(handler, bufnr) Watches for saves in the supplied buffer
+
+* core.unwatch(bufnr)        Removes the watch on the supplied buffer
+
+* core.setup(config)         Configures iron. See |iron-customizing|
 
 For more information, check the luadocs in the functions.
 
@@ -220,11 +228,20 @@ iron.setup{
     send_motion = "<space>sc",
     visual_send = "<space>sc",
     send_line = "<space>sl",
-    repeat_cmd = "<space>s.",
+    send_mark = "<space>sm",
+    mark_motion = "<space>mc",
+    mark_visual = "<space>mc",
+    remove_mark = "<space>md>",
     cr = "<space>s<cr>",
     interrupt = "<space>s<space>",
     exit = "<space>sq",
     clear = "<space>cl",
+  },
+
+  -- If the highlight is on, you can change how it looks
+  -- For the available options, check nvim_set_hl
+  highlight = {
+    italic = true
   }
 }
 ```
@@ -238,7 +255,10 @@ core.setup function.
 - send_motion: Sends a motion to the repl
 - visual_send: Sends the visual selection to the repl
 - send_line: Sends the line below the cursor to the repl
-- repeat_cmd: Repeats the last sent block
+- send_mark: Sends the text within the mark
+- mark_motion: Marks the text object
+- mark_visual: Marks the visual selection
+- remove_mark: Removes the set mark
 - cr: Sends a return to the repl
 - interrupt: Sends a `<C-c>` signal to the repl
 - exit: Exits the repl
