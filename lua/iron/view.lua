@@ -156,7 +156,7 @@ view.curry = setmetatable({}, {
     if  view[key] == nil then
       error("Function `view." .. key .. "` does not exist.")
     end
-    vim.deprecate("view.curry.key" .. key, "view." .. key, "3.2", "iron.nvim")
+    vim.deprecate("view.curry." .. key, "view." .. key, "3.2", "iron.nvim")
     return view[key]
   end
 })
