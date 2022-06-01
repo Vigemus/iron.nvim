@@ -5,16 +5,19 @@ agent:
     type: e1-standard-2
     os_image: ubuntu2004
 blocks:
-  - name: 'Block #1'
+  - name: Set-up
     task:
       jobs:
         - name: Checkout
           commands:
             - checkout
-        - name: 'Job #2'
+        - name: Install dependencies
           commands:
             - sudo apt-get update
             - sudo apt-get install -y lua-check
-        - name: 'Job #3'
+  - name: Checks
+    task:
+      jobs:
+        - name: 'Job #1'
           commands:
             - luacheck lua/**
