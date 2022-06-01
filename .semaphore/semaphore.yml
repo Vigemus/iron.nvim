@@ -1,0 +1,16 @@
+version: v1.0
+name: Initial Pipeline
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: 'Block #1'
+    task:
+      jobs:
+        - name: Checkout
+          commands:
+            - checkout
+        - name: 'Job #2'
+          commands:
+            - luacheck lua/**
