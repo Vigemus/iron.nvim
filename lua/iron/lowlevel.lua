@@ -101,7 +101,12 @@ end
 -- @return window id of the newly created window
 ll.new_window = function(bufnr)
   if type(config.repl_open_cmd) == "function" then
-    return config.repl_open_cmd(bufnr)
+    local result = config.repl_open_cmd(bufnr)
+    if type(result) == "table" then
+      return view.openfloat(result, bufnr)
+    else
+      return result
+    end
   else
     return view.openwin(config.repl_open_cmd, bufnr)
   end
