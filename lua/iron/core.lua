@@ -5,6 +5,8 @@ local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
 
+local autocmds = {}
+
 --- Core functions of iron
 -- @module core
 local core = {}
@@ -218,8 +220,9 @@ core.send_line = function()
   core.send(nil, cur_line)
 end
 
--- TODO Move out to separate ns
-core.get_visual_selection = function()
+--- Marks visual selection and returns data for usage
+-- @treturn table Marked lines
+core.mark_visual = function()
   -- HACK Break out of visual mode
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', false, true, true), 'nx', false)
   local b_line, b_col
@@ -270,7 +273,10 @@ core.get_visual_selection = function()
   return lines
 end
 
-core.get_motion_selection = function(mtype)
+--- Marks the supplied motion and returns the data for usage
+-- @tparam string mtype motion type
+-- @treturn table Marked lines
+core.mark_motion = function(mtype)
   local b_line, b_col
   local e_line, e_col
 
@@ -302,34 +308,33 @@ core.get_motion_selection = function(mtype)
     to_col = e_col - 1
   }
 
+  marks.winrestview()
   return lines
-
 end
 
 --- Sends a chunk of text from a motion to the repl
--- It is a simple wrapper over @{core.get_motion_selection}
+-- It is a simple wrapper over @{core.mark_motion}
 -- in which the data is extracted by that function and sent to the repl.
 -- @{core.send} will handle the null cases.
 -- Additionally, it restores the cursor position as a side-effect.
 -- @param mtype motion type
 core.send_motion = function(mtype)
-  core.send(nil, core.get_motion_selection(mtype))
-  marks.winrestview()
+  core.send(nil, core.mark_motion(mtype))
 end
 
 --- Sends a chunk of text from a visual selection to the repl
--- this is a simple wrapper over @{core.get_visual_selection} where
+-- this is a simple wrapper over @{core.mark_visual} where
 -- the data is forwarded to the repl through @{core.send},
 -- which will handle the null cases.
 core.visual_send = function()
-  core.send(nil, core.get_visual_selection())
+  core.send(nil, core.mark_visual())
 end
 
 --- Re-sends latest chunk of text.
 -- Sends text contained within a block delimited by
 -- the last sent chunk. Uses @{marks.get} to retrieve
 -- the boundaries.
-core.repeat_cmd = function()
+core.send_mark = function()
   local pos = marks.get()
 
   if pos == nil then return end
@@ -409,6 +414,28 @@ local commands = {
 
     core.focus_on(ft)
   end, {nargs = "?", complete = complete_fts}},
+  {"IronWatch", function(opts)
+    local handler
+
+    if opts.fargs[1] == "mark" then
+      handler = core.send_mark
+  elseif opts.fargs[1] == "file" then
+      -- Wrap send_file so we ingore autocmd argument
+    handler = function () core.send_file() end
+    else
+      error("Not a valid handler type")
+    end
+
+    core.watch(handler)
+
+  end, {nargs = 1, complete = function(arg_lead, _)
+      local starts_with_partial = function(key) return key:sub(1, #arg_lead) == arg_lead end
+      return vim.tbl_filter(starts_with_partial, {
+        "mark",
+        "file"
+      })
+
+    end}},
   {"IronReplHere", function(opts)
     local ft = get_ft(opts.fargs[1])
     if ft == nil then return end
@@ -427,13 +454,32 @@ core.run_motion = function(motion_fn_name)
   vim.api.nvim_feedkeys("g@", "ni", false)
 end
 
+core.unwatch = function(bufnr)
+  local fname = vim.api.nvim_buf_get_name(bufnr)
+  if autocmds[fname] ~= nil then
+    vim.api.nvim_del_autocmd(autocmds[fname])
+    autocmds[fname] = nil
+  end
+end
+
+core.watch = function(handler, bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  core.unwatch(bufnr)
+  local fname = vim.api.nvim_buf_get_name(bufnr)
+  autocmds[fname] = vim.api.nvim_create_autocmd("BufWritePost", {
+    group = "iron",
+    pattern = fname,
+    callback = handler,
+    desc = "Watch writes to buffer to send data to repl"
+  })
+end
 
 --- List of keymaps
 -- if @{config}.should\_map\_plug is set to true,
 -- then they will also be mapped to `<plug>` keymaps.
 -- @table named_maps
 -- @field send_motion mapping to send a motion/chunk to the repl
--- @field repeat_cmd repeats last executed motion
+-- @field send_mark Sends chunk within marked boundaries
 -- @field send_line sends current line to repl
 -- @field visual_send sends visual selection to repl
 -- @field clear_hl clears highlighted chunk
@@ -444,10 +490,15 @@ end
 local named_maps = {
   -- basic interaction with the repl
   send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
-  repeat_cmd = {{'n'}, core.repeat_cmd},
+  send_mark = {{'n'}, core.send_mark},
   send_line = {{'n'}, core.send_line},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
+
+  -- Marks
+  mark_motion = {{'n'}, function() require("iron.core").run_motion("mark_motion") end},
+  mark_visual = {{'v'}, core.mark_visual},
+  remove_mark = {{'n'}, marks.drop_last},
 
   -- Force clear highlight
   clear_hl = {{'v'}, marks.clear_hl},
@@ -470,16 +521,19 @@ end
 -- @tparam table opts.keymaps set of keymaps to apply, based on @{named_maps}
 core.setup = function(opts)
   config.namespace = vim.api.nvim_create_namespace("iron")
+  vim.api.nvim_create_augroup("iron", {})
 
   for k, v in pairs(opts.config) do
     config[k] = v
   end
 
   if config.highlight_last ~= false then
+    local hl_cfg = opts.highlight or {
+      bold = true
+    }
+
     vim.api.nvim__set_hl_ns(config.namespace)
-    vim.api.nvim_set_hl(config.namespace, config.highlight_last, {
-        bold = true
-      })
+    vim.api.nvim_set_hl(config.namespace, config.highlight_last, hl_cfg)
   end
 
   for _, command in ipairs(commands) do
