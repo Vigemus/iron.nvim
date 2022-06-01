@@ -33,7 +33,7 @@ local size_extractor = function(size, vertical, ...)
     end
     new_size = math.floor((base * pct) / 100.0)
   elseif type(size) == "function" then
-    new_size = size(...)
+    new_size = size(vertical, ...)
   elseif size == nil then
     new_size = 0
   else
@@ -47,26 +47,28 @@ view.helpers = {}
 --- Returns proportional difference between an object and the editor size
 -- with the offset adjusting the distance on both sides.
 -- Use offset 0.5 for centralization
--- @tparam string attr Either "lines" or "columns"
 -- @tparam number offset proportion of distribution (0.5 is centralized)
+-- @tparam boolean vertical Whether the oritentation is vertical or not
 -- @tparam number sz size of the object
 -- @treturn number placement index
 -- @treturn function
-view.helpers.proportion = function(attr, offset)
-  return function(sz)
+view.helpers.proportion = function(offset)
+  return function(vertical, sz)
+    local attr = vertical and "columns" or "lines"
     return math.ceil(vim.o[attr] * offset - sz * offset)
   end
 end
 
-view.helpers.relative = function(attr, offset)
-  return function(sz)
+--- Flips the orientation from top/left to bottom/right
+-- @tparam number offset in columns/lines
+-- @tparam boolean vertical Whether the oritentation is vertical or not
+-- @tparam number sz size of the object
+-- @treturn number placement index
+-- @treturn function
+view.helpers.flip = function(offset)
+  return function(vertical, sz)
+    local attr = vertical and "columns" or "lines"
     return math.ceil(vim.o[attr] - sz - offset)
-  end
-end
-
-view.helpers.difference = function(attr)
-  return function(sz)
-    return math.ceil(vim.o[attr]  - sz)
   end
 end
 
@@ -144,14 +146,14 @@ end
 -- @tparam number|string|function size height of the window
 -- @treturn function
 view.bottom = function(size)
-  return view.offset{width = vim.o.columns, height = size, h_offset = view.helpers.difference("lines")}
+  return view.offset{width = vim.o.columns, height = size, h_offset = view.helpers.flip(0)}
 end
 
 --- Opens a float pinned to the right
 -- @tparam number|string|function size width of the window
 -- @treturn function
 view.right = function(size)
-  return view.offset{width = size, height = vim.o.lines, w_offset = view.helpers.difference("columns")}
+  return view.offset{width = size, height = vim.o.lines, w_offset = view.helpers.flip(0)}
 end
 
 --- Opens a float pinned to the left
@@ -169,8 +171,8 @@ view.center = function(width, height)
   return view.offset{
     width = width,
     height = height or width,
-    w_offset = view.helpers.proportion("width", 0.5),
-    h_offset = view.helpers.proportion("height", 0.5)
+    w_offset = view.helpers.proportion(0.5),
+    h_offset = view.helpers.proportion(0.5)
   }
 end
 
