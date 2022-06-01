@@ -1,7 +1,6 @@
 # iron.nvim
 
 [![Sponsor me](https://img.shields.io/github/sponsors/hkupty?style=flat-square)](https://github.com/sponsors/hkupty)
-[![Maintainability](https://api.codeclimate.com/v1/badges/bbd16045e0321b404ef9/maintainability)](https://codeclimate.com/github/hkupty/iron.nvim/maintainability)
 [![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#iron.nvim:matrix.org)
 
 Interactive Repls Over Neovim
@@ -12,6 +11,19 @@ Interactive Repls Over Neovim
 Iron allows you to quickly interact with the repl without having to leave your work buffer
 
 It both a plugin and a library, allowing for better user experience and extensibility at the same time.
+
+## How to install
+
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim) (or the plugin manager of your choice):
+
+```lua
+  use {'hkupty/iron.nvim'}
+```
+
+As of version 3.0, Iron uses milestones and tags to manage releases. If you want to use the stable versions, use the following:
+```lua
+  use {'hkupty/iron.nvim', tag = "<most recent tag>"}
+```
 
 ## How to configure
 
@@ -62,5 +74,7 @@ iron.setup {
 
 ## Support iron.nvim
 
-Support iron.nvim development by sending me some bitcoins at `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
+iron.nvim is developed and maintained by [@hkupty](https://github.com/sponsors/hkupty).
+Please consider sponsoring the development of iron.
+Alternatively, pay me a coffee by sending me some BTC in `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
 Cheers!
