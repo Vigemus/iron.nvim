@@ -158,6 +158,28 @@ ll.send_to_repl = function(meta, data)
   end
 end
 
+
+--- Reshapes the repl window according to a preset config described in views
+-- @tparam table meta metadata for the repl
+-- @tparam string|number key either name or index in the table for the preset to be active
+ll.set_window_shape = function(meta, key)
+  local window = vim.fn.bufwinid(meta.bufnr)
+  local preset = config.views[key]
+  if preset ~= nil then
+    if type(preset) == "function" then
+      preset = preset(meta.bufnr)
+    end
+    vim.api.nvim_win_set_config(window, preset)
+  end
+end
+
+--- Closes the window
+-- @tparam table meta metadata for the repl
+ll.close_window = function(meta)
+  local window = vim.fn.bufwinid(meta.bufnr)
+  vim.api.nvim_win_close(window, true)
+end
+
 --- Tries to look up the corresponding filetype of a REPL
 -- If the corresponding buffer number is a repl,
 -- return its filetype otherwise return nil
