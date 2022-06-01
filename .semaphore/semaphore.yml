@@ -13,4 +13,7 @@ blocks:
             - checkout
         - name: 'Job #2'
           commands:
+            - apt install lua-check
+        - name: 'Job #3'
+          commands:
             - luacheck lua/**
