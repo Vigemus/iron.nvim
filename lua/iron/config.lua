@@ -43,7 +43,11 @@ local values = {
     end
   }),
   should_map_plug = false,
-  repl_open_cmd = view.curry.bottom(40),
+  repl_open_cmd = view.bottom(40),
+  current_view = 1,
+  views = {
+    view.bottom(40)
+  },
   mark = { -- Arbitrary numbers
     save_pos = 20,
     send = 77,
