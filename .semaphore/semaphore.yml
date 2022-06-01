@@ -8,14 +8,9 @@ blocks:
   - name: Set-up
     task:
       jobs:
-        - name: Checkout
-          commands:
-            - checkout
-  - name: Checks
-    task:
-      jobs:
         - name: Lint
           commands:
+            - checkout
             - sudo apt-get update
             - sudo apt-get install -y lua-check
             - luacheck lua/**
