@@ -70,7 +70,6 @@ view.helpers.difference = function(attr)
   end
 end
 
-
 --- Open a split window
 -- Takes the arguments to the split command as nested values (keys) of this table.
 -- @example view.split.vertical.botright(20)
@@ -108,6 +107,15 @@ view.openfloat = function(config, buff)
   return vim.api.nvim_open_win(buff, false, config)
 end
 
+
+--- Opens a float at any point in the window
+-- @tparam table opts Options for calculating the repl size
+-- @tparam number|string|function opts.width width of the window
+-- @tparam number|string|function opts.height height of the window
+-- @tparam number|string|function opts.w_offset horizontal offset from the bottom-right corner
+-- @tparam number|string|function opts.h_offset vertical offset from the bottom-right corner
+-- @treturn table configuration for the float window
+-- @treturn function
 view.offset = function(opts)
   return function()
     local new_w_size = size_extractor(opts.width, true)
@@ -125,31 +133,46 @@ view.offset = function(opts)
   end
 end
 
+--- Opens a float pinned to the top
+-- @tparam number|string|function size height of the window
+-- @treturn function
 view.top = function(size)
   return view.offset{width = vim.o.columns, height = size}
 end
 
+--- Opens a float pinned to the bottom
+-- @tparam number|string|function size height of the window
+-- @treturn function
 view.bottom = function(size)
   return view.offset{width = vim.o.columns, height = size, h_offset = view.helpers.difference("lines")}
 end
 
+--- Opens a float pinned to the right
+-- @tparam number|string|function size width of the window
+-- @treturn function
 view.right = function(size)
   return view.offset{width = size, height = vim.o.lines, w_offset = view.helpers.difference("columns")}
 end
 
+--- Opens a float pinned to the left
+-- @tparam number|string|function size width of the window
+-- @treturn function
 view.left = function(size)
   return view.offset{width = size, height = vim.o.lines}
 end
 
-view.center = function(w_size, h_size)
+--- Opens a repl in the middle of the screen
+-- @tparam number|string|function width width of the window
+-- @tparam number|string|function height height of the window. If null will use `width` for this size
+-- @treturn function
+view.center = function(width, height)
   return view.offset{
-    width = w_size,
-    height = h_size,
+    width = width,
+    height = height or width,
     w_offset = view.helpers.proportion("width", 0.5),
     h_offset = view.helpers.proportion("height", 0.5)
   }
 end
-
 
 view.curry = setmetatable({}, {
   __index = function(_, key)
