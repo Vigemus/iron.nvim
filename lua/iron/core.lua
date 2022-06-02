@@ -510,6 +510,10 @@ local named_maps = {
   clear = {{'n'}, function() core.send(nil, string.char(12)) end},
 }
 
+local tmp_migration = {
+  repeat_cmd = "send_mark"
+}
+
 local snake_to_kebab = function(name)
   return name:gsub("_", "-")
 end
@@ -553,11 +557,25 @@ core.setup = function(opts)
 
   if opts.keymaps ~= nil then
     for key, lhs in pairs(opts.keymaps) do
-      local mapping = vim.deepcopy(named_maps[key])
-      table.insert(mapping, 2, lhs)
-      table.insert(mapping, {silent = true})
+      if tmp_migration[key] ~= nil then
+        vim.deprecate(
+          "core.setup{keymaps." .. key .. "}",
+          "core.setup{keymaps." .. tmp_migration[key] .. "}",
+          "3.1",
+          "iron.nvim"
+        )
+        key = tmp_migration[key]
+      end
 
-      vim.keymap.set(unpack(mapping))
+      if named_maps[key] == nil then
+          error("Key `" .. key .. "` doesn't exist, therefore there's nothing to be applied")
+      else
+        local mapping = vim.deepcopy(named_maps[key])
+        table.insert(mapping, 2, lhs)
+        table.insert(mapping, {silent = true})
+
+        vim.keymap.set(unpack(mapping))
+      end
     end
   end
 end
