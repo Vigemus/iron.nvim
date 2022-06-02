@@ -1,5 +1,6 @@
 -- luacheck: globals vim unpack
 
+local log = require("iron.log")
 local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
@@ -558,7 +559,7 @@ core.setup = function(opts)
   if opts.keymaps ~= nil then
     for key, lhs in pairs(opts.keymaps) do
       if tmp_migration[key] ~= nil then
-        vim.deprecate(
+        log.deprecate(
           "core.setup{keymaps." .. key .. "}",
           "core.setup{keymaps." .. tmp_migration[key] .. "}",
           "3.1",
