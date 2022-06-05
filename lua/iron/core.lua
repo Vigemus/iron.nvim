@@ -573,7 +573,7 @@ core.setup = function(opts)
       else
         local mapping = vim.deepcopy(named_maps[key])
         table.insert(mapping, 2, lhs)
-        table.insert(mapping, {silent = true})
+        table.insert(mapping, {silent = true, desc = 'iron_repl_' .. key})
 
         vim.keymap.set(unpack(mapping))
       end
