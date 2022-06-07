@@ -3,6 +3,7 @@ local r = {}
 
 r.R = {
     command = { "R" },
+    format = bracketed_paste
 }
 
 r.radian = {
