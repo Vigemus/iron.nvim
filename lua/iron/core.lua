@@ -251,16 +251,16 @@ core.mark_visual = function()
     end
   elseif mode == "v" then
     local last = #lines
-    if b_col > 1 then
-      -- on a normal visual selection, if the start column is not 1, trim the beginning part
-      lines[1] = vim.fn.strcharpart(lines[1], b_col - 1)
-    end
-
     local line_size = vim.fn.strdisplaywidth(lines[last])
     local max_width = math.min(e_col, line_size)
     if (max_width < line_size) then
       -- If the selected width is smaller then total line, trim the excess
       lines[last] = vim.fn.strcharpart(lines[last], 0, max_width)
+    end
+
+    if b_col > 1 then
+      -- on a normal visual selection, if the start column is not 1, trim the beginning part
+      lines[1] = vim.fn.strcharpart(lines[1], b_col - 1)
     end
   end
 
