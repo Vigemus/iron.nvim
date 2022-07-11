@@ -69,6 +69,7 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
         vim.api.nvim_win_close(bufwinid, true)
         bufwinid = vim.fn.bufwinid(bufnr)
       end
+      vim.api.nvim_buf_delete(bufnr, {force = true})
     end
   end
 
@@ -100,9 +101,14 @@ end
 -- @return window id of the newly created window
 ll.new_window = function(bufnr)
   if type(config.repl_open_cmd) == "function" then
-    return config.repl_open_cmd(bufnr)
+    local result = config.repl_open_cmd(bufnr)
+    if type(result) == "table" then
+      return view.openfloat(result, bufnr)
+    else
+      return result
+    end
   else
-    return view.openwin(config.repl_open_cmd, bufnr)
+    return view.split(vim.tbl_filter(function(i) return i ~= "split" end, vim.split(config.repl_open_cmd)))
   end
 end
 
@@ -150,6 +156,28 @@ ll.send_to_repl = function(meta, data)
   if window ~= -1 then
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
   end
+end
+
+
+--- Reshapes the repl window according to a preset config described in views
+-- @tparam table meta metadata for the repl
+-- @tparam string|number key either name or index in the table for the preset to be active
+ll.set_window_shape = function(meta, key)
+  local window = vim.fn.bufwinid(meta.bufnr)
+  local preset = config.views[key]
+  if preset ~= nil then
+    if type(preset) == "function" then
+      preset = preset(meta.bufnr)
+    end
+    vim.api.nvim_win_set_config(window, preset)
+  end
+end
+
+--- Closes the window
+-- @tparam table meta metadata for the repl
+ll.close_window = function(meta)
+  local window = vim.fn.bufwinid(meta.bufnr)
+  vim.api.nvim_win_close(window, true)
 end
 
 --- Tries to look up the corresponding filetype of a REPL
