@@ -289,17 +289,13 @@ core.mark_motion = function(mtype)
 
   if mtype=='line' then
     b_col, e_col = 0, vim.fn.strdisplaywidth(lines[#lines])
-  else
-    -- TODO check whether this adjusment makes sense
-    b_col = math.min(b_col, vim.fn.strdisplaywidth(lines[1]))
-    e_col = math.max(e_col, vim.fn.strdisplaywidth(lines[#lines]))
   end
 
   if e_col > 1 then
-    lines[#lines] = vim.fn.strcharpart(lines[#lines], 0, e_col)
+    lines[#lines] = vim.fn.strpart(lines[#lines], 0, e_col)
   end
   if b_col > 1 then
-    lines[1] = vim.fn.strcharpart(lines[1], b_col - 1)
+    lines[1] = vim.fn.strpart(lines[1], b_col - 1)
   end
 
   marks.set{
@@ -344,14 +340,14 @@ core.send_mark = function()
 
   if #lines == 1 then
     if pos.from_col >= 1 or pos.to_col < vim.fn.strdisplaywidth(lines[1]) - 1 then
-      lines[1] = vim.fn.strcharpart(lines[1], pos.from_col, pos.to_col + 1)
+      lines[1] = vim.fn.strpart(lines[1], pos.from_col, pos.to_col - pos.from_col + 1)
     end
   else
     if pos.from_col >= 1 then
-      lines[1] = vim.fn.strcharpart(lines[1], pos.from_col)
+      lines[1] = vim.fn.strpart(lines[1], pos.from_col)
     end
     if pos.to_col < vim.fn.strdisplaywidth(lines[#lines]) - 1 then
-      lines[#lines] = vim.fn.strcharpart(lines[#lines], 0, pos.to_col + 1)
+      lines[#lines] = vim.fn.strpart(lines[#lines], 0, pos.to_col + 1)
     end
   end
 
