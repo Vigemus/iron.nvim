@@ -140,6 +140,20 @@ core.close_repl = function(ft)
   ll.send_to_repl(meta, string.char(04))
 end
 
+--- Hides the repl windows for a given filetype
+-- @param ft filetype
+core.hide_repl = function(ft)
+  ft = ft or ll.get_buffer_ft(0)
+  local meta = ll.get(ft)
+
+  if ll.repl_exists(meta) then
+    local window = vim.fn.bufwinid(meta.bufnr)
+    if window ~= -1 then
+      vim.api.nvim_win_hide(window)
+    end
+  end
+end
+
 --- Creates a repl for a given filetype
 -- It should open a new repl on a new window for the filetype
 -- supplied as argument.
@@ -386,6 +400,9 @@ end
 local commands = {
   {"IronRepl", function(opts)
     core.repl_for(get_ft(opts.fargs[1]))
+  end, {nargs="?", complete = complete_fts}},
+  {"IronHide", function(opts)
+    core.hide_repl(get_ft(opts.fargs[1]))
   end, {nargs="?", complete = complete_fts}},
   {"IronSend", function(opts)
     local ft
