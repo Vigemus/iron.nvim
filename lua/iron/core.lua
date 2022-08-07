@@ -161,9 +161,11 @@ end
 core.repl_for = function(ft)
   local meta = ll.get(ft)
   if ll.repl_exists(meta) then
+    local currwin = vim.api.nvim_get_current_win()
     config.visibility(meta.bufnr, function()
       local winid = ll.new_window(meta.bufnr)
       vim.api.nvim_win_set_buf(winid, meta.bufnr)
+      vim.api.nvim_set_current_win(currwin)
       return winid
     end)
     return meta
