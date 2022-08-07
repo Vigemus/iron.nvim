@@ -257,6 +257,13 @@ core.mark_visual = function()
 
   if #lines == 0 then return end
 
+  marks.set{
+    from_line = b_line - 1,
+    from_col = math.max(b_col - 1, 0),
+    to_line = e_line - 1,
+    to_col = math.min(e_col, vim.fn.strlen(lines[#lines])) - 1 -- TODO Check whether this is actually true
+  }
+
   if mode == "\22" then
     local b_offset = math.max(1, b_col) - 1
     for ix, line in ipairs(lines) do
@@ -277,13 +284,6 @@ core.mark_visual = function()
       lines[1] = vim.fn.strpart(lines[1], b_col - 1)
     end
   end
-
-  marks.set{
-    from_line = b_line - 1,
-    from_col = math.max(b_col - 1, 0),
-    to_line = e_line - 1,
-    to_col = math.min(e_col, vim.fn.strlen(lines[#lines])) - 1 -- TODO Check whether this is actually true
-  }
 
   return lines
 end
