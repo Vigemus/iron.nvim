@@ -552,7 +552,7 @@ core.setup = function(opts)
       bold = true
     }
 
-    vim.api.nvim__set_hl_ns(config.namespace)
+    vim.api.nvim_set_hl_ns(config.namespace)
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, hl_cfg)
   end
 
