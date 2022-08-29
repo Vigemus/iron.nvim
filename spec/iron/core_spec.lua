@@ -11,7 +11,7 @@ insulate("About #iron functionality", function()
         nvim_get_option = function(_) return "" end,
         nvim_get_var = function(_) return "" end,
         nvim_create_namespace = function(_) return 1000 end,
-        nvim__set_hl_ns = function(_) return nil end,
+        nvim_set_hl_ns = function(_) return nil end,
         nvim_set_hl = function(_) return nil end,
         nvim_err_writeln = function(_) return nil end,
       },
