@@ -553,7 +553,7 @@ core.setup = function(opts)
     }
 
 
-    vim.api.nvim_set_hl_ns(config.namespace)
+    (vim.api.nvim__set_hl_ns or vim.api.nvim_set_hl_ns)(config.namespace)
     vim.api.nvim_set_hl(config.namespace, config.highlight_last, hl_cfg)
   end
 
