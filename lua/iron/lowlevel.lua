@@ -108,7 +108,11 @@ ll.new_window = function(bufnr)
       return result
     end
   else
-    return view.split(vim.tbl_filter(function(i) return i ~= "split" end, vim.split(config.repl_open_cmd)))
+    local winnr = vim.api.nvim_get_current_win()
+    vim.cmd(config.repl_open_cmd)
+    local winid = vim.fn.bufwinid(vim.api.nvim_get_current_buf())
+    vim.api.nvim_set_current_win(winnr)
+    return winid
   end
 end
 
