@@ -108,11 +108,9 @@ ll.new_window = function(bufnr)
       return result
     end
   else
-    local winnr = vim.api.nvim_get_current_win()
     vim.cmd(config.repl_open_cmd)
-    local winid = vim.fn.bufwinid(vim.api.nvim_get_current_buf())
-    vim.api.nvim_set_current_win(winnr)
-    return winid
+    vim.api.nvim_set_current_buf(bufnr)
+    return vim.fn.bufwinid(bufnr)
   end
 end
 
