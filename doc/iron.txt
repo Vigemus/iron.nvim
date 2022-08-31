@@ -291,6 +291,10 @@ behavior:
   * `focus`:
     Moves the focus to the repl window.
 
+* `iron.view`:
+  Creates the windows.
+  Subject to change for the moment. please refer to the README while the API is still unstable.
+
 ===============================================================================
 Credits                                                          *iron-credits*
 
