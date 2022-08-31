@@ -2,13 +2,20 @@
 local view = {}
 
 --- Private functions
+local with_defaults = function(options)
+  return vim.tbl_extend("keep", options, {
+    winfixwidth = true,
+    winfixheight = true
+  })
+end
+
 local nested_modifier
 
 local with_nested_metatable = function(tbl)
   return setmetatable(tbl, {
     __index = nested_modifier,
-    __call = function(_, arg)
-      return tbl:mode(arg)
+    __call = function(_, arg, options)
+      return tbl:mode(arg, options)
     end
   })
 end
@@ -80,7 +87,7 @@ end
 -- @tparam number bufnr buffer handle
 -- @treturn number window id
 -- @treturn function the function that opens the window
-view.split = with_nested_metatable{ mode = function(data, size)
+view.split = with_nested_metatable{ mode = function(data, size, options)
   return function(bufnr)
     local args = vim.list_slice(data, 1, #data)
     local new_size = size_extractor(size, vim.tbl_contains(data, "vertical") or vim.tbl_contains(data, "vert"))
@@ -94,8 +101,9 @@ view.split = with_nested_metatable{ mode = function(data, size)
     vim.api.nvim_set_current_buf(bufnr)
 
     local winid = vim.fn.bufwinid(bufnr)
-    vim.api.nvim_win_set_option(winid, "winfixwidth", true)
-    vim.api.nvim_win_set_option(winid, "winfixheight", true)
+    for opt, val in pairs(with_defaults(options)) do
+      vim.api.nvim_win_set_option(winid, opt, val)
+    end
     return winid
   end
 end
