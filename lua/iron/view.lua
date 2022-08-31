@@ -3,7 +3,7 @@ local view = {}
 
 --- Private functions
 local with_defaults = function(options)
-  return vim.tbl_extend("keep", options, {
+  return vim.tbl_extend("keep", options or {}, {
     winfixwidth = true,
     winfixheight = true
   })
