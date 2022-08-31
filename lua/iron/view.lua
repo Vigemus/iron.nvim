@@ -43,6 +43,14 @@ local size_extractor = function(size, vertical, ...)
     new_size = size(vertical, ...)
   elseif size == nil then
     new_size = 0
+  elseif 1 > size and size > 0 then
+    local base
+    if vertical then
+      base = vim.o.columns
+    else
+      base = vim.o.lines
+    end
+    new_size = math.floor(base * size)
   else
     new_size = size
   end
