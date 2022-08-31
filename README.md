@@ -77,12 +77,18 @@ in either of them:
 
 #### For splits
 
-If you prefer using splits to your repls, you can create them with the functions below:
+If you prefer using splits to your repls, iron provides a few utility functions to make it simpler:
 
 ```lua
 local view = require("iron.view")
 
 -- iron.setup {...
+
+-- One can always use the default commands from vim directly
+repl_open_cmd = "vertical botright 80 split"
+
+-- But iron provides some utility functions to allow you to declare that dynamically,
+-- based on editor size or custom logic, for example.
 
 -- Vertical 50 columns split
 -- Split has a metatable that allows you to set up the arguments in a "fluent" API
@@ -115,6 +121,19 @@ repl_open_cmd = view.split.topleft(function()
   end
   return 20
 end)
+
+-- An optional set of options can be given to the split function if one
+-- wants to configure the window behavior.
+-- Note that, by default `winfixwidth` and `winfixheight` are set
+-- to `true`. If you want to overwrite those values,
+-- you need to specify the keys in the option map as the example below
+
+repl_open_cmd = view.split("40%", {
+  winfixwidth = false,
+  winfixheight = false,
+  -- any window-local configuration can be used here
+  number = true
+})
 ```
 
 #### For floats
@@ -172,7 +191,6 @@ repl_open_cmd = view.offset{
   -- 0 will pin it to the top/left and 1 will pin it to the bottom/right.
   h_offset = view.helpers.proportion(0.5)
 }
-
 
 -- Differently from `view.center`, all arguments are required
 -- and no defaults will be applied if something is missing.
