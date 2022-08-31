@@ -103,6 +103,9 @@ repl_open_cmd = "vertical botright 80 split"
 -- or call it with a size parameter
 repl_open_cmd = view.split.vertical.botright(50)
 
+-- If the supplied number is a fraction between 1 and 0,
+-- it will be used as a proportion
+repl_open_cmd = view.split.vertical.botright(0.61903398875),
 
 -- The size parameter can be a number, a string or a function.
 -- When it's a *number*, it will be the size in rows/columns
