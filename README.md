@@ -115,6 +115,19 @@ repl_open_cmd = view.split.topleft(function()
   end
   return 20
 end)
+
+-- An optional set of options can be given to the split function if one
+-- wants to configure the window behavior.
+-- Note that, by default `winfixwidth` and `winfixheight` are set
+-- to `true`. If you want to overwrite those values,
+-- you need to specify the keys in the option map as the example below
+
+repl_open_cmd = view.split("40%", {
+  winfixwidth = false,
+  winfixheight = false,
+  -- any window-local configuration can be used here
+  number = true
+})
 ```
 
 #### For floats
