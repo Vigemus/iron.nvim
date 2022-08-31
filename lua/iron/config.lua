@@ -20,8 +20,7 @@ local values = {
   close_window_on_exit = true,
   preferred = setmetatable({}, {
     __newindex = function(tbl, k, v)
-      vim.api.nvim_err_writeln("iron: Setting preferred repl is deprecated.")
-      vim.api.nvim_err_writeln("      Use `repl_definition` key instead supplying the complete repl definition")
+      vim.deprecate("config.preferred", "config.repl_definition", "3.1", "iron.nvim")
       rawset(tbl, k, v)
     end
   }),
@@ -36,7 +35,7 @@ local values = {
         end
       end
       if repl_def == nil then
-        vim.api.nvim_err_writeln("Failed to locate REPL executable, aborting")
+        error("Failed to locate REPL executable, aborting")
       else
         rawset(tbl, key, repl_def)
         return repl_def
@@ -44,7 +43,11 @@ local values = {
     end
   }),
   should_map_plug = false,
-  repl_open_cmd = view.curry.bottom(40),
+  repl_open_cmd = view.split.botright(40),
+  current_view = 1,
+  views = {
+    view.bottom(40)
+  },
   mark = { -- Arbitrary numbers
     save_pos = 20,
     send = 77,
