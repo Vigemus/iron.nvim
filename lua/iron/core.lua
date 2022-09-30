@@ -202,11 +202,15 @@ end
 -- @param ft filetype (will be inferred if not supplied)
 -- @tparam string|table data data to be sent to the repl.
 core.send = function(ft, data)
-  ft = ft or ll.get_buffer_ft(0)
-  if data == nil then return end
-  -- If the repl doesn't exist, it will be created
-  local meta = ll.get(ft)
+  local meta = vim.b[0].repl
 
+  if not meta then
+    ft = ft or ll.get_buffer_ft(0)
+    if data == nil then return end
+    meta = ll.get(ft)
+  end
+
+  -- If the repl doesn't exist, it will be created
   if not ll.repl_exists(meta) then
     meta = core.repl_for(ft)
   end
@@ -370,6 +374,18 @@ core.send_mark = function()
   core.send(nil, lines)
 end
 
+--- Attaches a buffer to a repl regardless of it's filetype
+-- If the repl doesn't exist it will be created
+core.attach = function(ft, target)
+  local meta = ll.get(ft)
+
+  if not ll.repl_exists(meta) then
+    meta = core.repl_for(ft)
+  end
+
+  vim.b[target].repl = meta
+end
+
 --- Provide filtered list of supported fts
 -- Auxiliary function to be used by commands to show the user which fts they have
 -- available to start repls with
@@ -400,6 +416,9 @@ end
 -- @table commands
 -- @field IronRepl command for @{core.repl_for}
 local commands = {
+  {"IronAttach", function(opts)
+    core.attach(get_ft(opts.fargs[1]), vim.api.nvim_get_current_buf())
+  end, {nargs="?", complete = complete_fts}},
   {"IronRepl", function(opts)
     core.repl_for(get_ft(opts.fargs[1]))
   end, {nargs="?", complete = complete_fts}},
