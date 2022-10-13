@@ -118,6 +118,14 @@ Iron provides the following commands for interacting with REPLs:
 :IronFocus [ft]
   Focuses on the repl for current or given file type.
 
+:IronHide [ft]
+  Hide the repl window for current or given file type.
+
+:IronWatch file|mark
+  send the file/mark to the repl after writing the buffer
+
+:IronAttach ft
+  Attach current buffer regardless of its filetype to a repl
 
 ===============================================================================
 Functions                                                      *iron-functions*
