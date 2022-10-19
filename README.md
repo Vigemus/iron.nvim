@@ -39,6 +39,8 @@ iron.setup {
     -- Your repl definitions come here
     repl_definition = {
       sh = {
+        -- Can be a table or a function that
+        -- returns a table
         command = {"zsh"}
       }
     },

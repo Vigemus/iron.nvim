@@ -53,7 +53,7 @@ end
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @param bufnr Buffer to be used
--- @param opts Options passed throught to the terminal
+-- @param opts Options passed through to the terminal
 -- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
 ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
@@ -73,7 +73,10 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
     end
   end
 
-  local job_id = vim.fn.termopen(repl.command, opts)
+  local cmd = type(repl.command) == 'function' 
+    and repl.command()
+    or repl.command
+  local job_id = vim.fn.termopen(cmd, opts)
 
   return {
     ft = ft,

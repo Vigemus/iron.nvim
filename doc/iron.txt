@@ -208,6 +208,7 @@ iron.setup{
 
      -- new, custom repl
       lua = {
+        -- Can be a table or a function that returns a table
         command = {"my-lua-repl", "-arg"}
       }
     },
