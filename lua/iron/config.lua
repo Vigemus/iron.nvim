@@ -53,6 +53,7 @@ local values = {
     send = 77,
   },
   buflisted = false,
+  ignore_blank_lines = true,
 }
 
 -- HACK for LDoc to correctly link @see annotations

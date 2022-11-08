@@ -66,7 +66,8 @@ iron.setup {
   -- For the available options, check nvim_set_hl
   highlight = {
     italic = true
-  }
+  },
+  ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
 }
 
 -- iron also has a list of commands, see :h iron-commands for all available commands
