@@ -53,10 +53,11 @@ end
 -- @param repl definition of the repl being created
 -- @param repl.command table with the command to be invoked.
 -- @param bufnr Buffer to be used
--- @param opts Options passed throught to the terminal
+-- @param current_bufnr Current buffer
+-- @param opts Options passed through to the terminal
 -- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
-ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
+ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts)
   vim.api.nvim_win_set_buf(0, bufnr)
   -- TODO Move this out of this function
   -- Checking config should be done on an upper layer.
@@ -73,7 +74,14 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, opts)
     end
   end
 
-  local job_id = vim.fn.termopen(repl.command, opts)
+  local cmd = repl.command
+  if type(repl.command) == 'function' then
+    local meta = {
+      current_bufnr = current_bufnr,
+    }
+    cmd = repl.command(meta)
+  end
+  local job_id = vim.fn.termopen(cmd, opts)
 
   return {
     ft = ft,

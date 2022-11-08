@@ -208,6 +208,7 @@ iron.setup{
 
      -- new, custom repl
       lua = {
+        -- Can be a table or a function that returns a table (see below)
         command = {"my-lua-repl", "-arg"}
       }
     },
@@ -252,6 +253,24 @@ iron.setup{
   highlight = {
     italic = true
   }
+}
+```
+
+The repl command can also be a function:
+
+```
+iron.setup{
+  config = {
+    repl_definition = {
+      -- custom repl that loads the current file
+      haskell = {
+        command = function(meta)
+          local filename = vim.api.nvim_buf_get_name(meta.current_bufnr)
+          return { 'cabal', 'v2-repl', filename}
+        end
+      }
+    },
+  },
 }
 ```
 
