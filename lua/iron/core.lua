@@ -291,7 +291,17 @@ core.mark_visual = function()
     to_col = math.min(e_col, vim.fn.strdisplaywidth(lines[#lines])) - 1 -- TODO Check whether this is actually true
   }
 
-  return lines
+  if config.ignore_blank_lines then
+    local b_lines = {}
+    for _, line in ipairs(lines) do
+      if line:gsub("^%s*(.-)%s*$", "%1") ~= '' then
+        table.insert(b_lines, line)
+      end
+    end
+    return b_lines
+  else
+    return lines
+  end
 end
 
 --- Marks the supplied motion and returns the data for usage
@@ -514,6 +524,7 @@ end
 -- then they will also be mapped to `<plug>` keymaps.
 -- @table named_maps
 -- @field send_motion mapping to send a motion/chunk to the repl
+
 -- @field send_mark Sends chunk within marked boundaries
 -- @field send_line sends current line to repl
 -- @field visual_send sends visual selection to repl
