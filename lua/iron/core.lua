@@ -296,13 +296,18 @@ core.mark_visual = function()
   }
 
   if config.ignore_blank_lines then
-    local b_lines = {}
+    local r_lines = {}
     for _, line in ipairs(lines) do
+      -- check if blank line
       if line:gsub("^%s*(.-)%s*$", "%1") ~= '' then
-        table.insert(b_lines, line)
+        table.insert(r_lines, line)
       end
     end
-    return b_lines
+    -- add a blank line when the last line starts with blank letter, NOTE: it means this line is the end of a fuction or class in python
+    if string.match(r_lines[#r_lines], "^%s")  then
+      table.insert(r_lines, "")
+    end
+    return r_lines
   else
     return lines
   end
