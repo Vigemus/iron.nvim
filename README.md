@@ -39,6 +39,8 @@ iron.setup {
     -- Your repl definitions come here
     repl_definition = {
       sh = {
+        -- Can be a table or a function that
+        -- returns a table (see below)
         command = {"zsh"}
       }
     },
@@ -75,6 +77,24 @@ vim.keymap.set('n', '<space>rs', '<cmd>IronRepl<cr>')
 vim.keymap.set('n', '<space>rr', '<cmd>IronRestart<cr>')
 vim.keymap.set('n', '<space>rf', '<cmd>IronFocus<cr>')
 vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
+```
+
+The repl `command` can also be a function:
+
+```lua
+iron.setup{
+  config = {
+    repl_definition = {
+      -- custom repl that loads the current file
+      haskell = {
+        command = function(meta)
+          local filename = vim.api.nvim_buf_get_name(meta.current_bufnr)
+          return { 'cabal', 'v2-repl', filename}
+        end
+      }
+    },
+  },
+}
 ```
 
 ### REPL windows
