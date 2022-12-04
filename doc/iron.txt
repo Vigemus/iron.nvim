@@ -154,6 +154,8 @@ Below are the core functions:
 
 * core.send(ft, data)        Sends data (a table) to the repl for given filetype
 
+* core.send_file()           Sends the whole file to the repl
+
 * core.send_line()           Sends line below the cursor to the repl
 
 * core.send_motion(motion)   Applies given motion and sends the result to the repl
