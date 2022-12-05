@@ -93,6 +93,7 @@ Currently, Iron has support for the following programming languages:
   - tcl
   - typescript
   - zsh
+  - fish
 
 
 ===============================================================================
