@@ -93,6 +93,7 @@ Currently, Iron has support for the following programming languages:
   - tcl
   - typescript
   - zsh
+  - fish
 
 
 ===============================================================================
@@ -153,6 +154,8 @@ Below are the core functions:
 * core.focus_on(ft)          Moves to (or creates) the repl for given filetype
 
 * core.send(ft, data)        Sends data (a table) to the repl for given filetype
+
+* core.send_file()           Sends the whole file to the repl
 
 * core.send_line()           Sends line below the cursor to the repl
 
