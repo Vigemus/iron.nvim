@@ -245,6 +245,25 @@ core.send_line = function()
   core.send(nil, cur_line)
 end
 
+--- Sends the buffer from the beginning until reching the line where the cursror is (inclusive)
+-- Builds upon @{core.send}, extracting
+-- the data beforehand.
+core.send_until_cursor = function()
+  local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
+  local text_until_line = vim.api.nvim_buf_get_lines(0, 0, linenr + 1, 0)
+  local last_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
+  local last_line_width = vim.fn.strdisplaywidth(last_line)
+
+  marks.set {
+    from_line = 0,
+    from_col = 0,
+    to_line = linenr,
+    to_col = last_line_width - 1
+  }
+
+  core.send(nil, text_until_line)
+end
+
 --- Marks visual selection and returns data for usage
 -- @treturn table Marked lines
 core.mark_visual = function()
@@ -531,6 +550,7 @@ end
 
 -- @field send_mark Sends chunk within marked boundaries
 -- @field send_line sends current line to repl
+-- @field send_until_cursor sends the buffer from the start until the line where the cursor is (inclusive) to the repl
 -- @field visual_send sends visual selection to repl
 -- @field clear_hl clears highlighted chunk
 -- @field cr sends a <CR> to the repl
@@ -542,6 +562,7 @@ local named_maps = {
   send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
   send_mark = {{'n'}, core.send_mark},
   send_line = {{'n'}, core.send_line},
+  send_until_cursor = {{'n'}, core.send_until_cursor},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
 
