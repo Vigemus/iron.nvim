@@ -332,4 +332,4 @@ Plugin created by Henry Kupty <hkupty@gmail.com>.
 It is free to use and extend. Please consider opening a pull request if
 extended.
 
-Source at https://github.com/hkupty/iron.nvim
+Source at https://github.com/Vigemus/iron.nvim
