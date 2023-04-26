@@ -72,6 +72,8 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
       end
       vim.api.nvim_buf_delete(bufnr, {force = true})
     end
+  else
+    opts.on_exit = function() end
   end
 
   local cmd = repl.command
