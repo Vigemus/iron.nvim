@@ -55,6 +55,7 @@ iron.setup {
     visual_send = "<space>sc",
     send_file = "<space>sf",
     send_line = "<space>sl",
+    send_until_cursor = "<space>su",
     send_mark = "<space>sm",
     mark_motion = "<space>mc",
     mark_visual = "<space>mc",
