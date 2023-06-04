@@ -159,6 +159,9 @@ Below are the core functions:
 
 * core.send_line()           Sends line below the cursor to the repl
 
+* core.send_until_cursor()   Sends the buffer from the start until the line where 
+                             the cursor is (inclusive) to the repl
+
 * core.send_motion(motion)   Applies given motion and sends the result to the repl
                              see `send_motion` in |iron-mappings|
 
@@ -241,6 +244,7 @@ iron.setup{
     visual_send = "<space>sc",
     send_file = "<space>sf",
     send_line = "<space>sl",
+    send_until_cursor = "<space>su",
     send_mark = "<space>sm",
     mark_motion = "<space>mc",
     mark_visual = "<space>mc",
@@ -287,6 +291,7 @@ core.setup function.
 - visual_send: Sends the visual selection to the repl
 - send_file: Sends the whole file to the repl
 - send_line: Sends the line below the cursor to the repl
+- send_until_cursor: Sends the buffer from the start until the line where the cursor is (inclusive) to the repl
 - send_mark: Sends the text within the mark
 - mark_motion: Marks the text object
 - mark_visual: Marks the visual selection
@@ -332,4 +337,4 @@ Plugin created by Henry Kupty <hkupty@gmail.com>.
 It is free to use and extend. Please consider opening a pull request if
 extended.
 
-Source at https://github.com/hkupty/iron.nvim
+Source at https://github.com/Vigemus/iron.nvim

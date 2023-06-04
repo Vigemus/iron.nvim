@@ -18,7 +18,13 @@ local windows_linefeed = function(lines)
 end
 
 local is_windows = has('win32') and true or false
-local pyversion  = executable('python3') and 'python3' or 'python'
+
+local pyversion
+if os.getenv('VIRTUAL_ENV') ~= nil then
+    pyversion = 'python'
+else
+    pyversion = executable('python3') and 'python3' or 'python'
+end
 
 
 local def = function(cmd)
@@ -28,9 +34,9 @@ local def = function(cmd)
   }
 end
 
-python.ptipython = def({"ptipython"})
-python.ipython = def({"ipython", "--no-autoindent"})
-python.ptpython = def({"ptpython"})
+python.ptipython = def({pyversion, "-m", "ptpython.entry_points.run_ptipython"})
+python.ipython = def({pyversion, "-m", "IPython", "--no-autoindent"})
+python.ptpython = def({pyversion, "-m", "ptpython"})
 python.python = {
   command = {pyversion},
   close = {""}
