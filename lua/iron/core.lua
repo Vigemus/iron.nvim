@@ -138,8 +138,18 @@ end
 -- Otherwise, this will only finish the process.
 -- @param ft filetype
 core.close_repl = function(ft)
-  ft = ft or ll.get_buffer_ft(0)
-  local meta = ll.get(ft)
+  -- see the similar logic on core.send to see how the REPLs created by
+  -- core.attach is handled.
+  local meta = vim.b[0].repl
+
+  if not meta or not ll.repl_exists(meta) then
+    ft = ft or ll.get_buffer_ft(0)
+    meta = ll.get(ft)
+  end
+
+  if not ll.repl_exists(meta) then
+    return
+  end
 
   ll.send_to_repl(meta, string.char(04))
 end
@@ -206,9 +216,15 @@ end
 -- @param ft filetype (will be inferred if not supplied)
 -- @tparam string|table data data to be sent to the repl.
 core.send = function(ft, data)
+  -- the buffer local variable `repl` is created by core.attach function to
+  -- track non-default REPls.
   local meta = vim.b[0].repl
 
-  if not meta then
+  -- However, this attached meta may associated with a REPL that has been
+  -- closed, we need to check for that.
+  -- If the attached REPL is not existed or has been closed, we will try to
+  -- get the REPL meta based on the ft of current buffer.
+  if not meta or not ll.repl_exists(meta) then
     ft = ft or ll.get_buffer_ft(0)
     if data == nil then return end
     meta = ll.get(ft)
