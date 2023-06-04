@@ -138,8 +138,18 @@ end
 -- Otherwise, this will only finish the process.
 -- @param ft filetype
 core.close_repl = function(ft)
-  ft = ft or ll.get_buffer_ft(0)
-  local meta = ll.get(ft)
+  -- see the similar logic on core.send to see how the REPLs created by
+  -- core.attach is handled.
+  local meta = vim.b[0].repl
+
+  if not meta or not ll.repl_exists(meta) then
+    ft = ft or ll.get_buffer_ft(0)
+    meta = ll.get(ft)
+  end
+
+  if not ll.repl_exists(meta) then
+    return
+  end
 
   ll.send_to_repl(meta, string.char(04))
 end
@@ -206,9 +216,15 @@ end
 -- @param ft filetype (will be inferred if not supplied)
 -- @tparam string|table data data to be sent to the repl.
 core.send = function(ft, data)
+  -- the buffer local variable `repl` is created by core.attach function to
+  -- track non-default REPls.
   local meta = vim.b[0].repl
 
-  if not meta then
+  -- However, this attached meta may associated with a REPL that has been
+  -- closed, we need to check for that.
+  -- If the attached REPL is not existed or has been closed, we will try to
+  -- get the REPL meta based on the ft of current buffer.
+  if not meta or not ll.repl_exists(meta) then
     ft = ft or ll.get_buffer_ft(0)
     if data == nil then return end
     meta = ll.get(ft)
@@ -243,6 +259,25 @@ core.send_line = function()
   }
 
   core.send(nil, cur_line)
+end
+
+--- Sends the buffer from the beginning until reching the line where the cursror is (inclusive)
+-- Builds upon @{core.send}, extracting
+-- the data beforehand.
+core.send_until_cursor = function()
+  local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
+  local text_until_line = vim.api.nvim_buf_get_lines(0, 0, linenr + 1, 0)
+  local last_line = vim.api.nvim_buf_get_lines(0, linenr, linenr + 1, 0)[1]
+  local last_line_width = vim.fn.strdisplaywidth(last_line)
+
+  marks.set {
+    from_line = 0,
+    from_col = 0,
+    to_line = linenr,
+    to_col = last_line_width - 1
+  }
+
+  core.send(nil, text_until_line)
 end
 
 --- Marks visual selection and returns data for usage
@@ -531,6 +566,7 @@ end
 
 -- @field send_mark Sends chunk within marked boundaries
 -- @field send_line sends current line to repl
+-- @field send_until_cursor sends the buffer from the start until the line where the cursor is (inclusive) to the repl
 -- @field visual_send sends visual selection to repl
 -- @field clear_hl clears highlighted chunk
 -- @field cr sends a <CR> to the repl
@@ -542,6 +578,7 @@ local named_maps = {
   send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
   send_mark = {{'n'}, core.send_mark},
   send_line = {{'n'}, core.send_line},
+  send_until_cursor = {{'n'}, core.send_until_cursor},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
 

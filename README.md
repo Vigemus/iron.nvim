@@ -17,12 +17,12 @@ It both a plugin and a library, allowing for better user experience and extensib
 Using [packer.nvim](https://github.com/wbthomason/packer.nvim) (or the plugin manager of your choice):
 
 ```lua
-  use {'hkupty/iron.nvim'}
+  use {'Vigemus/iron.nvim'}
 ```
 
 As of version 3.0, Iron uses milestones and tags to manage releases. If you want to use the stable versions, use the following:
 ```lua
-  use {'hkupty/iron.nvim', tag = "<most recent tag>"}
+  use {'Vigemus/iron.nvim', tag = "<most recent tag>"}
 ```
 
 ## How to configure
@@ -55,6 +55,7 @@ iron.setup {
     visual_send = "<space>sc",
     send_file = "<space>sf",
     send_line = "<space>sl",
+    send_until_cursor = "<space>su",
     send_mark = "<space>sm",
     mark_motion = "<space>mc",
     mark_visual = "<space>mc",
