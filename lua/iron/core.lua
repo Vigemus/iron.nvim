@@ -655,12 +655,12 @@ core.setup = function(opts)
       end
 
       if named_maps[key] == nil then
-          error("Key `" .. key .. "` doesn't exist, therefore there's nothing to be applied")
+        error("Key `" .. key .. "` doesn't exist, therefore there's nothing to be applied")
       else
         local mapping = vim.deepcopy(named_maps[key])
+        local options = { silent = true, desc = mapping.desc or ('Iron REPL: ' .. key) }
         table.insert(mapping, 2, lhs)
-        table.insert(mapping, {silent = true, desc = 'iron_repl_' .. key})
-
+        table.insert(mapping, options)
         vim.keymap.set(unpack(mapping))
       end
     end
