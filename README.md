@@ -1,6 +1,5 @@
 # iron.nvim
 
-[![Sponsor me](https://img.shields.io/github/sponsors/hkupty?style=flat-square)](https://github.com/sponsors/hkupty)
 [![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#iron.nvim:matrix.org)
 
 Interactive Repls Over Neovim
@@ -237,10 +236,3 @@ repl_open_cmd = view.offset{
   h_offset = view.helpers.flip(2)
 }
 ```
-
-## Support iron.nvim
-
-iron.nvim is developed and maintained by [@hkupty](https://github.com/sponsors/hkupty).
-Please consider sponsoring the development of iron.
-Alternatively, pay me a coffee by sending me some BTC in `1Dnb3onNAc4XK4FL8cp7NAQ2NFspTZLNRi`.
-Cheers!
