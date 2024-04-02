@@ -45,7 +45,6 @@ end
 --- @return table  "returns the table of lines to be sent the the repl with 
 -- the return carriage '\r' added"
 common.bracketed_paste_python = function(lines)
-  -- local cr = "\r"
   local result = {}
 
   for i, line in ipairs(lines) do
