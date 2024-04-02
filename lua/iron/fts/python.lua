@@ -2,6 +2,31 @@
 local bracketed_paste = require("iron.fts.common").bracketed_paste
 local python = {}
 
+--- @param lines table  "each item of the table is a new line to send to the repl"
+--- @return table  "returns the table of lines to be sent the the repl with 
+-- the return carriage '\r' added"
+local function bracketed_paste_python(lines)
+  local cr = "\r"
+  local result = {}
+
+  for i, line in ipairs(lines) do
+    table.insert(result, line)
+
+    if i < #lines then
+      local current_line_has_indent = string.match(line, "^%s") ~= nil
+      local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
+
+      if current_line_has_indent and not next_line_has_indent then
+        table.insert(result, cr)
+      end
+
+    end
+  end
+
+  table.insert(result, cr)
+  return result
+end
+
 local has = function(feature)
   return vim.api.nvim_call_function('has', {feature}) == 1
 end
@@ -32,6 +57,7 @@ python.ipython = def({"ipython", "--no-autoindent"})
 python.ptpython = def({"ptpython"})
 python.python = {
   command = {pyversion},
+  format = bracketed_paste_python,
   close = {""}
 }
 
