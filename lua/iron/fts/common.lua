@@ -40,4 +40,31 @@ common.bracketed_paste = function(lines)
   end
 end
 
+
+--- @param lines table  "each item of the table is a new line to send to the repl"
+--- @return table  "returns the table of lines to be sent the the repl with 
+-- the return carriage '\r' added"
+common.bracketed_paste_python = function(lines)
+  -- local cr = "\r"
+  local result = {}
+
+  for i, line in ipairs(lines) do
+    table.insert(result, line)
+
+    if i < #lines then
+      local current_line_has_indent = string.match(line, "^%s") ~= nil
+      local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
+
+      if current_line_has_indent and not next_line_has_indent then
+        table.insert(result, cr)
+      end
+
+    end
+  end
+
+  table.insert(result, cr)
+  return result
+end
+
+
 return common
