@@ -396,6 +396,15 @@ core.visual_send = function()
   core.send(nil, core.mark_visual())
 end
 
+--- Sends the paragraph to the REPL that the cursor is on
+core.send_paragraph = function()
+  vim.cmd('normal! vip')
+  vim.defer_fn(function()
+    core.visual_send()
+  end, 100)
+end
+
+
 --- Re-sends latest chunk of text.
 -- Sends text contained within a block delimited by
 -- the last sent chunk. Uses @{marks.get} to retrieve
@@ -581,6 +590,7 @@ local named_maps = {
   send_until_cursor = {{'n'}, core.send_until_cursor},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
+  send_paragraph = {{'n'}, core.send_paragraph},
 
   -- Marks
   mark_motion = {{'n'}, function() require("iron.core").run_motion("mark_motion") end},
