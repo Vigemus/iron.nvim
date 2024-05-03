@@ -1,5 +1,4 @@
 -- luacheck: globals vim
-local bracketed_paste = require("iron.fts.common").bracketed_paste
 local bracketed_paste_python = require("iron.fts.common").bracketed_paste_python
 local python = {}
 
@@ -24,18 +23,14 @@ local pyversion  = executable('python3') and 'python3' or 'python'
 local def = function(cmd)
   return {
     command = cmd,
-    format = bracketed_paste
+    format = bracketed_paste_python
   }
 end
 
 python.ptipython = def({"ptipython"})
 python.ipython = def({"ipython", "--no-autoindent"})
 python.ptpython = def({"ptpython"})
-python.python = {
-  command = {pyversion},
-  format = bracketed_paste_python,
-  close = {""}
-}
+python.python = def({pyversion})
 
 if is_windows then
   python.python.format = windows_linefeed
