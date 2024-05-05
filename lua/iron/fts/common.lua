@@ -1,3 +1,4 @@
+local isWindows = require("iron.util.os").isWindows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
 local close_code = "\27[201~"
@@ -19,7 +20,9 @@ common.format = function(repldef, lines)
   end
 
   if #new > 0 then
-    new[#new] = new[#new] .. cr
+    if not isWindows() then
+      new[#new] = new[#new] .. cr
+    end
   end
 
   return new
@@ -53,15 +56,20 @@ common.bracketed_paste_python = function(lines)
     if i < #lines then
       local current_line_has_indent = string.match(line, "^%s") ~= nil
       local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
-
-      if current_line_has_indent and not next_line_has_indent then
-        table.insert(result, cr)
+       
+      if not isWindows() then
+        if current_line_has_indent and not next_line_has_indent then
+          table.insert(result, cr)
+        end
       end
 
     end
   end
+  
+  if not isWindows() then
+    table.insert(result, cr)
+  end
 
-  table.insert(result, cr)
   return result
 end
 
