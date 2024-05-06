@@ -5,6 +5,7 @@ local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
+local isWindows = require("iron.util.os").isWindows
 
 local autocmds = {}
 
@@ -215,7 +216,7 @@ end
 -- it exists.
 -- @param ft filetype (will be inferred if not supplied)
 -- @tparam string|table data data to be sent to the repl.
-core.send = function(ft, data)
+local send = function(ft, data)
   -- the buffer local variable `repl` is created by core.attach function to
   -- track non-default REPls.
   local meta = vim.b[0].repl
@@ -235,6 +236,20 @@ core.send = function(ft, data)
     meta = core.repl_for(ft)
   end
   ll.send_to_repl(meta, data)
+end
+
+core.send = function(ft, data)
+  if not isWindows() then
+    send(ft, data)
+  else
+    send(ft, data)
+    vim.defer_fn(function()
+      send(nil, string.char(13))
+      if type(data) ~= "string" then
+        send(nil, string.char(13))
+      end
+    end, 100)
+  end
 end
 
 core.send_file = function(ft)
@@ -395,6 +410,15 @@ end
 core.visual_send = function()
   core.send(nil, core.mark_visual())
 end
+
+--- Sends the paragraph to the REPL that the cursor is on
+core.send_paragraph = function()
+  vim.cmd('normal! vip')
+  vim.defer_fn(function()
+    core.visual_send()
+  end, 100)
+end
+
 
 --- Re-sends latest chunk of text.
 -- Sends text contained within a block delimited by
@@ -581,6 +605,7 @@ local named_maps = {
   send_until_cursor = {{'n'}, core.send_until_cursor},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
+  send_paragraph = {{'n'}, core.send_paragraph},
 
   -- Marks
   mark_motion = {{'n'}, function() require("iron.core").run_motion("mark_motion") end},
