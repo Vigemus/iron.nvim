@@ -1,3 +1,4 @@
+local config = require("iron.config")
 local isWindows = require("iron.util.os").isWindows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
@@ -5,6 +6,18 @@ local close_code = "\27[201~"
 local cr = "\13"
 
 local common = {}
+
+
+local contains = function(table, substring)
+  for _, v in ipairs(table) do
+    if string.find(v, substring) then
+      print("found")
+      return true
+    end
+  end
+  return false
+end
+
 
 common.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
@@ -56,9 +69,17 @@ common.bracketed_paste_python = function(lines)
     if i < #lines then
       local current_line_has_indent = string.match(line, "^%s") ~= nil
       local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
-       
-      if current_line_has_indent and not next_line_has_indent then
-        table.insert(result, cr)
+
+      if isWindows() then
+        if not contains(config.repl_definition.python.command, "ipython") then
+          if current_line_has_indent and not next_line_has_indent then
+            table.insert(result, cr)
+          end
+        end
+      else
+        if current_line_has_indent and not next_line_has_indent then
+          table.insert(result, cr)
+        end
       end
 
     end
