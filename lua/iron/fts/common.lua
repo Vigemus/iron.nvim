@@ -57,10 +57,8 @@ common.bracketed_paste_python = function(lines)
       local current_line_has_indent = string.match(line, "^%s") ~= nil
       local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
        
-      if not isWindows() then
-        if current_line_has_indent and not next_line_has_indent then
-          table.insert(result, cr)
-        end
+      if current_line_has_indent and not next_line_has_indent then
+        table.insert(result, cr)
       end
 
     end
