@@ -163,6 +163,7 @@ ll.send_to_repl = function(meta, data)
   end
 
   --TODO check vim.api.nvim_chan_send
+  --TODO tool to get the progress of the chan send function
   vim.fn.chansend(meta.job, dt)
 
   if window ~= -1 then
