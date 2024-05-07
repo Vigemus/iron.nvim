@@ -238,17 +238,31 @@ local send = function(ft, data)
   ll.send_to_repl(meta, data)
 end
 
+
+-- TODO fix this hack fix that allows ipython with Windows OS
+-- To fix this, there needs to be some sort of check on the progress of the
+-- call to vim.fn.chansend(meta.job, dt) inside of ll.send_to_repl. The defer
+-- is here to ensure that sending of string.char(13) sends after the commands
+-- are finished sending to the ipython REPL
 core.send = function(ft, data)
   if not isWindows() then
     send(ft, data)
+
   else
     send(ft, data)
+    
+    -- This is a hack fix that allows windows ipython to run the commands sent
+    -- to the repl. However, the same issue will arise as before (the command sent
+    -- to the repl but the code not running) if many lines are sent to the ipython
+    -- repl (many as in more than 150 milliseconds worth). It appear that windows
+    -- and powershell works fine though.
     vim.defer_fn(function()
       send(nil, string.char(13))
       if type(data) ~= "string" then
         send(nil, string.char(13))
       end
-    end, 100)
+    end, 150)
+
   end
 end
 
