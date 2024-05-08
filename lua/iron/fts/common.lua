@@ -67,8 +67,9 @@ common.bracketed_paste_python = function(lines)
 
   local function startsWithException(s)
     for _, exception in ipairs(exceptions) do
-      local pattern = "^" .. exception .. "[%s:]"
-      if string.match(s, pattern) or string.match(s, "^" .. exception .. "$") then
+      local pattern0 = "^" .. exception .. "[%s:]"
+      local pattern1 = "^" .. exception .. "[%s:]"
+      if string.match(s, pattern0) or string.match(s, pattern1) then
         return true
       end
     end
