@@ -46,7 +46,7 @@ common.bracketed_paste = function(lines)
     return { lines[1] .. cr }
   else
     local new = { open_code .. lines[1] }
-    for line=2, #lines do
+    for line = 2, #lines do
       table.insert(new, lines[line])
     end
 
@@ -58,10 +58,22 @@ end
 
 
 --- @param lines table  "each item of the table is a new line to send to the repl"
---- @return table  "returns the table of lines to be sent the the repl with 
+--- @return table  "returns the table of lines to be sent the the repl with
 -- the return carriage '\r' added"
 common.bracketed_paste_python = function(lines)
   local result = {}
+
+  local exceptions = { "elif", "else", "except", "finally", "#" }
+
+  local function startsWithException(s)
+    for _, exception in ipairs(exceptions) do
+      local pattern = "^" .. exception .. "[%s:]"
+      if string.match(s, pattern) or string.match(s, "^" .. exception .. "$") then
+        return true
+      end
+    end
+    return false
+  end
 
   for i, line in ipairs(lines) do
     table.insert(result, line)
@@ -69,22 +81,18 @@ common.bracketed_paste_python = function(lines)
     if i < #lines then
       local current_line_has_indent = string.match(line, "^%s") ~= nil
       local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
+      local isIpython = contains(config.repl_definition.python.command, "ipython")
 
-      if isWindows() then
-        if not contains(config.repl_definition.python.command, "ipython") then
-          if current_line_has_indent and not next_line_has_indent then
+      if isWindows() and not isIpython or not isWindows() then
+        if current_line_has_indent and not next_line_has_indent then
+          if not startsWithException(lines[i + 1]) then
             table.insert(result, cr)
           end
         end
-      else
-        if current_line_has_indent and not next_line_has_indent then
-          table.insert(result, cr)
-        end
       end
-
     end
   end
-  
+
   if not isWindows() then
     table.insert(result, cr)
   end
