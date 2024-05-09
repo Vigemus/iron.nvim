@@ -11,7 +11,6 @@ local common = {}
 local contains = function(table, substring)
   for _, v in ipairs(table) do
     if string.find(v, substring) then
-      print("found")
       return true
     end
   end
@@ -62,10 +61,17 @@ end
 -- the return carriage '\r' added"
 common.bracketed_paste_python = function(lines)
   local result = {}
-
-  local exceptions = { "elif", "else", "except", "finally", "#" }
+  
+  local newlines = {}
+  for _, line in pairs(lines) do
+    if string.len(line) > 0 then
+      table.insert(newlines, line)
+    end
+  end
+  lines = newlines
 
   local function startsWithException(s)
+    local exceptions = { "elif", "else", "except", "finally", "#" }
     for _, exception in ipairs(exceptions) do
       local pattern0 = "^" .. exception .. "[%s:]"
       local pattern1 = "^" .. exception .. "$"
@@ -76,21 +82,28 @@ common.bracketed_paste_python = function(lines)
     return false
   end
 
+  local indent_open = false
   for i, line in ipairs(lines) do
+    if string.match(line, "^%s") ~= nil then
+      indent_open = true
+    end
+
     table.insert(result, line)
 
     if i < #lines then
-      local current_line_has_indent = string.match(line, "^%s") ~= nil
-      local next_line_has_indent = string.match(lines[i + 1], "^%s") ~= nil
       local isIpython = contains(config.repl_definition.python.command, "ipython")
 
       if isWindows() and not isIpython or not isWindows() then
-        if current_line_has_indent and not next_line_has_indent then
-          if not startsWithException(lines[i + 1]) then
-            table.insert(result, cr)
+        if i < #lines then
+          if indent_open and string.match(lines[i + 1], "^%s") == nil then
+            if not startsWithException(lines[i + 1]) then
+              indent_open = false
+              table.insert(result, cr)
+            end
           end
         end
       end
+
     end
   end
 
