@@ -1,5 +1,5 @@
 local config = require("iron.config")
-local isWindows = require("iron.util.os").isWindows
+local is_windows = require("iron.util.os").is_windows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
 local close_code = "\27[201~"
@@ -32,7 +32,7 @@ common.format = function(repldef, lines)
   end
 
   if #new > 0 then
-    if not isWindows() then
+    if not is_windows() then
       new[#new] = new[#new] .. cr
     end
   end
@@ -93,7 +93,7 @@ common.bracketed_paste_python = function(lines)
     if i < #lines then
       local isIpython = contains(config.repl_definition.python.command, "ipython")
 
-      if isWindows() and not isIpython or not isWindows() then
+      if is_windows() and not isIpython or not is_windows() then
         if i < #lines then
           if indent_open and string.match(lines[i + 1], "^%s") == nil then
             if not startsWithException(lines[i + 1]) then
@@ -107,7 +107,7 @@ common.bracketed_paste_python = function(lines)
     end
   end
 
-  if not isWindows() then
+  if not is_windows() then
     table.insert(result, cr)
   end
 

@@ -5,7 +5,7 @@ local ll = require("iron.lowlevel")
 local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
-local isWindows = require("iron.util.os").isWindows
+local is_windows = require("iron.util.os").is_windows
 
 local autocmds = {}
 
@@ -245,7 +245,7 @@ end
 -- is here to ensure that sending of string.char(13) sends after the commands
 -- are finished sending to the ipython REPL
 core.send = function(ft, data)
-  if not isWindows() then
+  if not is_windows() then
     send(ft, data)
 
   else
