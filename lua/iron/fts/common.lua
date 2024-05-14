@@ -8,9 +8,40 @@ local cr = "\13"
 local common = {}
 
 
+---@param table table table of strings
+---@param substring string
+--- Checks in any sting in the table contains the substring
 local contains = function(table, substring)
   for _, v in ipairs(table) do
     if string.find(v, substring) then
+      return true
+    end
+  end
+  return false
+end
+
+
+---@param lines table
+local function remove_empty_lines(lines)
+  local newlines = {}
+  for _, line in pairs(lines) do
+    if string.len(line) > 0 then
+      table.insert(newlines, line)
+    end
+  end
+  return newlines
+end
+
+
+---@param s string
+--- A helper function using in bracked_paste_python.
+-- Checks in a string starts with any of the exceptions.
+local function python_close_indent_exceptions(s)
+  local exceptions = { "elif", "else", "except", "finally", "#" }
+  for _, exception in ipairs(exceptions) do
+    local pattern0 = "^" .. exception .. "[%s:]"
+    local pattern1 = "^" .. exception .. "$"
+    if string.match(s, pattern0) or string.match(s, pattern1) then
       return true
     end
   end
@@ -40,6 +71,7 @@ common.format = function(repldef, lines)
   return new
 end
 
+
 common.bracketed_paste = function(lines)
   if #lines == 1 then
     return { lines[1] .. cr }
@@ -58,29 +90,12 @@ end
 
 --- @param lines table  "each item of the table is a new line to send to the repl"
 --- @return table  "returns the table of lines to be sent the the repl with
--- the return carriage '\r' added"
+-- the return carriage added"
 common.bracketed_paste_python = function(lines)
   local result = {}
+  local is_ipython = contains(config.repl_definition.python.command, "ipython")
   
-  local newlines = {}
-  for _, line in pairs(lines) do
-    if string.len(line) > 0 then
-      table.insert(newlines, line)
-    end
-  end
-  lines = newlines
-
-  local function startsWithException(s)
-    local exceptions = { "elif", "else", "except", "finally", "#" }
-    for _, exception in ipairs(exceptions) do
-      local pattern0 = "^" .. exception .. "[%s:]"
-      local pattern1 = "^" .. exception .. "$"
-      if string.match(s, pattern0) or string.match(s, pattern1) then
-        return true
-      end
-    end
-    return false
-  end
+  lines = remove_empty_lines(lines)
 
   local indent_open = false
   for i, line in ipairs(lines) do
@@ -90,20 +105,13 @@ common.bracketed_paste_python = function(lines)
 
     table.insert(result, line)
 
-    if i < #lines then
-      local isIpython = contains(config.repl_definition.python.command, "ipython")
-
-      if is_windows() and not isIpython or not is_windows() then
-        if i < #lines then
-          if indent_open and string.match(lines[i + 1], "^%s") == nil then
-            if not startsWithException(lines[i + 1]) then
-              indent_open = false
-              table.insert(result, cr)
-            end
-          end
+    if is_windows() and not is_ipython or not is_windows() then
+      if i < #lines and indent_open and string.match(lines[i + 1], "^%s") == nil then
+        if not python_close_indent_exceptions(lines[i + 1]) then
+          indent_open = false
+          table.insert(result, cr)
         end
       end
-
     end
   end
 
