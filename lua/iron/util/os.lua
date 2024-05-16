@@ -1,6 +1,6 @@
 local checks = {}
 
-checks.isWindows = function()
+checks.is_windows = function()
     return package.config:sub(1,1) == '\\'
 end
 
