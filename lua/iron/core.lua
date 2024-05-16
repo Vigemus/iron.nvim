@@ -250,7 +250,7 @@ core.send = function(ft, data)
 
   else
     send(ft, data)
-    
+
     -- This is a hack fix that allows windows ipython to run the commands sent
     -- to the repl. However, the same issue will arise as before (the command sent
     -- to the repl but the code not running) if many lines are sent to the ipython

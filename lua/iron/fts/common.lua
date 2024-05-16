@@ -94,7 +94,7 @@ end
 common.bracketed_paste_python = function(lines)
   local result = {}
   local is_ipython = contains(config.repl_definition.python.command, "ipython")
-  
+
   lines = remove_empty_lines(lines)
 
   local indent_open = false
