@@ -1,5 +1,5 @@
 local config = require("iron.config")
-local isWindows = require("iron.util.os").isWindows
+local is_windows = require("iron.util.os").is_windows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
 local close_code = "\27[201~"
@@ -8,9 +8,49 @@ local cr = "\13"
 local common = {}
 
 
+---@param table table table of strings
+---@param substring string
+--- Checks in any sting in the table contains the substring
 local contains = function(table, substring)
   for _, v in ipairs(table) do
     if string.find(v, substring) then
+      return true
+    end
+  end
+  return false
+end
+
+
+---@param lines table
+-- Removes empty lines. On unix this includes lines only with 
+-- whitespaces. For some reason, unix needs the white space lines 
+-- removed but windows needs them. Need to figure out why later.
+local function remove_empty_lines(lines)
+  local newlines = {}
+  for _, line in pairs(lines) do
+    if string.len(line) > 0 then
+      if is_windows() then
+        table.insert(newlines, line)
+      else
+        if string.match(line, "^%s*$") == nil then
+          table.insert(newlines, line)
+        end
+      end
+    end
+  end
+  return newlines
+end
+
+
+---@param s string
+--- A helper function using in bracked_paste_python.
+-- Checks in a string starts with any of the exceptions.
+local function python_close_indent_exceptions(s)
+  local exceptions = { "elif", "else", "except", "finally", "#" }
+  for _, exception in ipairs(exceptions) do
+    local pattern0 = "^" .. exception .. "[%s:]"
+    local pattern1 = "^" .. exception .. "$"
+    if string.match(s, pattern0) or string.match(s, pattern1) then
       return true
     end
   end
@@ -32,13 +72,14 @@ common.format = function(repldef, lines)
   end
 
   if #new > 0 then
-    if not isWindows() then
+    if not is_windows() then
       new[#new] = new[#new] .. cr
     end
   end
 
   return new
 end
+
 
 common.bracketed_paste = function(lines)
   if #lines == 1 then
@@ -58,29 +99,12 @@ end
 
 --- @param lines table  "each item of the table is a new line to send to the repl"
 --- @return table  "returns the table of lines to be sent the the repl with
--- the return carriage '\r' added"
+-- the return carriage added"
 common.bracketed_paste_python = function(lines)
   local result = {}
-  
-  local newlines = {}
-  for _, line in pairs(lines) do
-    if string.len(line) > 0 then
-      table.insert(newlines, line)
-    end
-  end
-  lines = newlines
+  local is_ipython = contains(config.repl_definition.python.command, "ipython")
 
-  local function startsWithException(s)
-    local exceptions = { "elif", "else", "except", "finally", "#" }
-    for _, exception in ipairs(exceptions) do
-      local pattern0 = "^" .. exception .. "[%s:]"
-      local pattern1 = "^" .. exception .. "$"
-      if string.match(s, pattern0) or string.match(s, pattern1) then
-        return true
-      end
-    end
-    return false
-  end
+  lines = remove_empty_lines(lines)
 
   local indent_open = false
   for i, line in ipairs(lines) do
@@ -90,24 +114,17 @@ common.bracketed_paste_python = function(lines)
 
     table.insert(result, line)
 
-    if i < #lines then
-      local isIpython = contains(config.repl_definition.python.command, "ipython")
-
-      if isWindows() and not isIpython or not isWindows() then
-        if i < #lines then
-          if indent_open and string.match(lines[i + 1], "^%s") == nil then
-            if not startsWithException(lines[i + 1]) then
-              indent_open = false
-              table.insert(result, cr)
-            end
-          end
+    if is_windows() and not is_ipython or not is_windows() then
+      if i < #lines and indent_open and string.match(lines[i + 1], "^%s") == nil then
+        if not python_close_indent_exceptions(lines[i + 1]) then
+          indent_open = false
+          table.insert(result, cr)
         end
       end
-
     end
   end
 
-  if not isWindows() then
+  if not is_windows() then
     table.insert(result, cr)
   end
 
