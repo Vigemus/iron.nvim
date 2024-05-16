@@ -22,10 +22,11 @@ end
 
 
 ---@param lines table
+--- Removes empty lines, which includes lines only with whitespaces
 local function remove_empty_lines(lines)
   local newlines = {}
   for _, line in pairs(lines) do
-    if string.len(line) > 0 then
+    if string.len(line) > 0 and string.match(line, "^%s*$") == nil then
       table.insert(newlines, line)
     end
   end
