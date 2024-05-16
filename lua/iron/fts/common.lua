@@ -22,12 +22,20 @@ end
 
 
 ---@param lines table
---- Removes empty lines, which includes lines only with whitespaces
+-- Removes empty lines. On unix this includes lines only with 
+-- whitespaces. For some reason, unix needs the white space lines 
+-- removed but windows needs them. Need to figure out why later.
 local function remove_empty_lines(lines)
   local newlines = {}
   for _, line in pairs(lines) do
-    if string.len(line) > 0 and string.match(line, "^%s*$") == nil then
-      table.insert(newlines, line)
+    if string.len(line) > 0 then
+      if is_windows() then
+        table.insert(newlines, line)
+      else
+        if string.match(line, "^%s*$") == nil then
+          table.insert(newlines, line)
+        end
+      end
     end
   end
   return newlines
