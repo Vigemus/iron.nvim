@@ -22,22 +22,16 @@ end
 
 
 ---@param lines table
--- Removes empty lines. On unix this includes lines only with 
--- whitespaces. For some reason, unix needs the white space lines 
--- removed but windows needs them. Need to figure out why later.
+-- Removes empty lines. On unix this includes lines only with whitespaces.
 local function remove_empty_lines(lines)
   local newlines = {}
+
   for _, line in pairs(lines) do
-    if string.len(line) > 0 then
-      if is_windows() then
-        table.insert(newlines, line)
-      else
-        if string.match(line, "^%s*$") == nil then
-          table.insert(newlines, line)
-        end
-      end
+    if string.len(line:gsub("%s", "")) > 0 then
+      table.insert(newlines, line)
     end
   end
+
   return newlines
 end
 
@@ -124,7 +118,9 @@ common.bracketed_paste_python = function(lines)
     end
   end
 
-  if not is_windows() then
+  if is_windows() then
+    table.insert(result, "\r\n")
+  else
     table.insert(result, cr)
   end
 
