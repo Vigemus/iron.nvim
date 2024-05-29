@@ -1,5 +1,7 @@
 local ocaml = {}
 
+ocaml.close =  ";;"
+
 ocaml.utop = {
   command = {"utop"},
 }
