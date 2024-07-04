@@ -9,10 +9,12 @@ end
 local pyversion  = executable('python3') and 'python3' or 'python'
 
 local def = function(cmd)
-  return {
-    command = cmd,
-    format = bracketed_paste_python
-  }
+	return {
+		command = cmd,
+		format = function(line)
+			return bracketed_paste_python(line, cmd)
+		end,
+	}
 end
 
 python.ptipython = def({"ptipython"})
