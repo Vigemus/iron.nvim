@@ -1,4 +1,3 @@
-local config = require("iron.config")
 local is_windows = require("iron.util.os").is_windows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
@@ -94,9 +93,9 @@ end
 --- @param lines table  "each item of the table is a new line to send to the repl"
 --- @return table  "returns the table of lines to be sent the the repl with
 -- the return carriage added"
-common.bracketed_paste_python = function(lines)
+common.bracketed_paste_python = function(lines, cmd)
   local result = {}
-  local is_ipython = contains(config.repl_definition.python.command, "ipython")
+  local is_ipython = contains(cmd, "ipython")
 
   lines = remove_empty_lines(lines)
 
