@@ -41,6 +41,10 @@ iron.setup {
         -- Can be a table or a function that
         -- returns a table (see below)
         command = {"zsh"}
+      },
+      python = {
+        command = { "python3" },  -- or { "ipython", "--no-autoindent" }
+        format = require("iron.fts.common").bracketed_paste_python
       }
     },
     -- How the repl window will be displayed

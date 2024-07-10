@@ -56,8 +56,9 @@ common.format = function(repldef, lines)
 
   local new
 
+  -- passing the command is for python. this will not affect bracketed_paste.
   if repldef.format then
-    return repldef.format(lines)
+    return repldef.format(lines, { command = repldef.command })
   elseif #lines == 1 then
     new = lines
   else
@@ -93,8 +94,9 @@ end
 --- @param lines table  "each item of the table is a new line to send to the repl"
 --- @return table  "returns the table of lines to be sent the the repl with
 -- the return carriage added"
-common.bracketed_paste_python = function(lines, cmd)
+common.bracketed_paste_python = function(lines, extras)
   local result = {}
+  local cmd = extras["command"]
   local is_ipython = contains(cmd, "ipython")
 
   lines = remove_empty_lines(lines)
