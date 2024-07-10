@@ -55,8 +55,8 @@ common.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
 
   local new
-  
-  -- the passing command is for python. this will not affect bracket_paste
+
+  -- passing the command is for python. this will not affect bracketed_paste.
   if repldef.format then
     return repldef.format(lines, { command = repldef.command })
   elseif #lines == 1 then
