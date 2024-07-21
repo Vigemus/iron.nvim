@@ -164,7 +164,10 @@ ll.send_to_repl = function(meta, data)
 
   --TODO check vim.api.nvim_chan_send
   --TODO tool to get the progress of the chan send function
+  vim.fn.chansend(meta.job, "\x1b[200~")
   vim.fn.chansend(meta.job, dt)
+  vim.fn.chansend(meta.job, "\x1b[201~")
+  vim.fn.chansend(meta.job, "\n")
 
   if window ~= -1 then
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
