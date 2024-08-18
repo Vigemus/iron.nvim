@@ -118,7 +118,7 @@ core.repl_restart = function()
       else
         vim.api.nvim_set_current_win(replwin)
         local bufnr = ll.new_buffer()
-        meta = new_repl.create(ft, bufnr, current_bufnr, function()
+        new_meta = new_repl.create(ft, bufnr, current_bufnr, function()
           vim.api.nvim_buf_delete(bufnr, {force = true})
         end)
       end
