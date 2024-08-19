@@ -493,7 +493,13 @@ local get_ft = function(arg)
   if arg and arg ~= "" then
     return arg
   end
-  return ll.get_buffer_ft(0)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local ft = ll.get_repl_ft_for_bufnr(bufnr)
+  if ft ~= nil then
+    return ft
+  else
+    return ll.get_buffer_ft(0)
+  end
 end
 
 --- List of commands created by iron.nvim
