@@ -155,6 +155,12 @@ Below are the core functions:
 
 * core.send(ft, data)        Sends data (a table) to the repl for given filetype
 
+* core.send_code_block(move) Sends the lines between two code_deviders as defined 
+                             in repl_definition or end and start of buffer to the 
+                             repl. If move is true, the cursor is moved to next 
+                             code block. If move is false, the cursor position is 
+                             unchanged.
+
 * core.send_file()           Sends the whole file to the repl
 
 * core.send_line()           Sends line below the cursor to the repl
@@ -217,6 +223,12 @@ iron.setup{
         -- Can be a table or a function that returns a table (see below)
         command = {"my-lua-repl", "-arg"}
       }
+     -- setting up code_deviders for core.send_code_block
+      python = {
+        command = { "python3" }, -- or { "ipython", "--no-autoindent" }
+        format = require("iron.fts.common").bracketed_paste_python,
+        block_deviders = { "# %%", "#%%" },
+      }
     },
     -- Whether iron should map the `<plug>(..)` mappings
     should_map_plug = true,
@@ -246,6 +258,8 @@ iron.setup{
     send_line = "<space>sl",
     send_until_cursor = "<space>su",
     send_mark = "<space>sm",
+    send_code_block = "<space>sb",
+    send_code_block_and_move = "<space>sn",
     mark_motion = "<space>mc",
     mark_visual = "<space>mc",
     remove_mark = "<space>md",
@@ -293,6 +307,8 @@ core.setup function.
 - send_line: Sends the line below the cursor to the repl
 - send_until_cursor: Sends the buffer from the start until the line where the cursor is (inclusive) to the repl
 - send_mark: Sends the text within the mark
+- send_code_block: Sends the text between two code deviders
+- send_code_block_and_move: Sends the text between two code deviders and move to next code block
 - mark_motion: Marks the text object
 - mark_visual: Marks the visual selection
 - remove_mark: Removes the set mark
