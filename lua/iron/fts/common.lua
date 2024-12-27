@@ -119,10 +119,13 @@ common.bracketed_paste_python = function(lines, extras)
     end
   end
 
-  if is_windows() then
-    table.insert(result, "\r\n")
+  local newline = is_windows() and "\r\n" or cr
+  if result[#result]:sub(1, 1) == " " then
+    -- Since the last line of code is indented, the Python REPL
+    -- requires and extra newline in order to execute the code
+    table.insert(result, newline)
   else
-    table.insert(result, cr)
+    table.insert(result, "")
   end
 
   return result
