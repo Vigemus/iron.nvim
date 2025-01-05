@@ -338,3 +338,5 @@ It is free to use and extend. Please consider opening a pull request if
 extended.
 
 Source at https://github.com/Vigemus/iron.nvim
+
+ vim:tw=78:ft=help:norl:
