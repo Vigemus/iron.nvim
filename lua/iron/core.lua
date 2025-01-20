@@ -707,8 +707,10 @@ core.setup = function(opts)
   config.namespace = vim.api.nvim_create_namespace("iron")
   vim.api.nvim_create_augroup("iron", {})
 
-  for k, v in pairs(opts.config) do
-    config[k] = v
+  if opts.config then
+    for k, v in pairs(opts.config) do
+      config[k] = v
+    end
   end
 
   if config.highlight_last ~= false then
