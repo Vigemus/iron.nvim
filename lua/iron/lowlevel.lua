@@ -127,7 +127,9 @@ end
 --- Creates a new buffer to be used by the repl
 -- @return the buffer id
 ll.new_buffer = function()
-  return vim.api.nvim_create_buf(config.buflisted, config.scratch_repl)
+  local bufnr = vim.api.nvim_create_buf(config.buflisted, config.scratch_repl)
+  vim.bo[bufnr].filetype = "iron"
+  return bufnr
 end
 
 --- Wraps the condition checking of whether a repl exists
