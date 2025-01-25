@@ -97,7 +97,6 @@ end
 common.bracketed_paste_python = function(lines, extras)
   local result = {}
   local cmd = extras["command"]
-  local is_ipython = contains(cmd, "ipython")
 
   lines = remove_empty_lines(lines)
 
@@ -109,7 +108,7 @@ common.bracketed_paste_python = function(lines, extras)
 
     table.insert(result, line)
 
-    if is_windows() and not is_ipython or not is_windows() then
+    if is_windows() and not contains(cmd, "ipython") or not is_windows() then
       if i < #lines and indent_open and string.match(lines[i + 1], "^%s") == nil then
         if not python_close_indent_exceptions(lines[i + 1]) then
           indent_open = false
