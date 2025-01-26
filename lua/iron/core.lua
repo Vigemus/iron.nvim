@@ -63,6 +63,11 @@ new_repl.create_on_new_window = function(ft)
     vim.api.nvim_buf_delete(bufnr, {force = true})
   end)
 
+  local filetype = config.repl_filetype(bufnr, ft)
+  if filetype ~= nil then
+    vim.api.nvim_set_option_value("filetype", filetype, { buf = bufnr })
+  end
+
   return meta
 end
 

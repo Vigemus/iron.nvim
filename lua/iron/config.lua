@@ -42,6 +42,9 @@ local values = {
       end
     end
   }),
+  repl_filetype = function(bufnr, ft)
+    return "iron"
+  end,
   should_map_plug = false,
   repl_open_cmd = view.split.botright(40),
   current_view = 1,
