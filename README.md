@@ -63,14 +63,32 @@ iron.setup {
     -- How the repl window will be displayed
     -- See below for more information
     repl_open_cmd = require('iron.view').bottom(40),
+
+    -- repl_open_cmd can also be a table so that multiple repl_open_commands can be given.
+    -- When repl_open_cmd is given as a table, a default command must be specified
+    -- with `_DEFAULT`.
+    -- Moreover, when repl_open_cmd is a table, each key will automatically
+    -- be available as a keymap (see `keymaps` below) and, in the case of the 
+    -- default command, the phrase `_DEFAULT` is removed from the name.
+    -- For example,
+    -- 
+    -- repl_open_cmd = {
+    --   open_cmd_DEFAULT = require('iron.view').bottom(40),
+    --   another_repl_open_cmd = require('iron.view').split.rightbelow("%25"),
+    --   <name of another command> = <command>
+    -- }
+
   },
   -- Iron doesn't set keymaps by default anymore.
   -- You can set them here or manually add keymaps to the functions in iron.core
   keymaps = {
-    toggle_repl = "<space>rr",
-    toggle_repl_below = "<space>rh",
-    toggle_repl_right = "<space>rv",
-    restart_repl = "<space>rR",
+    toggle_repl = "<space>rr", -- calls `IronRepl`
+    -- If repl_open_command is a table as above, then the following keymaps are
+    -- available
+    -- open_cmd = "<space>r1",
+    -- another_repl_open_cmd = "<space>r2",
+    -- <name of another command> = "<keymap>"
+    restart_repl = "<space>rR", -- calls `IronRestart
     send_motion = "<space>sc",
     visual_send = "<space>sc",
     send_file = "<space>sf",
@@ -97,8 +115,6 @@ iron.setup {
 }
 
 -- iron also has a list of commands, see :h iron-commands for all available commands
-vim.keymap.set('n', '<space>rs', '<cmd>IronRepl<cr>')
-vim.keymap.set('n', '<space>rr', '<cmd>IronRestart<cr>')
 vim.keymap.set('n', '<space>rf', '<cmd>IronFocus<cr>')
 vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
 ```
