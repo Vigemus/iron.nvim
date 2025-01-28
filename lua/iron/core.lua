@@ -738,7 +738,6 @@ core.setup = function(opts)
   vim.api.nvim_create_augroup("iron", {})
 
   if opts.config then
-
     if type(opts.config.repl_open_cmd) ~= "table" then
       ll.tmp.repl_open_cmd = opts.config.repl_open_cmd
 
@@ -768,6 +767,9 @@ core.setup = function(opts)
     for k, v in pairs(opts.config) do
       config[k] = v
     end
+
+  else
+    ll.tmp.repl_open_cmd = config.repl_open_cmd
   end
 
 
