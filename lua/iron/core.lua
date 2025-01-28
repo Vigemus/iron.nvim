@@ -686,7 +686,9 @@ local named_maps = {
     {'n'}, function() core.send_code_block(true) end
   },
 
-  -- Toggle REPL
+  -- REPL
+  restart_repl = {{'n'}, function() vim.cmd("IronRestart") end},
+  toggle_repl = {{'n'}, function() vim.cmd("IronRepl") end},
   toggle_repl_below = {
     {'n'},
     function()
