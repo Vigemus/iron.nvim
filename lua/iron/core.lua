@@ -6,6 +6,7 @@ local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
 local is_windows = require("iron.util.os").is_windows
+local view = require("iron.view")
 
 local autocmds = {}
 
@@ -670,15 +671,36 @@ end
 -- @field clear clears the text buffer of the repl
 local named_maps = {
   -- basic interaction with the repl
-  send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
+  send_motion = {
+    {'n'}, 
+    function() require("iron.core").run_motion("send_motion") end
+  },
   send_mark = {{'n'}, core.send_mark},
   send_line = {{'n'}, core.send_line},
   send_until_cursor = {{'n'}, core.send_until_cursor},
   send_file = {{'n'}, core.send_file},
   visual_send = {{'v'}, core.visual_send},
   send_paragraph = {{'n'}, core.send_paragraph},
-  send_code_block = {{'n'}, function() require("iron.core").send_code_block(false) end},
-  send_code_block_and_move = {{'n'}, function() require("iron.core").send_code_block(true) end},
+  send_code_block = {{'n'}, function() core.send_code_block(false) end},
+  send_code_block_and_move = {
+    {'n'}, function() core.send_code_block(true) end
+  },
+
+  -- Toggle REPL
+  toggle_repl_below = {
+    {'n'},
+    function()
+      config.repl_open_cmd = view.split.rightbelow("%25")
+      vim.cmd('IronRepl')
+    end
+  },
+  toggle_repl_right = {
+    {'n'},
+    function()
+      config.repl_open_cmd = view.split.vertical.rightbelow("%40")
+      vim.cmd('IronRepl')
+    end
+  },
 
   -- Marks
   mark_motion = {{'n'}, function() require("iron.core").run_motion("mark_motion") end},
