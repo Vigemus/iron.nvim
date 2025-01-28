@@ -6,6 +6,7 @@ local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
 local is_windows = require("iron.util.os").is_windows
+local view = require("iron.view")
 
 local autocmds = {}
 
@@ -36,13 +37,23 @@ new_repl.create = function(ft, bufnr, current_bufnr, cleanup)
     error(repl)
   end
 
-  success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr, current_bufnr)
+  success, meta = pcall(
+    ll.create_repl_on_current_window,
+    ft, repl, bufnr, current_bufnr
+  )
   if success then
     ll.set(ft, meta)
+
+    local filetype = config.repl_filetype(bufnr, ft)
+    if filetype ~= nil then
+      vim.api.nvim_set_option_value("filetype", filetype, { buf = bufnr })
+    end
+
     return meta
   elseif cleanup ~= nil then
     cleanup()
   end
+
 
   error(meta)
 end
@@ -55,18 +66,13 @@ end
 new_repl.create_on_new_window = function(ft)
   local current_bufnr = vim.api.nvim_get_current_buf()
   local bufnr = ll.new_buffer()
-  local replwin = ll.new_window(bufnr)
 
+  local replwin = ll.new_window(bufnr)
   vim.api.nvim_set_current_win(replwin)
   local meta = new_repl.create(ft, bufnr, current_bufnr, function()
     vim.api.nvim_win_close(replwin, true)
-    vim.api.nvim_buf_delete(bufnr, {force = true})
+    vim.api.nvim_buf_delete(bufnr, { force = true })
   end)
-
-  local filetype = config.repl_filetype(bufnr, ft)
-  if filetype ~= nil then
-    vim.api.nvim_set_option_value("filetype", filetype, { buf = bufnr })
-  end
 
   return meta
 end
@@ -83,7 +89,7 @@ core.repl_here = function(ft)
     local current_bufnr = vim.api.nvim_get_current_buf()
     local bufnr = ll.new_buffer()
     return new_repl.create(ft, bufnr, current_bufnr, function()
-      vim.api.nvim_buf_delete(bufnr, {force = true})
+      vim.api.nvim_buf_delete(bufnr, { force = true })
     end)
   end
 end
@@ -102,12 +108,16 @@ core.repl_restart = function()
 
   if ft ~= nil then
     local bufnr = ll.new_buffer()
-    local meta = new_repl.create(ft, bufnr, current_bufnr, function()
-      vim.api.nvim_buf_delete(bufnr, {force = true})
-    end)
+
+    local meta = new_repl.create(
+      ft, bufnr, current_bufnr,
+      function()
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+      end
+    )
 
     -- created a new one, now have to kill the old one
-    vim.api.nvim_buf_delete(bufnr_here, {force = true})
+    vim.api.nvim_buf_delete(bufnr_here, { force = true })
     return meta
   else
     ft = ll.get_buffer_ft(0)
@@ -123,13 +133,16 @@ core.repl_restart = function()
       else
         vim.api.nvim_set_current_win(replwin)
         local bufnr = ll.new_buffer()
-        new_meta = new_repl.create(ft, bufnr, current_bufnr, function()
+        new_meta = new_repl.create(
+          ft, bufnr, current_bufnr,
+          function()
           vim.api.nvim_buf_delete(bufnr, {force = true})
-        end)
+          end
+        )
       end
 
       vim.api.nvim_set_current_win(currwin)
-      vim.api.nvim_buf_delete(meta.bufnr, {force = true})
+      vim.api.nvim_buf_delete(meta.bufnr, { force = true })
 
       return new_meta
     else
@@ -252,7 +265,6 @@ end
 core.send = function(ft, data)
   if not is_windows() then
     send(ft, data)
-
   else
     send(ft, data)
 
@@ -267,7 +279,6 @@ core.send = function(ft, data)
         send(nil, string.char(13))
       end
     end, 150)
-
   end
 end
 
@@ -285,7 +296,7 @@ core.send_line = function()
 
   if width == 0 then return end
 
-  marks.set{
+  marks.set {
     from_line = linenr,
     from_col = 0,
     to_line = linenr,
@@ -324,8 +335,8 @@ core.mark_visual = function()
 
   local mode = vim.fn.visualmode()
 
-  b_line, b_col = unpack(vim.fn.getpos("'<"),2,3)
-  e_line, e_col = unpack(vim.fn.getpos("'>"),2,3)
+  b_line, b_col = unpack(vim.fn.getpos("'<"), 2, 3)
+  e_line, e_col = unpack(vim.fn.getpos("'>"), 2, 3)
 
   if e_line < b_line or (e_line == b_line and e_col < b_col) then
     e_line, b_line = b_line, e_line
@@ -340,7 +351,7 @@ core.mark_visual = function()
     local b_offset = math.max(1, b_col) - 1
     for ix, line in ipairs(lines) do
       -- On a block, remove all preciding chars unless b_col is 0/negative
-      lines[ix] = vim.fn.strcharpart(line, b_offset , math.min(e_col, vim.fn.strwidth(line)))
+      lines[ix] = vim.fn.strcharpart(line, b_offset, math.min(e_col, vim.fn.strwidth(line)))
     end
   elseif mode == "v" then
     local last = #lines
@@ -357,7 +368,7 @@ core.mark_visual = function()
     end
   end
 
-  marks.set{
+  marks.set {
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
@@ -384,13 +395,13 @@ core.mark_motion = function(mtype)
   local b_line, b_col
   local e_line, e_col
 
-  b_line, b_col = unpack(vim.fn.getpos("'["),2,3)
-  e_line, e_col = unpack(vim.fn.getpos("']"),2,3)
+  b_line, b_col = unpack(vim.fn.getpos("'["), 2, 3)
+  e_line, e_col = unpack(vim.fn.getpos("']"), 2, 3)
 
   local lines = vim.api.nvim_buf_get_lines(0, b_line - 1, e_line, 0)
   if #lines == 0 then return end
 
-  if mtype=='line' then
+  if mtype == 'line' then
     b_col, e_col = 0, vim.fn.strwidth(lines[#lines])
   end
 
@@ -401,7 +412,7 @@ core.mark_motion = function(mtype)
     lines[1] = vim.fn.strpart(lines[1], b_col - 1)
   end
 
-  marks.set{
+  marks.set {
     from_line = b_line - 1,
     from_col = math.max(b_col - 1, 0),
     to_line = e_line - 1,
@@ -476,7 +487,7 @@ local line_starts_with_block_devider = function(line, block_deviders)
 end
 
 --- Sends lines between two block deviders.
--- Block deviders can be defined as table in the 
+-- Block deviders can be defined as table in the
 -- repl_definition under key block_deviders.
 -- The buffer is scanned from cursor till first line
 -- starting with a block_devider or the start of buffer.
@@ -560,16 +571,16 @@ end
 -- @table commands
 -- @field IronRepl command for @{core.repl_for}
 local commands = {
-  {"IronAttach", function(opts)
+  { "IronAttach", function(opts)
     core.attach(get_ft(opts.fargs[1]), vim.api.nvim_get_current_buf())
-  end, {nargs="?", complete = complete_fts}},
-  {"IronRepl", function(opts)
+  end, { nargs = "?", complete = complete_fts } },
+  { "IronRepl", function(opts)
     core.repl_for(get_ft(opts.fargs[1]))
-  end, {nargs="?", complete = complete_fts}},
-  {"IronHide", function(opts)
+  end, { nargs = "?", complete = complete_fts } },
+  { "IronHide", function(opts)
     core.hide_repl(get_ft(opts.fargs[1]))
-  end, {nargs="?", complete = complete_fts}},
-  {"IronSend", function(opts)
+  end, { nargs = "?", complete = complete_fts } },
+  { "IronSend", function(opts)
     local ft
     if opts.bang then
       ft = opts.fargs[1]
@@ -581,47 +592,52 @@ local commands = {
     local data = table.concat(opts.fargs, " ")
 
     core.send(ft, data)
-  end, {bang = true, nargs = "+", complete = function(arg_lead, cmd_line)
+  end, {
+    bang = true,
+    nargs = "+",
+    complete = function(arg_lead, cmd_line)
       local cmd = vim.split(cmd_line, " ")
       if #cmd <= 2 and string.find(cmd[1], "!") then
         return complete_fts(arg_lead)
       end
-    end}},
-  {"IronFocus", function(opts)
+    end
+  } },
+  { "IronFocus", function(opts)
     local ft = get_ft(opts.fargs[1])
     if ft == nil then return end
 
     core.focus_on(ft)
-  end, {nargs = "?", complete = complete_fts}},
-  {"IronWatch", function(opts)
+  end, { nargs = "?", complete = complete_fts } },
+  { "IronWatch", function(opts)
     local handler
 
     if opts.fargs[1] == "mark" then
       handler = core.send_mark
-  elseif opts.fargs[1] == "file" then
+    elseif opts.fargs[1] == "file" then
       -- Wrap send_file so we ingore autocmd argument
-    handler = function () core.send_file() end
+      handler = function() core.send_file() end
     else
       error("Not a valid handler type")
     end
 
     core.watch(handler)
-
-  end, {nargs = 1, complete = function(arg_lead, _)
+  end, {
+    nargs = 1,
+    complete = function(arg_lead, _)
       local starts_with_partial = function(key) return key:sub(1, #arg_lead) == arg_lead end
       return vim.tbl_filter(starts_with_partial, {
         "mark",
         "file"
       })
-
-    end}},
-  {"IronReplHere", function(opts)
+    end
+  } },
+  { "IronReplHere", function(opts)
     local ft = get_ft(opts.fargs[1])
     if ft == nil then return end
 
     core.repl_here(ft)
-  end, {nargs = "?", complete = complete_fts}},
-  {"IronRestart", function(_) core.repl_restart() end, {nargs = 0}}
+  end, { nargs = "?", complete = complete_fts } },
+  { "IronRestart", function(_) core.repl_restart() end, { nargs = 0 } }
 }
 
 --- Wrapper for calling functions through motion.
@@ -670,29 +686,38 @@ end
 -- @field clear clears the text buffer of the repl
 local named_maps = {
   -- basic interaction with the repl
-  send_motion = {{'n'}, function() require("iron.core").run_motion("send_motion") end},
-  send_mark = {{'n'}, core.send_mark},
-  send_line = {{'n'}, core.send_line},
-  send_until_cursor = {{'n'}, core.send_until_cursor},
-  send_file = {{'n'}, core.send_file},
-  visual_send = {{'v'}, core.visual_send},
-  send_paragraph = {{'n'}, core.send_paragraph},
-  send_code_block = {{'n'}, function() require("iron.core").send_code_block(false) end},
-  send_code_block_and_move = {{'n'}, function() require("iron.core").send_code_block(true) end},
+  send_motion = {
+    { 'n' },
+    function() require("iron.core").run_motion("send_motion") end
+  },
+  send_mark = { { 'n' }, core.send_mark },
+  send_line = { { 'n' }, core.send_line },
+  send_until_cursor = { { 'n' }, core.send_until_cursor },
+  send_file = { { 'n' }, core.send_file },
+  visual_send = { { 'v' }, core.visual_send },
+  send_paragraph = { { 'n' }, core.send_paragraph },
+  send_code_block = { { 'n' }, function() core.send_code_block(false) end },
+  send_code_block_and_move = {
+    { 'n' }, function() core.send_code_block(true) end
+  },
+
+  -- REPL
+  restart_repl = { { 'n' }, function() vim.cmd("IronRestart") end },
+  toggle_repl = { { 'n' }, function() vim.cmd("IronRepl") end },
 
   -- Marks
-  mark_motion = {{'n'}, function() require("iron.core").run_motion("mark_motion") end},
-  mark_visual = {{'v'}, core.mark_visual},
-  remove_mark = {{'n'}, marks.drop_last},
+  mark_motion = { { 'n' }, function() require("iron.core").run_motion("mark_motion") end },
+  mark_visual = { { 'v' }, core.mark_visual },
+  remove_mark = { { 'n' }, marks.drop_last },
 
   -- Force clear highlight
-  clear_hl = {{'v'}, marks.clear_hl},
+  clear_hl = { { 'v' }, marks.clear_hl },
 
   -- Sending special characters to the repl
-  cr = {{'n'}, function() core.send(nil, string.char(13)) end},
-  interrupt = {{'n'}, function() core.send(nil, string.char(03)) end},
-  exit = {{'n'}, core.close_repl},
-  clear = {{'n'}, function() core.send(nil, string.char(12)) end},
+  cr = { { 'n' }, function() core.send(nil, string.char(13)) end },
+  interrupt = { { 'n' }, function() core.send(nil, string.char(03)) end },
+  exit = { { 'n' }, core.close_repl },
+  clear = { { 'n' }, function() core.send(nil, string.char(12)) end },
 }
 
 local tmp_migration = {
@@ -713,10 +738,38 @@ core.setup = function(opts)
   vim.api.nvim_create_augroup("iron", {})
 
   if opts.config then
+
+    if type(opts.config.repl_open_cmd) ~= "table" then
+      ll.tmp.repl_open_cmd = opts.config.repl_open_cmd
+
+    else
+      for cmd_name, cmd in pairs(opts.config.repl_open_cmd) do
+        if cmd_name:sub(-8, -1) == "_DEFAULT" then
+          ll.tmp.repl_open_cmd = cmd
+          cmd_name = cmd_name:sub(1, -9)
+        end
+        named_maps[cmd_name] = {
+          { 'n' },
+          function()
+            ll.tmp.repl_open_cmd = cmd
+            vim.cmd('IronRepl')
+          end
+        }
+      end
+    end
+
+    if ll.tmp.repl_open_cmd == nil then
+      local msg = "A default repl_open_cmd was not set. "
+      msg = msg .. "Please set a default by adding '_DEFAULT' "
+      msg = msg .. "to the end of one of your repl_open_cmd names."
+      error(msg)
+    end
+
     for k, v in pairs(opts.config) do
       config[k] = v
     end
   end
+
 
   if config.highlight_last ~= false then
     local hl_cfg = opts.highlight or {
@@ -728,7 +781,7 @@ core.setup = function(opts)
   end
 
   for _, command in ipairs(commands) do
-     vim.api.nvim_create_user_command(unpack(command))
+    vim.api.nvim_create_user_command(unpack(command))
   end
 
   if config.should_map_plug then
@@ -736,7 +789,7 @@ core.setup = function(opts)
     for key, keymap in pairs(named_maps) do
       local mapping = vim.deepcopy(keymap)
       table.insert(mapping, 2, "<plug>(iron-" .. snake_to_kebab(key) .. ")")
-      table.insert(mapping, {silent = true})
+      table.insert(mapping, { silent = true })
       vim.keymap.set(unpack(mapping))
     end
   end
@@ -754,11 +807,11 @@ core.setup = function(opts)
       end
 
       if named_maps[key] == nil then
-          error("Key `" .. key .. "` doesn't exist, therefore there's nothing to be applied")
+        error("Key `" .. key .. "` doesn't exist, therefore there's nothing to be applied")
       else
         local mapping = vim.deepcopy(named_maps[key])
         table.insert(mapping, 2, lhs)
-        table.insert(mapping, {silent = true, desc = 'iron_repl_' .. key})
+        table.insert(mapping, { silent = true, desc = 'iron_repl_' .. key })
 
         vim.keymap.set(unpack(mapping))
       end

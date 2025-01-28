@@ -7,19 +7,23 @@ Interactive Repls Over Neovim
 ## What is iron.nvim
 
 [![asciicast](https://asciinema.org/a/495376.svg)](https://asciinema.org/a/495376)
-Iron allows you to quickly interact with the repl without having to leave your work buffer
+Iron allows you to quickly interact with the repl without having to leave your
+work buffer
 
-It both a plugin and a library, allowing for better user experience and extensibility at the same time.
+It both a plugin and a library, allowing for better user experience and
+extensibility at the same time.
 
 ## How to install
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim) (or the plugin manager of your choice):
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim) 
+(or the plugin manager of your choice):
 
 ```lua
   use {'Vigemus/iron.nvim'}
 ```
 
-As of version 3.0, Iron uses milestones and tags to manage releases. If you want to use the stable versions, use the following:
+As of version 3.0, Iron uses milestones and tags to manage releases. If you
+want to use the stable versions, use the following:
 ```lua
   use {'Vigemus/iron.nvim', tag = "<most recent tag>"}
 ```
@@ -59,10 +63,32 @@ iron.setup {
     -- How the repl window will be displayed
     -- See below for more information
     repl_open_cmd = require('iron.view').bottom(40),
+
+    -- repl_open_cmd can also be a table so that multiple repl_open_commands can be given.
+    -- When repl_open_cmd is given as a table, a default command must be specified
+    -- with `_DEFAULT`.
+    -- Moreover, when repl_open_cmd is a table, each key will automatically
+    -- be available as a keymap (see `keymaps` below) and, in the case of the 
+    -- default command, the phrase `_DEFAULT` is removed from the name.
+    -- For example,
+    -- 
+    -- repl_open_cmd = {
+    --   open_cmd_DEFAULT = require('iron.view').bottom(40),
+    --   another_repl_open_cmd = require('iron.view').split.rightbelow("%25"),
+    --   <name of another command> = <command>
+    -- }
+
   },
   -- Iron doesn't set keymaps by default anymore.
   -- You can set them here or manually add keymaps to the functions in iron.core
   keymaps = {
+    toggle_repl = "<space>rr", -- calls `IronRepl`
+    -- If repl_open_command is a table as above, then the following keymaps are
+    -- available
+    -- open_cmd = "<space>r1",
+    -- another_repl_open_cmd = "<space>r2",
+    -- <name of another command> = "<keymap>"
+    restart_repl = "<space>rR", -- calls `IronRestart
     send_motion = "<space>sc",
     visual_send = "<space>sc",
     send_file = "<space>sf",
@@ -89,8 +115,6 @@ iron.setup {
 }
 
 -- iron also has a list of commands, see :h iron-commands for all available commands
-vim.keymap.set('n', '<space>rs', '<cmd>IronRepl<cr>')
-vim.keymap.set('n', '<space>rr', '<cmd>IronRestart<cr>')
 vim.keymap.set('n', '<space>rf', '<cmd>IronFocus<cr>')
 vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
 ```
@@ -115,12 +139,13 @@ iron.setup{
 
 ### REPL windows
 
-iron.nvim supports both splits and floating windows and has helper functions for opening new repls
-in either of them:
+iron.nvim supports both splits and floating windows and has helper functions
+for opening new repls in either of them:
 
 #### For splits
 
-If you prefer using splits to your repls, iron provides a few utility functions to make it simpler:
+If you prefer using splits to your repls, iron provides a few utility functions
+to make it simpler:
 
 ```lua
 local view = require("iron.view")

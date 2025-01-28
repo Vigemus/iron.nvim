@@ -6,6 +6,7 @@ local iron = {
   -- Most likely shouldn't be exposed here
   ll = require("iron.lowlevel"),
   core = require("iron.core"),
+  setup = require("iron.core").setup
 }
 
 return iron
