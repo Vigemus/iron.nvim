@@ -40,10 +40,17 @@ new_repl.create = function(ft, bufnr, current_bufnr, cleanup)
   success, meta = pcall(ll.create_repl_on_current_window, ft, repl, bufnr, current_bufnr)
   if success then
     ll.set(ft, meta)
+
+    local filetype = config.repl_filetype(bufnr, ft)
+    if filetype ~= nil then
+      vim.api.nvim_set_option_value("filetype", filetype, { buf = bufnr })
+    end
+
     return meta
   elseif cleanup ~= nil then
     cleanup()
   end
+  
 
   error(meta)
 end
@@ -63,11 +70,6 @@ new_repl.create_on_new_window = function(ft)
     vim.api.nvim_win_close(replwin, true)
     vim.api.nvim_buf_delete(bufnr, {force = true})
   end)
-
-  local filetype = config.repl_filetype(bufnr, ft)
-  if filetype ~= nil then
-    vim.api.nvim_set_option_value("filetype", filetype, { buf = bufnr })
-  end
 
   return meta
 end
