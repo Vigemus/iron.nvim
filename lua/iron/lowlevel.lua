@@ -20,6 +20,9 @@ local ll = {}
 
 ll.store = {}
 
+-- Quick fix for changing repl_open_cmd
+ll.tmp = {}
+
 -- TODO This should not be part of lowlevel
 ll.get = function(ft)
   if ft == nil or ft == "" then
@@ -110,17 +113,22 @@ end
 -- configuration.
 -- @warning might change the current window
 -- @param bufnr buffer to be used
+-- @param repl_open_cmd command to be used to open the repl. if nil than will use config.repl_open_cmd
 -- @return window id of the newly created window
-ll.new_window = function(bufnr)
-  if type(config.repl_open_cmd) == "function" then
-    local result = config.repl_open_cmd(bufnr)
+ll.new_window = function(bufnr, repl_open_cmd)
+  if repl_open_cmd == nil then
+    repl_open_cmd = ll.tmp.repl_open_cmd
+  end
+
+  if type(repl_open_cmd) == "function" then
+    local result = repl_open_cmd(bufnr)
     if type(result) == "table" then
       return view.openfloat(result, bufnr)
     else
       return result
     end
   else
-    vim.cmd(config.repl_open_cmd)
+    vim.cmd(repl_open_cmd)
     vim.api.nvim_set_current_buf(bufnr)
     return vim.fn.bufwinid(bufnr)
   end

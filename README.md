@@ -7,19 +7,23 @@ Interactive Repls Over Neovim
 ## What is iron.nvim
 
 [![asciicast](https://asciinema.org/a/495376.svg)](https://asciinema.org/a/495376)
-Iron allows you to quickly interact with the repl without having to leave your work buffer
+Iron allows you to quickly interact with the repl without having to leave your
+work buffer
 
-It both a plugin and a library, allowing for better user experience and extensibility at the same time.
+It both a plugin and a library, allowing for better user experience and
+extensibility at the same time.
 
 ## How to install
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim) (or the plugin manager of your choice):
+Using [packer.nvim](https://github.com/wbthomason/packer.nvim) 
+(or the plugin manager of your choice):
 
 ```lua
   use {'Vigemus/iron.nvim'}
 ```
 
-As of version 3.0, Iron uses milestones and tags to manage releases. If you want to use the stable versions, use the following:
+As of version 3.0, Iron uses milestones and tags to manage releases. If you
+want to use the stable versions, use the following:
 ```lua
   use {'Vigemus/iron.nvim', tag = "<most recent tag>"}
 ```
@@ -63,6 +67,10 @@ iron.setup {
   -- Iron doesn't set keymaps by default anymore.
   -- You can set them here or manually add keymaps to the functions in iron.core
   keymaps = {
+    toggle_repl = "<space>rr",
+    toggle_repl_below = "<space>rh",
+    toggle_repl_right = "<space>rv",
+    restart_repl = "<space>rR",
     send_motion = "<space>sc",
     visual_send = "<space>sc",
     send_file = "<space>sf",
@@ -115,12 +123,13 @@ iron.setup{
 
 ### REPL windows
 
-iron.nvim supports both splits and floating windows and has helper functions for opening new repls
-in either of them:
+iron.nvim supports both splits and floating windows and has helper functions
+for opening new repls in either of them:
 
 #### For splits
 
-If you prefer using splits to your repls, iron provides a few utility functions to make it simpler:
+If you prefer using splits to your repls, iron provides a few utility functions
+to make it simpler:
 
 ```lua
 local view = require("iron.view")
