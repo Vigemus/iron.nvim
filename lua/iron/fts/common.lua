@@ -96,7 +96,25 @@ end
 -- the return carriage added"
 common.bracketed_paste_python = function(lines, extras)
   local result = {}
+
   local cmd = extras["command"]
+  local pseudo_meta = { current_buffer = vim.api.nvim_get_current_buf()}
+  if type(cmd) == "function" then
+    cmd = cmd(pseudo_meta)
+  end
+  
+  local windows = is_windows()
+  local python = false
+  local ipython = false
+  local ptpython = false
+
+  if contains(cmd, "ipython") then
+    ipython = true
+  elseif contains(cmd, "ptpython") then
+    ptpython = true
+  else
+    python = true
+  end
 
   lines = remove_empty_lines(lines)
 
@@ -108,7 +126,7 @@ common.bracketed_paste_python = function(lines, extras)
 
     table.insert(result, line)
 
-    if is_windows() and not contains(cmd, "ipython") or not is_windows() then
+    if windows and python or not windows then
       if i < #lines and indent_open and string.match(lines[i + 1], "^%s") == nil then
         if not python_close_indent_exceptions(lines[i + 1]) then
           indent_open = false
@@ -118,13 +136,19 @@ common.bracketed_paste_python = function(lines, extras)
     end
   end
 
-  local newline = is_windows() and "\r\n" or cr
+  local newline = windows and "\r\n" or cr
   if result[#result]:sub(1, 1) == " " then
     -- Since the last line of code is indented, the Python REPL
     -- requires and extra newline in order to execute the code
     table.insert(result, newline)
   else
     table.insert(result, "")
+  end
+
+  if ptpython then
+    table.insert(result, 1, open_code)
+    table.insert(result, close_code)
+    table.insert(result, "\n")
   end
 
   return result
