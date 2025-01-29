@@ -22,12 +22,6 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim)
   use {'Vigemus/iron.nvim'}
 ```
 
-As of version 3.0, Iron uses milestones and tags to manage releases. If you
-want to use the stable versions, use the following:
-```lua
-  use {'Vigemus/iron.nvim', tag = "<most recent tag>"}
-```
-
 ## How to configure
 
 Below is a very simple configuration for iron:
