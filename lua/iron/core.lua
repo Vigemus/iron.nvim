@@ -742,12 +742,11 @@ core.setup = function(opts)
       ll.tmp.repl_open_cmd = opts.config.repl_open_cmd
 
     else
-      for cmd_name, cmd in pairs(opts.config.repl_open_cmd) do
-        if cmd_name:sub(-8, -1) == "_DEFAULT" then
+      for idx, cmd in ipairs(opts.config.repl_open_cmd) do
+        if idx == 1 then
           ll.tmp.repl_open_cmd = cmd
-          cmd_name = cmd_name:sub(1, -9)
         end
-        named_maps[cmd_name] = {
+        named_maps["toggle_repl_with_cmd_" .. idx] = {
           { 'n' },
           function()
             ll.tmp.repl_open_cmd = cmd
