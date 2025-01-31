@@ -136,8 +136,9 @@ common.bracketed_paste_python = function(lines, extras)
     end
   end
 
-  local newline = windows and "\r\n" or cr
-  if result[#result]:sub(1, 1) == " " then
+  local newline = (windows and not python) and "\r\n" or cr
+  local lastline = result[#result] or (ipython and " ") or ""
+  if lastline:sub(1, 1) == " " then
     -- Since the last line of code is indented, the Python REPL
     -- requires and extra newline in order to execute the code
     table.insert(result, newline)
