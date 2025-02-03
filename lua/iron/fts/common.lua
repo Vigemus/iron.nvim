@@ -102,7 +102,7 @@ common.bracketed_paste_python = function(lines, extras)
   if type(cmd) == "function" then
     cmd = cmd(pseudo_meta)
   end
-  
+
   local windows = is_windows()
   local python = false
   local ipython = false
@@ -136,9 +136,10 @@ common.bracketed_paste_python = function(lines, extras)
     end
   end
 
-  local newline = (windows and not python) and "\r\n" or cr
-  local lastline = result[#result] or (ipython and " ") or ""
-  if lastline:sub(1, 1) == " " then
+  local newline = windows and "\r\n" or cr
+  if #result == 0 then  -- handle sending blank lines
+    table.insert(result, cr)
+  elseif #result > 0 and result[#result]:sub(1, 1) == " " then
     -- Since the last line of code is indented, the Python REPL
     -- requires and extra newline in order to execute the code
     table.insert(result, newline)
