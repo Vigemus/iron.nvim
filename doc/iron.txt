@@ -155,7 +155,7 @@ Below are the core functions:
 
 * core.send(ft, data)        Sends data (a table) to the repl for given filetype
 
-* core.send_code_block(move) Sends the lines between two code_deviders as defined 
+* core.send_code_block(move) Sends the lines between two code_dividers as defined 
                              in repl_definition or end and start of buffer to the 
                              repl. If move is true, the cursor is moved to next 
                              code block. If move is false, the cursor position is 
@@ -227,7 +227,7 @@ iron.setup{
       python = {
         command = { "python3" }, -- or { "ipython", "--no-autoindent" }
         format = require("iron.fts.common").bracketed_paste_python,
-        block_deviders = { "# %%", "#%%" },
+        block_dividers = { "# %%", "#%%" },
       }
     },
     -- Whether iron should map the `<plug>(..)` mappings

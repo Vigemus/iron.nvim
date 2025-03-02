@@ -477,44 +477,47 @@ core.send_mark = function()
   core.send(nil, lines)
 end
 
---- Checks if line starts with a devider.
+--- Checks if line starts with a divider.
 -- Helper function for core.send_code_block.
-local line_starts_with_block_devider = function(line, block_deviders)
-  for _, block_devider in pairs(block_deviders) do
-    local length_block_devider = string.len(block_devider)
-    if string.sub(line, 1, length_block_devider) == block_devider then return true end
+local line_starts_with_block_divider = function(line, block_dividers)
+  for _, block_divider in pairs(block_dividers) do
+    local length_block_divider = string.len(block_divider)
+    if string.sub(line, 1, length_block_divider) == block_divider then return true end
   end
 end
 
---- Sends lines between two block deviders.
--- Block deviders can be defined as table in the
--- repl_definition under key block_deviders.
+--- Sends lines between two block dividers.
+-- Block dividers can be defined as table in the
+-- repl_definition under key block_dividers (or block_deviders for backwards compatibility).
 -- The buffer is scanned from cursor till first line
--- starting with a block_devider or the start of buffer.
+-- starting with a block_divider or the start of buffer.
 -- The buffer is scanned till end of buffer for next line
--- starting with a block devider or end of buffer.
--- If no block_devider is defined an error is returned.
--- If move is true, the cursor is moved to the next block_devider
+-- starting with a block divider or end of buffer.
+-- If no block_divider is defined an error is returned.
+-- If move is true, the cursor is moved to the next block_divider
 -- for jumping through the code. If move is false, the cursor is
 -- not moved.
 core.send_code_block = function(move)
-  local block_deviders = config.repl_definition[vim.bo[0].filetype].block_deviders
-  if block_deviders == nil then
-    error("No block_deviders defined for this repl in repl_definition!")
+  local block_dividers = config.repl_definition[vim.bo[0].filetype].block_dividers
+  if block_dividers == nil then
+      block_dividers = config.repl_definition[vim.bo[0].filetype].block_deviders
+      if block_dividers == nil then
+        error("No block_dividers defined for this repl in repl_definition!")
+      end
   end
   local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
   local buffer_text = vim.api.nvim_buf_get_lines(0, 0, -1, false)
   local mark_start = linenr
   while mark_start ~= 0 do
     local line_text = buffer_text[mark_start + 1]
-    if line_starts_with_block_devider(line_text, block_deviders) then break end
+    if line_starts_with_block_divider(line_text, block_dividers) then break end
     mark_start = mark_start - 1
   end
   local buffer_length = vim.api.nvim_buf_line_count(0)
   local mark_end = linenr + 1
   while mark_end < buffer_length do
     local line_text = buffer_text[mark_end + 1]
-    if line_starts_with_block_devider(line_text, block_deviders) then break end
+    if line_starts_with_block_divider(line_text, block_dividers) then break end
     mark_end = mark_end + 1
   end
   mark_end = mark_end - 1
