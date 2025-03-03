@@ -505,72 +505,22 @@ core.send_code_block = function(move)
         error("No block_dividers defined for this repl in repl_definition!")
       end
   end
-  local start_block_dividers = block_dividers.start_dividers
-  local end_block_dividers = block_dividers.end_dividers
-  local using_start_end = start_block_dividers ~= nil and end_block_dividers ~= nil
-  if not using_start_end then
-      start_block_dividers = block_dividers
-      end_block_dividers = block_dividers
-  end
-  local include_start_divider = config.repl_definition[vim.bo[0].filetype].include_start_divider
-  include_start_divider = (include_start_divider == nil) or (include_start_divider == true)
-  local include_end_divider = config.repl_definition[vim.bo[0].filetype].include_end_divider
-  include_end_divider = (include_end_divider == true)
   local linenr = vim.api.nvim_win_get_cursor(0)[1] - 1
   local buffer_text = vim.api.nvim_buf_get_lines(0, 0, -1, false)
   local mark_start = linenr
-  local mark_end = linenr + 1
+  while mark_start ~= 0 do
+    local line_text = buffer_text[mark_start + 1]
+    if line_starts_with_block_divider(line_text, block_dividers) then break end
+    mark_start = mark_start - 1
+  end
   local buffer_length = vim.api.nvim_buf_line_count(0)
-  if not using_start_end then
-      while mark_start ~= 0 do
-        local line_text = buffer_text[mark_start + 1]
-        if line_starts_with_block_divider(line_text, start_block_dividers) then break end
-        mark_start = mark_start - 1
-      end
-      
-      while mark_end < buffer_length do
-        local line_text = buffer_text[mark_end + 1]
-        if line_starts_with_block_divider(line_text, end_block_dividers) then break end
-        mark_end = mark_end + 1
-      end
-  else
-      local nesting = 0
-      local i = 0
-      while i < buffer_length do
-          local line_text = buffer_text[i + 1]
-          if line_starts_with_block_divider(line_text, start_block_dividers) then
-              if nesting == 0 then
-                  mark_start = i
-              end
-              nesting = nesting + 1
-          end
-          if line_starts_with_block_divider(line_text, end_block_dividers) then
-              if nesting == 1 then
-                  mark_end = i
-              end
-              nesting = nesting - 1
-              nesting = math.max(nesting, 0)
-          end
-          if mark_start <= linenr and linenr <= mark_end then break end
-          i = i + 1
-      end
-      if not (mark_start <= linenr and linenr <= mark_end) then 
-          return
-      end
+  local mark_end = linenr + 1
+  while mark_end < buffer_length do
+    local line_text = buffer_text[mark_end + 1]
+    if line_starts_with_block_divider(line_text, block_dividers) then break end
+    mark_end = mark_end + 1
   end
-  if not include_start_divider then
-      mark_start = mark_start + 1
-  end
-  local next_start = mark_end
-  while next_start < buffer_length do
-    local line_text = buffer_text[next_start + 1]
-    if line_starts_with_block_divider(line_text, start_block_dividers) then break end
-    next_start = next_start + 1
-  end
-
-  if mark_end == buffer_length or not include_end_divider then
-      mark_end = mark_end - 1
-  end
+  mark_end = mark_end - 1
   local col_end = string.len(buffer_text[mark_end + 1]) - 1
   marks.set {
     from_line = mark_start,
@@ -579,7 +529,7 @@ core.send_code_block = function(move)
     to_col = col_end,
   }
   core.send_mark()
-  if move then vim.api.nvim_win_set_cursor(0, { math.min(next_start + 1, buffer_length), 0 }) end
+  if move then vim.api.nvim_win_set_cursor(0, { math.min(mark_end + 2, buffer_length), 0 }) end
 end
 
 --- Attaches a buffer to a repl regardless of it's filetype
