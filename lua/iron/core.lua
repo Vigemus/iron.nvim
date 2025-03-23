@@ -151,6 +151,23 @@ core.repl_restart = function()
   end
 end
 
+core.clear_repl = function(ft)
+  local meta = vim.b[0].repl
+
+  if not meta or not ll.repl_exists(meta) then
+    ft = ft or ll.get_buffer_ft(0)
+    meta = ll.get(ft)
+  end
+
+  if not ll.repl_exists(meta) then
+    return
+  end
+
+  -- bypass all formatters, otherwise bracked_paste_python replaces FF with CR
+  --  FYI this may be a problem for windows installs b/c there's special logic in send to handle windows buffer/cursors positions?
+  vim.fn.chansend(meta.job, string.char(12))
+end
+
 --- Sends a close request to the repl
 -- if @{config.values.close_window_on_exit} is set to true,
 -- all windows associated with that repl will be closed.
@@ -717,7 +734,7 @@ local named_maps = {
   cr = { { 'n' }, function() core.send(nil, string.char(13)) end },
   interrupt = { { 'n' }, function() core.send(nil, string.char(03)) end },
   exit = { { 'n' }, core.close_repl },
-  clear = { { 'n' }, function() core.send(nil, string.char(12)) end },
+  clear = { { 'n' }, core.clear_repl },
 }
 
 local tmp_migration = {
