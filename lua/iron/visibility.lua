@@ -5,7 +5,7 @@ local visibility = {}
 -- Creates a window for a buffer if it was previously
 -- hidden by nvim_win_hide, otherwise does nothing.
 -- @return window handle
--- @treturn boolean wither the widnow was hidden or not
+-- @treturn boolean wither the window was hidden or not
 local show_hidden = function(bufid, showfn)
   local was_hidden = false
   local window = vim.fn.bufwinid(bufid)

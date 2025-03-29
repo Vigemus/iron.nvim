@@ -4,7 +4,7 @@ local config = require("iron.config")
 --- Marks management for iron
 -- This is an intermediary layer between iron and neovim's
 -- extmarks. Used primarily to manage the text sent to the repl,
--- but can also be used to set hightlight and possibly virtualtext.
+-- but can also be used to set highlight and possibly virtualtext.
 local marks = {}
 
 --- Sets a mark for given options
