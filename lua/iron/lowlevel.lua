@@ -1,5 +1,5 @@
 -- luacheck: globals vim
--- TODO Remvoe config from this layer
+-- TODO Remove config from this layer
 local config = require("iron.config")
 local fts = require("iron.fts")
 local providers = require("iron.providers")

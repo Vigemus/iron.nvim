@@ -113,7 +113,7 @@ Iron provides the following commands for interacting with REPLs:
 :IronSend[!] some [text...]
   Sends the supplied chunk of text to the repl for current filetype.
   If used with a `!`, the first argument is the filetype
-  This allows for invoking a new repl immediatelly:
+  This allows for invoking a new repl immediately:
       > :IronSend! python print(20 * 32)
 
 :IronFocus [ft]
@@ -155,7 +155,7 @@ Below are the core functions:
 
 * core.send(ft, data)        Sends data (a table) to the repl for given filetype
 
-* core.send_code_block(move) Sends the lines between two code_deviders as defined 
+* core.send_code_block(move) Sends the lines between two code_dividers as defined 
                              in repl_definition or end and start of buffer to the 
                              repl. If move is true, the cursor is moved to next 
                              code block. If move is false, the cursor position is 
@@ -223,11 +223,11 @@ iron.setup{
         -- Can be a table or a function that returns a table (see below)
         command = {"my-lua-repl", "-arg"}
       }
-     -- setting up code_deviders for core.send_code_block
+     -- setting up code_dividers for core.send_code_block
       python = {
         command = { "python3" }, -- or { "ipython", "--no-autoindent" }
         format = require("iron.fts.common").bracketed_paste_python,
-        block_deviders = { "# %%", "#%%" },
+        block_dividers = { "# %%", "#%%" },
       }
     },
     -- Whether iron should map the `<plug>(..)` mappings
@@ -307,8 +307,8 @@ core.setup function.
 - send_line: Sends the line below the cursor to the repl
 - send_until_cursor: Sends the buffer from the start until the line where the cursor is (inclusive) to the repl
 - send_mark: Sends the text within the mark
-- send_code_block: Sends the text between two code deviders
-- send_code_block_and_move: Sends the text between two code deviders and move to next code block
+- send_code_block: Sends the text between two code dividers
+- send_code_block_and_move: Sends the text between two code dividers and move to next code block
 - mark_motion: Marks the text object
 - mark_visual: Marks the visual selection
 - remove_mark: Removes the set mark
