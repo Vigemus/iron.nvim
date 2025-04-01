@@ -8,6 +8,10 @@ haskell.stack = {
   command = {"stack", "ghci"},
 }
 
+haskell.cabal = {
+  command = {"cabal", "repl"},
+}
+
 haskell.ghci = {
   command = {"ghci"},
 }
