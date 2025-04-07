@@ -515,6 +515,10 @@ end
 -- for jumping through the code. If move is false, the cursor is
 -- not moved.
 core.send_code_block = function(move)
+  local repl_definition = config.repl_definition[vim.bo[0].filetype]
+  if repl_definition == nil then
+    error("No repl definition for this filetype!")
+  end
   local block_deviders = config.repl_definition[vim.bo[0].filetype].block_deviders
   if block_deviders == nil then
     error("No block_deviders defined for this repl in repl_definition!")
