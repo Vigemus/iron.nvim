@@ -48,6 +48,7 @@ Currently, Iron has support for the following programming languages:
   - elm
   - erlang
   - fennel
+  - fish
   - forth
   - haskell
     - intero
@@ -94,8 +95,6 @@ Currently, Iron has support for the following programming languages:
   - tcl
   - typescript
   - zsh
-  - fish
-
 
 ===============================================================================
 Commands                                                        *iron-commands*
@@ -132,7 +131,7 @@ Iron provides the following commands for interacting with REPLs:
 ===============================================================================
 Functions                                                      *iron-functions*
 
-Iron is a lua plugin as as so all its functionality is exposed through lua
+Iron is a lua plugin so all its functionality is exposed through lua
 functions.
 
 The code is mainly divided in two major namespaces:
@@ -145,8 +144,8 @@ Below are the core functions:
 
 * core.repl_here(ft)         Creates a repl in the same window
 
-* core.repl_restart()        Restarts the repl in the current window or for the
-                             current buffer's filetype
+* core.repl_restart()        Restarts the repl in the current window or for
+                             the current buffer's filetype
 
 * core.close_repl(ft)        Closes the repl for supplied filetype
 
@@ -154,23 +153,24 @@ Below are the core functions:
 
 * core.focus_on(ft)          Moves to (or creates) the repl for given filetype
 
-* core.send(ft, data)        Sends data (a table) to the repl for given filetype
+* core.send(ft, data)        Sends data (a table) to the repl for given
+                             filetype
 
-* core.send_code_block(move) Sends the lines between two code_dividers as defined 
-                             in repl_definition or end and start of buffer to the 
-                             repl. If move is true, the cursor is moved to next 
-                             code block. If move is false, the cursor position is 
-                             unchanged.
+* core.send_code_block(move) Sends the lines between two code_dividers as
+                             defined in repl_definition or end and start of
+                             buffer to the repl. If move is true, the cursor
+                             is moved to next code block. If move is false,
+                             the cursor position is unchanged.
 
 * core.send_file()           Sends the whole file to the repl
 
 * core.send_line()           Sends line below the cursor to the repl
 
-* core.send_until_cursor()   Sends the buffer from the start until the line where 
-                             the cursor is (inclusive) to the repl
+* core.send_until_cursor()   Sends the buffer from the start until the line
+                             where the cursor is (inclusive) to the repl
 
-* core.send_motion(motion)   Applies given motion and sends the result to the repl
-                             see `send_motion` in |iron-mappings|
+* core.send_motion(motion)   Applies given motion and sends the result to the
+                             repl. See `send_motion` in |iron-mappings|
 
 * core.send_mark()           Sends the marked chunk
 
@@ -306,10 +306,12 @@ core.setup function.
 - visual_send: Sends the visual selection to the repl
 - send_file: Sends the whole file to the repl
 - send_line: Sends the line below the cursor to the repl
-- send_until_cursor: Sends the buffer from the start until the line where the cursor is (inclusive) to the repl
+- send_until_cursor: Sends the buffer from the start until the line where the
+  cursor is (inclusive) to the repl
 - send_mark: Sends the text within the mark
 - send_code_block: Sends the text between two code dividers
-- send_code_block_and_move: Sends the text between two code dividers and move to next code block
+- send_code_block_and_move: Sends the text between two code dividers and move
+  to next code block
 - mark_motion: Marks the text object
 - mark_visual: Marks the visual selection
 - remove_mark: Removes the set mark
@@ -321,13 +323,14 @@ core.setup function.
 ===============================================================================
 Extending                                                      *iron-extending*
 
-Iron provides some modules that can be used on your configuration to change the
-behavior:
+Iron provides some modules that can be used on your configuration to change
+the behavior:
 
 * `iron.memory_management`:
   It provides three memory management modes for your repls:
   * `tab_based`:
-    It saves all the variables based on your tab, so new tabs create new repls.
+    It saves all the variables based on your tab, so new tabs create new
+    repls.
   * `path_based` (default):
     It saves all the variables according to your base path (pwd),
     so changing the cd/tcd/lcd will create new repls.
@@ -345,7 +348,8 @@ behavior:
 
 * `iron.view`:
   Creates the windows.
-  Subject to change for the moment. please refer to the README while the API is still unstable.
+  Subject to change for the moment. Please refer to the README while the API
+  is still unstable.
 
 ===============================================================================
 Credits                                                          *iron-credits*
