@@ -26,7 +26,7 @@ local function remove_empty_lines(lines)
   local newlines = {}
 
   for _, line in pairs(lines) do
-    if string.len(line:gsub("%s", "")) > 0 then
+    if string.len(line:gsub("[ \t]", "")) > 0 then
       table.insert(newlines, line)
     end
   end
