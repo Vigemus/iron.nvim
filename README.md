@@ -56,6 +56,8 @@ iron.setup {
       -- or return a string name such as the following
       -- return "iron"
     end,
+    -- Send selections to the DAP repl if an nvim-dap session is running.
+    dap_integration = true
     -- How the repl window will be displayed
     -- See below for more information
     repl_open_cmd = view.bottom(40),
