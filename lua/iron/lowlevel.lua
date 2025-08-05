@@ -181,6 +181,12 @@ ll.send_to_repl = function(meta, data)
   end
 end
 
+--- Sends raw data to an existing repl without any formatting.
+-- @tparam table meta metadata for repl. Should not be nil
+-- @tparam string data A string to be sent to the repl
+ll.send_raw = function(meta, data)
+  vim.fn.chansend(meta.job, data)
+end
 
 --- Reshapes the repl window according to a preset config described in views
 -- @tparam table meta metadata for the repl
