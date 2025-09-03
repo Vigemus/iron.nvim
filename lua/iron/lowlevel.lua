@@ -88,6 +88,11 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
     }
     cmd = repl.command(meta)
   end
+
+  if repl.env then
+    opts.env = repl.env
+  end
+
   local job_id = vim.fn.termopen(cmd, opts)
 
   return {
