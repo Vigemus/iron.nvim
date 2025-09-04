@@ -282,6 +282,27 @@ core.send = function(ft, data)
   end
 end
 
+--- Sends unprocessed data to the REPL (no newline, no formatting).
+-- Useful for sending raw control characters like <C-l>.
+--
+-- @tparam[opt] string ft Filetype for REPL resolution (if none attached)
+-- @tparam string data Raw string to send
+core.send_raw = function(ft, data)
+  local meta = vim.b[0].repl
+
+  if not meta or not ll.repl_exists(meta) then
+    ft = ft or ll.get_buffer_ft(0)
+    if data == nil then return end
+    meta = ll.get(ft)
+  end
+
+  if not ll.repl_exists(meta) then
+    meta = core.repl_for(ft)
+  end
+
+  ll.send_raw(meta, data)
+end
+
 core.send_file = function(ft)
   core.send(ft, vim.api.nvim_buf_get_lines(0, 0, -1, false))
 end
@@ -717,7 +738,7 @@ local named_maps = {
   cr = { { 'n' }, function() core.send(nil, string.char(13)) end },
   interrupt = { { 'n' }, function() core.send(nil, string.char(03)) end },
   exit = { { 'n' }, core.close_repl },
-  clear = { { 'n' }, function() core.send(nil, string.char(12)) end },
+  clear = { { 'n' }, function() core.send_raw(nil, string.char(12)) end },
 }
 
 local tmp_migration = {
