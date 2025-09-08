@@ -192,6 +192,13 @@ end
 -- supplied as argument.
 -- @param ft filetype
 core.repl_for = function(ft)
+  if require('iron.dap').is_dap_session_running() then
+    -- If there's a dap session running, default to the dap repl. By
+    -- intercepting here, we can support dap repls in filetypes that aren't
+    -- normally supported (e.g. java).
+    -- TODO find and open the dap repl window?
+    return
+  end
   local meta = ll.get(ft)
   if ll.repl_exists(meta) then
     local currwin = vim.api.nvim_get_current_win()
@@ -238,6 +245,11 @@ local send = function(ft, data)
   -- the buffer local variable `repl` is created by core.attach function to
   -- track non-default REPls.
   local meta = vim.b[0].repl
+
+  if require('iron.dap').is_dap_session_running() then
+    require('iron.dap').send_to_dap(data)
+    return
+  end
 
   -- However, this attached meta may associated with a REPL that has been
   -- closed, we need to check for that.
@@ -754,6 +766,10 @@ core.setup = function(opts)
           end
         }
       end
+    end
+
+    if opts.config.dap_integration then
+      require('iron.dap').enable_integration()
     end
 
     if ll.tmp.repl_open_cmd == nil then
