@@ -7,6 +7,7 @@ local config = require("iron.config")
 local marks = require("iron.marks")
 local is_windows = require("iron.util.os").is_windows
 local view = require("iron.view")
+local dap = require("iron.dap")
 
 local autocmds = {}
 
@@ -192,7 +193,7 @@ end
 -- supplied as argument.
 -- @param ft filetype
 core.repl_for = function(ft)
-  if require('iron.dap').is_dap_session_running() then
+  if dap.is_dap_session_running() then
     -- If there's a dap session running, default to the dap repl. By
     -- intercepting here, we can support dap repls in filetypes that aren't
     -- normally supported (e.g. java).
@@ -246,8 +247,8 @@ local send = function(ft, data)
   -- track non-default REPls.
   local meta = vim.b[0].repl
 
-  if require('iron.dap').is_dap_session_running() then
-    require('iron.dap').send_to_dap(data)
+  if dap.is_dap_session_running() then
+    dap.send_to_dap(data)
     return
   end
 
@@ -769,7 +770,7 @@ core.setup = function(opts)
     end
 
     if opts.config.dap_integration then
-      require('iron.dap').enable_integration()
+      dap.enable_integration()
     end
 
     if ll.tmp.repl_open_cmd == nil then
