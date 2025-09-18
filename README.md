@@ -1,7 +1,5 @@
 # iron.nvim
 
-[![Chat on Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#iron.nvim:matrix.org)
-
 Interactive Repls Over Neovim.
 
 ## What is iron.nvim
