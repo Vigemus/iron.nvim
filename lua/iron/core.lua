@@ -730,7 +730,7 @@ local named_maps = {
   cr = { { 'n' }, function() core.send(nil, string.char(13)) end },
   interrupt = { { 'n' }, function() core.send(nil, string.char(03)) end },
   exit = { { 'n' }, core.close_repl },
-  clear = { { 'n' }, function() core.send(nil, string.char(12)) end },
+  clear = { { 'n' }, function() core.send(nil, "__clear_iron_repl__") end },
 }
 
 local tmp_migration = {

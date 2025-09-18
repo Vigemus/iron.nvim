@@ -166,6 +166,11 @@ end
 ll.send_to_repl = function(meta, data)
   local dt = data
 
+  if data == "__clear_iron_repl__" then
+    vim.fn.chansend(meta.job, {string.char(12)})
+    return
+  end
+
   if type(data) == "string" then
     dt = vim.split(data, '\n')
   end
