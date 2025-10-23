@@ -44,7 +44,7 @@ iron.setup {
         command = { "python3" },  -- or { "ipython", "--no-autoindent" }
         format = common.bracketed_paste_python,
         block_dividers = { "# %%", "#%%" },
-        env = {PYTHON_BASIC_REPL = "1"} --this is needed for python3.13 and up.
+        is_new_repl = true -- this must be set to true for Python 3.13 and later.
       }
     },
     -- set the file type of the newly created repl to ft
