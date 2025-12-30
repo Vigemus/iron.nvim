@@ -5,6 +5,7 @@ local fts = require("iron.fts")
 local providers = require("iron.providers")
 local format = require("iron.fts.common").format
 local view = require("iron.view")
+local is_windows = require("iron.util.os").is_windows
 
 --- Low level functions for iron
 -- This is needed to reduce the complexity of the user API functions.
@@ -184,7 +185,11 @@ ll.send_to_repl = function(meta, data)
 
   --TODO check vim.api.nvim_chan_send
   --TODO tool to get the progress of the chan send function
-  vim.fn.chansend(meta.job, dt)
+  if is_windows then
+    vim.fn.chansend(meta.job, table.concat(dt, "\r"))
+  else
+    vim.fn.chansend(meta.job, dt)
+  end
 
   if window ~= -1 then
     vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
