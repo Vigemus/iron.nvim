@@ -6,6 +6,7 @@ local providers = require("iron.providers")
 local format = require("iron.fts.common").format
 local view = require("iron.view")
 local is_windows = require("iron.util.os").is_windows
+local paste_mode_code = "\x1bOR"
 
 --- Low level functions for iron
 -- This is needed to reduce the complexity of the user API functions.
@@ -189,6 +190,18 @@ ll.send_to_repl = function(meta, data)
     vim.fn.chansend(meta.job, table.concat(dt, "\r"))
   else
     vim.fn.chansend(meta.job, dt)
+  end
+
+  -- In Python 3.13 and later, the built-in REPL automatically 
+  -- adjusts indentation based on contextual information when 
+  -- a new line is entered. This behavior may cause unexpected 
+  -- indentation errors in some cases. Fortunately, the new 
+  -- REPL provides a Paste Mode, which disables automatic 
+  -- indentation and allows code to run smoothly.
+  if dt[1] and string.find(dt[1], paste_mode_code) then
+    vim.defer_fn(function()
+      vim.fn.chansend(meta.job, paste_mode_code .. "\r")
+    end, 200)
   end
 
   if window ~= -1 then
