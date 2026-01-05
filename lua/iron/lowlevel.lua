@@ -185,7 +185,7 @@ ll.send_to_repl = function(meta, data)
 
   --TODO check vim.api.nvim_chan_send
   --TODO tool to get the progress of the chan send function
-  if is_windows then
+  if is_windows() then
     vim.fn.chansend(meta.job, table.concat(dt, "\r"))
   else
     vim.fn.chansend(meta.job, dt)

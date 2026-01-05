@@ -144,7 +144,7 @@ common.bracketed_paste_python = function(lines, extras)
     -- requires and extra newline in order to execute the code
     table.insert(result, newline)
   else
-    if not is_windows then
+    if not is_windows() then
       table.insert(result, "")
     end
   end
