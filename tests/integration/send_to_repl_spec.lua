@@ -6,7 +6,7 @@ describe("integration", function()
   end)
 
   it("sends text to a repl", function()
-    local repl = iron.create_repl("lua")
+    local repl = iron.create_repl("python")
 
     iron.send(repl, "print('hello world')")
 

@@ -20,15 +20,39 @@ jobs:
       NVIM_TAG: ${{ matrix.nvim }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
       - name: Install Neovim
         run: |
           bash .github/workflows/install_nvim.sh
 
-      - name: Verify Neovim
-        run: nvim --version
+      - name: Show environment
+        run: |
+          set -eux
+
+          export PATH="$HOME/.local/bin:$PATH"
+
+          echo "Working directory:"
+          pwd
+
+          echo
+          echo "Repository contents:"
+          ls -la
+
+          echo
+          echo "Makefile:"
+          cat Makefile
+
+          echo
+          echo "Neovim:"
+          which nvim
+          nvim --version
 
       - name: Run tests
         run: |
+          set -eux
+
+          export PATH="$HOME/.local/bin:$PATH"
+
           make test
