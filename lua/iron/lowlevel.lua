@@ -104,13 +104,38 @@ end
 -- @param bufnr buffer to be used
 -- @param repl_open_cmd command to be used to open the repl. if nil than will use config.repl_open_cmd
 -- @return window id of the newly created window
+-- ll.new_window = function(bufnr, repl_open_cmd)
+--   if repl_open_cmd == nil then
+--     repl_open_cmd = state.repl_open_cmd
+--   end
+--
+--   if type(repl_open_cmd) == "function" then
+--     local result = repl_open_cmd(bufnr)
+--     if type(result) == "table" then
+--       return view.openfloat(result, bufnr)
+--     else
+--       return result
+--     end
+--   else
+--     vim.cmd(repl_open_cmd)
+--     vim.api.nvim_set_current_buf(bufnr)
+--     return vim.fn.bufwinid(bufnr)
+--   end
+-- end
 ll.new_window = function(bufnr, repl_open_cmd)
   if repl_open_cmd == nil then
     repl_open_cmd = state.repl_open_cmd
   end
 
+  print("repl_open_cmd type:", type(repl_open_cmd))
+  print(vim.inspect(repl_open_cmd))
+
   if type(repl_open_cmd) == "function" then
     local result = repl_open_cmd(bufnr)
+
+    print("result type:", type(result))
+    print(vim.inspect(result))
+
     if type(result) == "table" then
       return view.openfloat(result, bufnr)
     else
@@ -122,7 +147,6 @@ ll.new_window = function(bufnr, repl_open_cmd)
     return vim.fn.bufwinid(bufnr)
   end
 end
-
 --- Creates a new buffer to be used by the repl
 -- @return the buffer id
 ll.new_buffer = function()
