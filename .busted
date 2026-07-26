@@ -1,6 +1,0 @@
-return {
-  default = {
-    verbose = true,
-    lpath = "./lua/?.lua;./lua/?/init.lua"
-  }
-}
