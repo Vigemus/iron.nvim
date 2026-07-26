@@ -5,6 +5,7 @@ local fts = require("iron.fts")
 local providers = require("iron.providers")
 local format = require("iron.fts.common").format
 local view = require("iron.view")
+local state = require("iron.state")
 local is_windows = require("iron.util.os").is_windows
 
 --- Low level functions for iron
@@ -18,24 +19,6 @@ local is_windows = require("iron.util.os").is_windows
 -- @module lowlevel
 -- @alias ll
 local ll = {}
-
-ll.store = {}
-
--- Quick fix for changing repl_open_cmd
-ll.tmp = {}
-
--- TODO This should not be part of lowlevel
-ll.get = function(ft)
-  if ft == nil or ft == "" then
-    error("Empty filetype")
-  end
-  return config.scope.get(ll.store, ft)
-end
-
--- TODO this should not be part of lowlevel
-ll.set = function(ft, fn)
-  return config.scope.set(ll.store, ft, fn)
-end
 
 ll.get_buffer_ft = function(bufnr)
   local ft = vim.bo[bufnr].filetype
@@ -123,7 +106,7 @@ end
 -- @return window id of the newly created window
 ll.new_window = function(bufnr, repl_open_cmd)
   if repl_open_cmd == nil then
-    repl_open_cmd = ll.tmp.repl_open_cmd
+    repl_open_cmd = state.repl_open_cmd
   end
 
   if type(repl_open_cmd) == "function" then

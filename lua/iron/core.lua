@@ -6,7 +6,7 @@ local focus = require("iron.visibility").focus
 local config = require("iron.config")
 local marks = require("iron.marks")
 local is_windows = require("iron.util.os").is_windows
-local view = require("iron.view")
+local state = require("iron.state")
 local dap = require("iron.dap")
 
 local autocmds = {}
@@ -43,7 +43,7 @@ new_repl.create = function(ft, bufnr, current_bufnr, cleanup)
     ft, repl, bufnr, current_bufnr
   )
   if success then
-    ll.set(ft, meta)
+    state.set_repl(ft, meta)
 
     local filetype = config.repl_filetype(bufnr, ft)
     if filetype ~= nil then
@@ -82,7 +82,8 @@ end
 -- @param ft the filetype of the repl to be created
 -- @treturn table metadata of the repl
 core.repl_here = function(ft)
-  local meta = ll.get(ft)
+  -- local meta = ll.get(ft)
+  local meta = state.get_repl(ft)
   if ll.repl_exists(meta) then
     vim.api.nvim_set_current_buf(meta.bufnr)
     return meta
@@ -123,7 +124,7 @@ core.repl_restart = function()
   else
     ft = ll.get_buffer_ft(0)
 
-    local meta = ll.get(ft)
+    local meta = state.get_repl(ft)
     if ll.repl_exists(meta) then
       local replwin = vim.fn.bufwinid(meta.bufnr)
       local currwin = vim.api.nvim_get_current_win()
@@ -164,7 +165,7 @@ core.close_repl = function(ft)
 
   if not meta or not ll.repl_exists(meta) then
     ft = ft or ll.get_buffer_ft(0)
-    meta = ll.get(ft)
+    meta = state.get_repl(ft)
   end
 
   if not ll.repl_exists(meta) then
@@ -178,7 +179,7 @@ end
 -- @param ft filetype
 core.hide_repl = function(ft)
   ft = ft or ll.get_buffer_ft(0)
-  local meta = ll.get(ft)
+  local meta = state.get_repl(ft)
 
   if ll.repl_exists(meta) then
     local window = vim.fn.bufwinid(meta.bufnr)
@@ -200,7 +201,7 @@ core.repl_for = function(ft)
     -- TODO find and open the dap repl window?
     return
   end
-  local meta = ll.get(ft)
+  local meta = state.get_repl(ft)
   if ll.repl_exists(meta) then
     local currwin = vim.api.nvim_get_current_win()
     config.visibility(meta.bufnr, function()
@@ -223,7 +224,7 @@ end
 -- directly moving the focus to it.
 -- @param ft filetype
 core.focus_on = function(ft)
-  local meta = ll.get(ft)
+  local meta = state.get_repl(ft)
   if ll.repl_exists(meta) then
     focus(meta.bufnr, function()
       local winid = ll.new_window(meta.bufnr)
@@ -259,7 +260,7 @@ local send = function(ft, data)
   if not meta or not ll.repl_exists(meta) then
     ft = ft or ll.get_buffer_ft(0)
     if data == nil then return end
-    meta = ll.get(ft)
+    meta = state.get_repl(ft)
   end
 
   -- If the repl doesn't exist, it will be created
@@ -545,7 +546,7 @@ end
 --- Attaches a buffer to a repl regardless of it's filetype
 -- If the repl doesn't exist it will be created
 core.attach = function(ft, target)
-  local meta = ll.get(ft)
+  local meta = state.get_repl(ft)
 
   if not ll.repl_exists(meta) then
     meta = core.repl_for(ft)
@@ -752,17 +753,17 @@ core.setup = function(opts)
 
   if opts.config then
     if type(opts.config.repl_open_cmd) ~= "table" then
-      ll.tmp.repl_open_cmd = opts.config.repl_open_cmd
+      state.repl_open_cmd = opts.config.repl_open_cmd
 
     else
       for idx, cmd in ipairs(opts.config.repl_open_cmd) do
         if idx == 1 then
-          ll.tmp.repl_open_cmd = cmd
+          state.repl_open_cmd = cmd
         end
         named_maps["toggle_repl_with_cmd_" .. idx] = {
           { 'n' },
           function()
-            ll.tmp.repl_open_cmd = cmd
+            state.repl_open_cmd = cmd
             vim.cmd('IronRepl')
           end
         }
@@ -773,7 +774,7 @@ core.setup = function(opts)
       dap.enable_integration()
     end
 
-    if ll.tmp.repl_open_cmd == nil then
+    if state.repl_open_cmd == nil then
       local msg = "A default repl_open_cmd was not set. "
       msg = msg .. "Please set a default by adding '_DEFAULT' "
       msg = msg .. "to the end of one of your repl_open_cmd names."
@@ -785,7 +786,7 @@ core.setup = function(opts)
     end
 
   else
-    ll.tmp.repl_open_cmd = config.repl_open_cmd
+    state.repl_open_cmd = config.repl_open_cmd
   end
 
 
