@@ -231,7 +231,7 @@ end
 -- @tparam int bufnr number of the buffer being checked
 -- @treturn string filetype of the buffer's repl (or nil if it doesn't have a repl associated)
 ll.get_repl_ft_for_bufnr = function(bufnr)
-  for _, values  in pairs(ll.store) do
+  for _, values  in pairs(state.repls) do
     for _, meta in pairs(values) do
       if meta.bufnr == bufnr then
         return meta.ft
