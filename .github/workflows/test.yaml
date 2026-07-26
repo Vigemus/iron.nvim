@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Neovim ${{ matrix.nvim }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        nvim:
+          - v0.11.4
+          - v0.12.2
+
+    env:
+      NVIM_TAG: ${{ matrix.nvim }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neovim
+        run: |
+          bash .github/workflows/install_nvim.sh
+
+      - name: Verify Neovim
+        run: nvim --version
+
+      - name: Run tests
+        run: |
+          make test
