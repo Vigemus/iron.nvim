@@ -13,11 +13,15 @@ extensibility at the same time.
 
 ## How to install
 
-Using [packer.nvim](https://github.com/wbthomason/packer.nvim) 
+Using [vim.pack](https://neovim.io/doc/user/pack) 
 (or the plugin manager of your choice):
 
 ```lua
-  use {'Vigemus/iron.nvim'}
+vim.pack.add({
+  {
+    src = "https://github.com/Vigemus/iron.nvim",
+  }
+}
 ```
 
 ## How to configure
