@@ -110,7 +110,7 @@ view.split = with_nested_metatable{ mode = function(data, size, options)
 
     local winid = vim.fn.bufwinid(bufnr)
     for opt, val in pairs(with_defaults(options)) do
-      vim.api.nvim_win_set_option(winid, opt, val)
+      vim.api.nvim_set_option_value(opt, val, { win = winid })
     end
     return winid
   end
