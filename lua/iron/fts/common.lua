@@ -2,6 +2,7 @@ local is_windows = require("iron.util.os").is_windows
 local extend = require("iron.util.tables").extend
 local open_code = "\27[200~"
 local close_code = "\27[201~"
+local paste_mode_code = "\x1bOR"
 local cr = "\13"
 
 local common = {}
@@ -58,7 +59,11 @@ common.format = function(repldef, lines)
 
   -- passing the command is for python. this will not affect bracketed_paste.
   if repldef.format then
-    return repldef.format(lines, { command = repldef.command })
+    if repldef.is_new_repl then
+      return repldef.format(lines, { command = repldef.command, is_new_repl = repldef.is_new_repl })
+    else
+      return repldef.format(lines, { command = repldef.command })
+    end
   elseif #lines == 1 then
     new = lines
   else
@@ -98,6 +103,7 @@ common.bracketed_paste_python = function(lines, extras)
   local result = {}
 
   local cmd = extras["command"]
+  local is_new_repl = extras["is_new_repl"] or false
   local pseudo_meta = { current_buffer = vim.api.nvim_get_current_buf()}
   if type(cmd) == "function" then
     cmd = cmd(pseudo_meta)
@@ -153,6 +159,16 @@ common.bracketed_paste_python = function(lines, extras)
     table.insert(result, 1, open_code)
     table.insert(result, close_code)
     table.insert(result, "\n")
+  end
+
+  -- In Python 3.13 and later, the built-in REPL automatically 
+  -- adjusts indentation based on contextual information when 
+  -- a new line is entered. This behavior may cause unexpected 
+  -- indentation errors in some cases. Fortunately, the new 
+  -- REPL provides a Paste Mode, which disables automatic 
+  -- indentation and allows code to run smoothly.
+  if is_new_repl and not (is_windows() and result[1] and result[1] == "\r") then
+    table.insert(result, 1, paste_mode_code)
   end
 
   return result
