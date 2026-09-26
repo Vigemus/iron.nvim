@@ -77,7 +77,15 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
     opts.env = repl.env
   end
 
-  local job_id = vim.fn.termopen(cmd, opts)
+  if repl.image then
+    cmd = require("iron.image").prepare(ft, cmd, opts, bufnr, repl.image)
+  end
+
+  local ok, job_id = pcall(vim.fn.termopen, cmd, opts)
+  if not ok or job_id <= 0 then
+    if repl.image then require("iron.image").detach(bufnr) end
+    error("Failed to start REPL: " .. tostring(job_id))
+  end
 
   return {
     ft = ft,

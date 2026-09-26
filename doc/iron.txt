@@ -6,6 +6,7 @@ CONTENTS                                                            *iron-help*
   Introduction............................|iron-introduction|
   Awesomeness.............................|iron-awesomeness|
   Languages...............................|iron-languages|
+  Inline images...........................|iron-images|
   Commands................................|iron-commands|
   Functions...............................|iron-functions|
   Customizing.............................|iron-customizing|
@@ -95,6 +96,43 @@ Currently, Iron has support for the following programming languages:
   - tcl
   - typescript
   - zsh
+
+===============================================================================
+Inline images                                                     *iron-images*
+
+Python REPLs can display PNG images inside terminal scrollback using the Kitty
+graphics protocol. Requires Neovim 0.11+, 'termguicolors', and Ghostty or Kitty.
+Enable this in the Python definition passed to iron.setup:
+>lua
+  python = {
+    command = { "python3" }, -- or { "ipython", "--no-autoindent" }
+    format = require("iron.fts.common").bracketed_paste_python,
+    image = true,
+  }
+<
+Restart the REPL after changing this setting. Matplotlib's plt.show() now emits
+inline PNGs. The bundled backend is selected through MPLBACKEND; selecting
+another backend overrides it. Restore with:
+>python
+  import matplotlib
+  matplotlib.use("module://iron_image_backend")
+<
+Direct PNG output is also available:
+>python
+  from iron_image import display
+  display("plot.png")  # PNG bytes and _repr_png_ objects work too
+<
+IPython's display() PNG output is handled by an automatically loaded extension.
+The transport adds no Python dependencies; install matplotlib or IPython only
+if using those features. No image.nvim, Kitty executable, Jupyter, or pynvim is
+needed. Existing PYTHONPATH entries and REPL environment settings are preserved.
+
+Use image = { max_images = 200 } to change the default retention of 100 images
+(range 1-1000). Each PNG is limited to 12 MiB. Eviction releases old images;
+buffer deletion and Neovim exit release the remaining images. Placement sizes
+are fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
+conversion, shell wrappers, remote kernels, and Python -I/-E are not supported.
+For tmux, enable allow-passthrough. Other REPLs keep their existing behavior.
 
 ===============================================================================
 Commands                                                        *iron-commands*

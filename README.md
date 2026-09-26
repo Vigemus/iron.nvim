@@ -26,6 +26,69 @@ vim.pack.add({
 
 ## How to configure
 
+### Inline images in Python REPLs
+
+Enable `image = true` in your Python REPL definition to display Matplotlib plots
+and PNG images **inside the REPL scrollback** on Ghostty or Kitty. This requires
+Neovim 0.11+ and `termguicolors`. The image transport uses only Neovim and Python's
+standard library: no `image.nvim`, Kitty executable, Jupyter kernel, or RPC
+package is required. Matplotlib and IPython are needed only when you use them.
+
+```lua
+vim.opt.termguicolors = true
+require("iron.core").setup({
+  config = {
+    repl_definition = {
+      python = {
+        command = { "python3" }, -- or { "ipython", "--no-autoindent" }
+        format = require("iron.fts.common").bracketed_paste_python,
+        image = true,
+      },
+    },
+    repl_open_cmd = require("iron.view").bottom(20),
+  },
+})
+```
+
+Restart an existing REPL after enabling this setting. Send this code normally:
+
+```python
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.show()
+```
+
+The REPL receives a bundled Matplotlib backend through `MPLBACKEND`. A later
+`matplotlib.use(...)` or `%matplotlib` changes that backend; use
+`matplotlib.use("module://iron_image_backend")` to restore it. In IPython, the
+bundled extension also handles PNG MIME output from `IPython.display.display`,
+including `%matplotlib inline` when that backend is installed.
+
+To display a PNG directly in either Python or IPython:
+
+```python
+from iron_image import display
+display("plot.png")  # also accepts PNG bytes and objects with _repr_png_()
+```
+
+Images follow the terminal text when scrolling. Their cell dimensions are fixed
+when emitted; display the image again after resizing the REPL. The latest 100
+images per REPL are retained; `image = { max_images = 200 }` changes this limit
+(1–1000). Evicted images leave blank placeholder cells in older scrollback.
+Deleting the REPL buffer or exiting Neovim releases its terminal images.
+
+Only PNG is transported, with a 12 MiB limit per image. Use a local `python`,
+`python3`, or `ipython` command (including `python -m IPython`); shell wrappers,
+remote kernels, and Python `-I`/`-E` are not supported by the automatic setup.
+For tmux, enable `set -g allow-passthrough on`; the outer terminal must support
+Kitty Unicode placeholders. Other REPL definitions are unaffected.
+
+The rendering approach is inspired by
+[pyrepl.nvim](https://github.com/gregborane/pyrepl.nvim): upload PNGs to the outer
+terminal and send matching Unicode placeholders through Neovim's REPL terminal.
+
+### General configuration
+
 Below is a very simple configuration for iron:
 
 ```lua
