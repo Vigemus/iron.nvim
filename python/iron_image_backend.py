@@ -2,7 +2,7 @@
 
 import io
 
-from matplotlib.backend_bases import FigureManagerBase, _Backend
+from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
 
@@ -20,12 +20,6 @@ class FigureCanvas(FigureCanvasAgg):
     manager_class = FigureManager
 
 
-@_Backend.export
-class _BackendIron(_Backend):
-    FigureCanvas = FigureCanvas
-    FigureManager = FigureManager
-
-    @staticmethod
-    def show(*, block=None):
-        for manager in Gcf.get_all_fig_managers():
-            manager.show()
+def show(*, block=None):
+    for manager in Gcf.get_all_fig_managers():
+        manager.show()

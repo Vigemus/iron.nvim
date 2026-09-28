@@ -1,0 +1,232 @@
+diff --git a/README.md b/README.md
+index 6d0a89b..04d7906 100644
+--- a/README.md
++++ b/README.md
+@@ -72,7 +72,8 @@ display("plot.png")  # also accepts PNG bytes and objects with _repr_png_()
+ ```
+ 
+ Images follow the terminal text when scrolling. Their cell dimensions are fixed
+-when emitted; display the image again after resizing the REPL. The latest 100
++when emitted, using a box of up to 80 columns and 20 rows (at most half the
++terminal height); display the image again after resizing the REPL. The latest 100
+ images per REPL are retained; `image = { max_images = 200 }` changes this limit
+ (1–1000). Evicted images leave blank placeholder cells in older scrollback.
+ Deleting the REPL buffer or exiting Neovim releases its terminal images.
+diff --git a/doc/iron.txt b/doc/iron.txt
+index ffca3fe..d1a3562 100644
+--- a/doc/iron.txt
++++ b/doc/iron.txt
+@@ -130,7 +130,8 @@ needed. Existing PYTHONPATH entries and REPL environment settings are preserved.
+ Use image = { max_images = 200 } to change the default retention of 100 images
+ (range 1-1000). Each PNG is limited to 12 MiB. Eviction releases old images;
+ buffer deletion and Neovim exit release the remaining images. Placement sizes
+-are fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
++use up to 80 columns and 20 rows (at most half the terminal height) and are
++fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
+ conversion, shell wrappers, remote kernels, and Python -I/-E are not supported.
+ For tmux, enable allow-passthrough. Other REPLs keep their existing behavior.
+ 
+diff --git a/lua/iron/image.lua b/lua/iron/image.lua
+index 3d656b3..6a74fd0 100644
+--- a/lua/iron/image.lua
++++ b/lua/iron/image.lua
+@@ -2,9 +2,8 @@
+ -- Unicode placeholders travel through it and therefore follow its scrollback.
+ local M = {}
+ local sessions = {}
+-local namespaces = {}
+ local esc = string.char(27)
+-local max_payload = 16 * 1024 * 1024 -- base64 bytes (12 MiB PNG)
++local max_chunks = 4096 -- 16 MiB base64 (12 MiB PNG)
+ local group = vim.api.nvim_create_augroup("IronImages", { clear = false })
+ 
+ local function send(body)
+@@ -27,23 +26,12 @@ function M.detach(bufnr)
+   local session = sessions[bufnr]
+   if not session then return end
+   sessions[bufnr] = nil
+-  namespaces[session.namespace] = nil
+   for _, id in ipairs(session.images) do
+     pcall(delete, id)
+   end
+   vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
+ end
+ 
+-local function upload(id, payload, cols, rows)
+-  for offset = 1, #payload, 4096 do
+-    local chunk = payload:sub(offset, offset + 4095)
+-    local more = offset + #chunk <= #payload and 1 or 0
+-    local header = offset == 1 and ("a=t,f=100,t=d,i=%d,q=2,"):format(id) or ""
+-    send(header .. ("m=%d;%s"):format(more, chunk))
+-  end
+-  send(("a=p,U=1,i=%d,c=%d,r=%d,C=1,q=2"):format(id, cols, rows))
+-end
+-
+ local function receive(session, sequence)
+   -- TermRequest omits the OSC terminator. Accept it as well for direct callers.
+   sequence = sequence:gsub("\7$", ""):gsub(esc .. "\\$", "")
+@@ -54,23 +42,22 @@ local function receive(session, sequence)
+   id, cols, rows, part, more = tonumber(id), tonumber(cols), tonumber(rows), tonumber(part), tonumber(more)
+   local base = session.namespace * 65536
+   if id <= base or id >= base + 65536 or cols < 1 or cols > 256 or rows < 1 or rows > 64
+-    or #chunk > 4096 or #chunk % 4 ~= 0 then
++    or #chunk > 4096 or #chunk % 4 ~= 0 or (more == 1 and #chunk ~= 4096) then
+     session.pending = nil
+     return
+   end
+   if part == 0 then
+     -- IDs are never reused: old scrollback must not start displaying a new PNG.
+     if id <= session.last_id then return end
+-    session.pending = { id = id, cols = cols, rows = rows, chunks = {}, size = 0 }
++    session.pending = { id = id, cols = cols, rows = rows, chunks = {} }
+   end
+   local pending = session.pending
+   if not pending or pending.id ~= id or pending.cols ~= cols or pending.rows ~= rows
+-    or part ~= #pending.chunks or pending.size + #chunk > max_payload then
++    or part ~= #pending.chunks or part >= max_chunks then
+     session.pending = nil
+     return
+   end
+   pending.chunks[#pending.chunks + 1] = chunk
+-  pending.size = pending.size + #chunk
+   if more == 1 then return end
+   session.pending = nil
+   local payload = table.concat(pending.chunks)
+@@ -78,7 +65,11 @@ local function receive(session, sequence)
+   if not ok or #png < 24 or png:sub(1, 8) ~= "\137PNG\r\n\26\n" or png:sub(13, 16) ~= "IHDR" then
+     return
+   end
+-  upload(id, payload, cols, rows)
++  for index, data in ipairs(pending.chunks) do
++    local header = index == 1 and ("a=t,f=100,t=d,i=%d,q=2,"):format(id) or ""
++    send(header .. ("m=%d;%s"):format(index < #pending.chunks and 1 or 0, data))
++  end
++  send(("a=p,U=1,i=%d,c=%d,r=%d,C=1,q=2"):format(id, cols, rows))
+   session.last_id = id
+   session.images[#session.images + 1] = id
+   if #session.images > session.max_images then
+@@ -99,7 +90,7 @@ function M.prepare(ft, command, opts, bufnr, settings)
+   if not ipython and not name:match("^python[%d.]*$") then
+     error("iron: image rendering requires a python or ipython executable")
+   end
+-  local cmd = vim.deepcopy(command)
++  local cmd = vim.list_extend({}, command)
+   -- python -m IPython is supported too; leave the interpreter flags in place.
+   for index, arg in ipairs(cmd) do
+     if arg == "-m" and cmd[index + 1] == "IPython" then ipython = true end
+@@ -116,12 +107,13 @@ function M.prepare(ft, command, opts, bufnr, settings)
+     error("iron: image.max_images must be an integer from 1 to 1000")
+   end
+   M.detach(bufnr)
++  local used = {}
++  for _, session in pairs(sessions) do used[session.namespace] = true end
+   local namespace
+   for candidate = 128, 255 do
+-    if not namespaces[candidate] then namespace = candidate; break end
++    if not used[candidate] then namespace = candidate; break end
+   end
+   if not namespace then error("iron: too many image-enabled REPLs") end
+-  namespaces[namespace] = true
+   local session = { namespace = namespace, images = {}, last_id = 0, max_images = max_images }
+   sessions[bufnr] = session
+   local env = vim.tbl_extend("force", {}, opts.env or {})
+diff --git a/python/iron_image.py b/python/iron_image.py
+index 4f20ac8..f9fb911 100644
+--- a/python/iron_image.py
++++ b/python/iron_image.py
+@@ -7,36 +7,23 @@ an RPC client, a Jupyter kernel, temporary image files, or a Kitty executable.
+ 
+ import base64
+ import itertools
+-import math
+ import os
+ import shutil
+-import struct
+ import sys
+ import threading
+ 
+ PLACEHOLDER = "\U0010eeee"
+-# Kitty's stable row/column table: first 64 entries, in protocol order.
+-DIACRITICS = tuple(chr(int(value, 16)) for value in (
+-    "0305 030D 030E 0310 0312 033D 033E 033F 0346 034A 034B 034C 0350 0351 0352 0357 "
+-    "035B 0363 0364 0365 0366 0367 0368 0369 036A 036B 036C 036D 036E 036F 0483 0484 "
+-    "0485 0486 0487 0592 0593 0594 0595 0597 0598 0599 059C 059D 059E 059F 05A0 05A1 "
+-    "05A8 05A9 05AB 05AC 05AF 05C4 0610 0611 0612 0613 0614 0615 0616 0617 0657 0658"
+-).split())
++# First 20 entries of Kitty's row/column diacritics table.
++DIACRITICS = (
++    "\u0305\u030d\u030e\u0310\u0312\u033d\u033e\u033f\u0346\u034a"
++    "\u034b\u034c\u0350\u0351\u0352\u0357\u035b\u0363\u0364\u0365"
++)
+ _ids = itertools.count(1)
+ _lock = threading.RLock()
+ _extensions = {}
+ MAX_PNG_BYTES = 12 * 1024 * 1024
+ 
+ 
+-def _dimensions(png):
+-    if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n" or png[12:16] != b"IHDR":
+-        raise ValueError("iron: expected PNG data")
+-    width, height = struct.unpack(">II", png[16:24])
+-    if not width or not height:
+-        raise ValueError("iron: PNG dimensions must be positive")
+-    return width, height
+-
+-
+ def display(image):
+     """Display a PNG path, PNG bytes, or an object implementing _repr_png_."""
+     if isinstance(image, (str, os.PathLike)):
+@@ -56,17 +43,17 @@ def display(image):
+         raise ValueError("iron: object did not provide PNG data")
+     if len(png) > MAX_PNG_BYTES:
+         raise ValueError("iron: PNG exceeds the 12 MiB image limit")
+-    width, height = _dimensions(png)
++    if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n" or png[12:16] != b"IHDR":
++        raise ValueError("iron: expected PNG data")
++    if not int.from_bytes(png[16:20], "big") or not int.from_bytes(png[20:24], "big"):
++        raise ValueError("iron: PNG dimensions must be positive")
+     namespace = int(os.environ.get("IRON_IMAGE_NAMESPACE", "0"))
+     if not 128 <= namespace <= 255:
+         raise RuntimeError("iron: enable image = true in the Python REPL definition")
+     terminal = shutil.get_terminal_size((80, 24))
+-    cols = max(1, min(256, int(terminal.columns * 0.9)))
+-    rows = max(1, math.ceil(cols * height / width / 2))
+-    max_rows = max(1, min(len(DIACRITICS), terminal.lines - 2))
+-    if rows > max_rows:
+-        rows = max_rows
+-        cols = max(1, min(cols, int(rows * 2 * width / height)))
++    # Use the reference IPython renderer's fixed bounding box.
++    cols = max(1, min(terminal.columns - 3, 80))
++    rows = max(1, min(terminal.lines // 2, 20))
+     payload = base64.b64encode(png).decode("ascii")
+     with _lock:
+         serial = next(_ids)
+diff --git a/python/iron_image_backend.py b/python/iron_image_backend.py
+index a62213e..87ef13c 100644
+--- a/python/iron_image_backend.py
++++ b/python/iron_image_backend.py
+@@ -2,7 +2,7 @@
+ 
+ import io
+ 
+-from matplotlib.backend_bases import FigureManagerBase, _Backend
++from matplotlib.backend_bases import FigureManagerBase
+ from matplotlib.backends.backend_agg import FigureCanvasAgg
+ from matplotlib._pylab_helpers import Gcf
+ 
+@@ -20,12 +20,6 @@ class FigureCanvas(FigureCanvasAgg):
+     manager_class = FigureManager
+ 
+ 
+-@_Backend.export
+-class _BackendIron(_Backend):
+-    FigureCanvas = FigureCanvas
+-    FigureManager = FigureManager
+-
+-    @staticmethod
+-    def show(*, block=None):
+-        for manager in Gcf.get_all_fig_managers():
+-            manager.show()
++def show(*, block=None):
++    for manager in Gcf.get_all_fig_managers():
++        manager.show()

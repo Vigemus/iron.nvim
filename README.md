@@ -72,7 +72,8 @@ display("plot.png")  # also accepts PNG bytes and objects with _repr_png_()
 ```
 
 Images follow the terminal text when scrolling. Their cell dimensions are fixed
-when emitted; display the image again after resizing the REPL. The latest 100
+when emitted, using a box of up to 80 columns and 20 rows (at most half the
+terminal height); display the image again after resizing the REPL. The latest 100
 images per REPL are retained; `image = { max_images = 200 }` changes this limit
 (1–1000). Evicted images leave blank placeholder cells in older scrollback.
 Deleting the REPL buffer or exiting Neovim releases its terminal images.

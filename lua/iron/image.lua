@@ -2,9 +2,8 @@
 -- Unicode placeholders travel through it and therefore follow its scrollback.
 local M = {}
 local sessions = {}
-local namespaces = {}
 local esc = string.char(27)
-local max_payload = 16 * 1024 * 1024 -- base64 bytes (12 MiB PNG)
+local max_chunks = 4096 -- 16 MiB base64 (12 MiB PNG)
 local group = vim.api.nvim_create_augroup("IronImages", { clear = false })
 
 local function send(body)
@@ -27,21 +26,10 @@ function M.detach(bufnr)
   local session = sessions[bufnr]
   if not session then return end
   sessions[bufnr] = nil
-  namespaces[session.namespace] = nil
   for _, id in ipairs(session.images) do
     pcall(delete, id)
   end
   vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
-end
-
-local function upload(id, payload, cols, rows)
-  for offset = 1, #payload, 4096 do
-    local chunk = payload:sub(offset, offset + 4095)
-    local more = offset + #chunk <= #payload and 1 or 0
-    local header = offset == 1 and ("a=t,f=100,t=d,i=%d,q=2,"):format(id) or ""
-    send(header .. ("m=%d;%s"):format(more, chunk))
-  end
-  send(("a=p,U=1,i=%d,c=%d,r=%d,C=1,q=2"):format(id, cols, rows))
 end
 
 local function receive(session, sequence)
@@ -54,23 +42,22 @@ local function receive(session, sequence)
   id, cols, rows, part, more = tonumber(id), tonumber(cols), tonumber(rows), tonumber(part), tonumber(more)
   local base = session.namespace * 65536
   if id <= base or id >= base + 65536 or cols < 1 or cols > 256 or rows < 1 or rows > 64
-    or #chunk > 4096 or #chunk % 4 ~= 0 then
+    or #chunk > 4096 or #chunk % 4 ~= 0 or (more == 1 and #chunk ~= 4096) then
     session.pending = nil
     return
   end
   if part == 0 then
     -- IDs are never reused: old scrollback must not start displaying a new PNG.
     if id <= session.last_id then return end
-    session.pending = { id = id, cols = cols, rows = rows, chunks = {}, size = 0 }
+    session.pending = { id = id, cols = cols, rows = rows, chunks = {} }
   end
   local pending = session.pending
   if not pending or pending.id ~= id or pending.cols ~= cols or pending.rows ~= rows
-    or part ~= #pending.chunks or pending.size + #chunk > max_payload then
+    or part ~= #pending.chunks or part >= max_chunks then
     session.pending = nil
     return
   end
   pending.chunks[#pending.chunks + 1] = chunk
-  pending.size = pending.size + #chunk
   if more == 1 then return end
   session.pending = nil
   local payload = table.concat(pending.chunks)
@@ -78,7 +65,11 @@ local function receive(session, sequence)
   if not ok or #png < 24 or png:sub(1, 8) ~= "\137PNG\r\n\26\n" or png:sub(13, 16) ~= "IHDR" then
     return
   end
-  upload(id, payload, cols, rows)
+  for index, data in ipairs(pending.chunks) do
+    local header = index == 1 and ("a=t,f=100,t=d,i=%d,q=2,"):format(id) or ""
+    send(header .. ("m=%d;%s"):format(index < #pending.chunks and 1 or 0, data))
+  end
+  send(("a=p,U=1,i=%d,c=%d,r=%d,C=1,q=2"):format(id, cols, rows))
   session.last_id = id
   session.images[#session.images + 1] = id
   if #session.images > session.max_images then
@@ -99,7 +90,7 @@ function M.prepare(ft, command, opts, bufnr, settings)
   if not ipython and not name:match("^python[%d.]*$") then
     error("iron: image rendering requires a python or ipython executable")
   end
-  local cmd = vim.deepcopy(command)
+  local cmd = vim.list_extend({}, command)
   -- python -m IPython is supported too; leave the interpreter flags in place.
   for index, arg in ipairs(cmd) do
     if arg == "-m" and cmd[index + 1] == "IPython" then ipython = true end
@@ -116,12 +107,13 @@ function M.prepare(ft, command, opts, bufnr, settings)
     error("iron: image.max_images must be an integer from 1 to 1000")
   end
   M.detach(bufnr)
+  local used = {}
+  for _, session in pairs(sessions) do used[session.namespace] = true end
   local namespace
   for candidate = 128, 255 do
-    if not namespaces[candidate] then namespace = candidate; break end
+    if not used[candidate] then namespace = candidate; break end
   end
   if not namespace then error("iron: too many image-enabled REPLs") end
-  namespaces[namespace] = true
   local session = { namespace = namespace, images = {}, last_id = 0, max_images = max_images }
   sessions[bufnr] = session
   local env = vim.tbl_extend("force", {}, opts.env or {})

@@ -7,34 +7,21 @@ an RPC client, a Jupyter kernel, temporary image files, or a Kitty executable.
 
 import base64
 import itertools
-import math
 import os
 import shutil
-import struct
 import sys
 import threading
 
 PLACEHOLDER = "\U0010eeee"
-# Kitty's stable row/column table: first 64 entries, in protocol order.
-DIACRITICS = tuple(chr(int(value, 16)) for value in (
-    "0305 030D 030E 0310 0312 033D 033E 033F 0346 034A 034B 034C 0350 0351 0352 0357 "
-    "035B 0363 0364 0365 0366 0367 0368 0369 036A 036B 036C 036D 036E 036F 0483 0484 "
-    "0485 0486 0487 0592 0593 0594 0595 0597 0598 0599 059C 059D 059E 059F 05A0 05A1 "
-    "05A8 05A9 05AB 05AC 05AF 05C4 0610 0611 0612 0613 0614 0615 0616 0617 0657 0658"
-).split())
+# First 20 entries of Kitty's row/column diacritics table.
+DIACRITICS = (
+    "\u0305\u030d\u030e\u0310\u0312\u033d\u033e\u033f\u0346\u034a"
+    "\u034b\u034c\u0350\u0351\u0352\u0357\u035b\u0363\u0364\u0365"
+)
 _ids = itertools.count(1)
 _lock = threading.RLock()
 _extensions = {}
 MAX_PNG_BYTES = 12 * 1024 * 1024
-
-
-def _dimensions(png):
-    if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n" or png[12:16] != b"IHDR":
-        raise ValueError("iron: expected PNG data")
-    width, height = struct.unpack(">II", png[16:24])
-    if not width or not height:
-        raise ValueError("iron: PNG dimensions must be positive")
-    return width, height
 
 
 def display(image):
@@ -56,17 +43,17 @@ def display(image):
         raise ValueError("iron: object did not provide PNG data")
     if len(png) > MAX_PNG_BYTES:
         raise ValueError("iron: PNG exceeds the 12 MiB image limit")
-    width, height = _dimensions(png)
+    if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n" or png[12:16] != b"IHDR":
+        raise ValueError("iron: expected PNG data")
+    if not int.from_bytes(png[16:20], "big") or not int.from_bytes(png[20:24], "big"):
+        raise ValueError("iron: PNG dimensions must be positive")
     namespace = int(os.environ.get("IRON_IMAGE_NAMESPACE", "0"))
     if not 128 <= namespace <= 255:
         raise RuntimeError("iron: enable image = true in the Python REPL definition")
     terminal = shutil.get_terminal_size((80, 24))
-    cols = max(1, min(256, int(terminal.columns * 0.9)))
-    rows = max(1, math.ceil(cols * height / width / 2))
-    max_rows = max(1, min(len(DIACRITICS), terminal.lines - 2))
-    if rows > max_rows:
-        rows = max_rows
-        cols = max(1, min(cols, int(rows * 2 * width / height)))
+    # Use the reference IPython renderer's fixed bounding box.
+    cols = max(1, min(terminal.columns - 3, 80))
+    rows = max(1, min(terminal.lines // 2, 20))
     payload = base64.b64encode(png).decode("ascii")
     with _lock:
         serial = next(_ids)

@@ -130,7 +130,8 @@ needed. Existing PYTHONPATH entries and REPL environment settings are preserved.
 Use image = { max_images = 200 } to change the default retention of 100 images
 (range 1-1000). Each PNG is limited to 12 MiB. Eviction releases old images;
 buffer deletion and Neovim exit release the remaining images. Placement sizes
-are fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
+use up to 80 columns and 20 rows (at most half the terminal height) and are
+fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
 conversion, shell wrappers, remote kernels, and Python -I/-E are not supported.
 For tmux, enable allow-passthrough. Other REPLs keep their existing behavior.
 
