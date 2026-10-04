@@ -64,7 +64,42 @@ The REPL receives a bundled Matplotlib backend through `MPLBACKEND`. A later
 bundled extension also handles PNG MIME output from `IPython.display.display`,
 including `%matplotlib inline` when that backend is installed.
 
-To display a PNG directly in either Python or IPython:
+### Jupyter-console
+
+`jupyter-console` also supports `image = true`. Install `jupyter-console` and
+`ipykernel` in your Python environment, plus Matplotlib for plots:
+
+```lua
+python = {
+  command = { "jupyter-console" },
+  format = require("iron.fts.common").bracketed_paste,
+  image = true,
+  block_dividers = { "# %%", "#%%" },
+},
+```
+
+The built-in definition is `require("iron.fts.python").jupyter`. Launches through
+`jupyter console`, `python -m jupyter_console`, and `python -m jupyter console`
+work too. `bracketed_paste_python` recognizes these commands and sends the entire
+cell as one paste, preserving blank lines. Keep the normal prompt-toolkit prompt;
+Jupyter-console's `--simple-prompt` does not support multiline pastes.
+
+Iron installs a frontend PNG handler through a bundled Jupyter base config,
+preserving existing `JUPYTER_CONFIG_PATH` entries and console config files,
+including `--config`. It selects Matplotlib's inline backend for newly launched
+Python kernels. The frontend converts PNG MIME messages into the same scrollback
+transport used by the Python/IPython REPLs; no Iron extension is needed inside
+the kernel. Console config must not replace `callable_image_handler` when using
+Iron's renderer.
+
+To connect to an existing kernel, use
+`command = { "jupyter-console", "--existing", "/path/to/kernel.json" }`.
+For plots, run `%matplotlib inline` in that kernel. Existing kernels keep their
+environment and backend; Iron renders the PNG MIME output they publish.
+
+### Direct PNG output and limits
+
+To display a PNG directly in Python, IPython, or a local Jupyter Python kernel:
 
 ```python
 from iron_image import display
@@ -79,8 +114,10 @@ images per REPL are retained; `image = { max_images = 200 }` changes this limit
 Deleting the REPL buffer or exiting Neovim releases its terminal images.
 
 Only PNG is transported, with a 12 MiB limit per image. Use a local `python`,
-`python3`, or `ipython` command (including `python -m IPython`); shell wrappers,
-remote kernels, and Python `-I`/`-E` are not supported by the automatic setup.
+`python3`, `ipython`, or Jupyter-console frontend (including module launches).
+Existing and remote Jupyter kernels need only publish PNG MIME output; use
+`IPython.display.display` in kernels that do not have Iron's modules available.
+Shell wrappers and Python `-I`/`-E` are not supported by the automatic setup.
 For tmux, enable `set -g allow-passthrough on`; the outer terminal must support
 Kitty Unicode placeholders. Other REPL definitions are unaffected.
 

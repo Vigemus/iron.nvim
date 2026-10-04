@@ -114,6 +114,32 @@ local function test_validation()
   assert(#vim.api.nvim_get_autocmds({ group = "IronImages", buffer = failed }) == 0,
     "failed REPL startup leaked image handlers")
   vim.api.nvim_buf_delete(failed, { force = true })
+
+  for _, command in ipairs({
+    { "jupyter-console" },
+    { "/venv/bin/jupyter-console" },
+    { "jupyter", "console", "--existing", "kernel.json" },
+    { "python3", "-m", "jupyter_console" },
+    { "python3", "-m", "jupyter", "console" },
+    { "jupyter-console", "--", "--debug" },
+  }) do
+    local original = vim.deepcopy(command)
+    local target = vim.api.nvim_create_buf(false, true)
+    local options = { env = { PYTHONPATH = "kept-python", JUPYTER_CONFIG_PATH = "kept-config" } }
+    local prepared = require("iron.image").prepare("python", command, options, target, true)
+    assert(vim.deep_equal(command, original), "mutated Jupyter command")
+    assert(options.env.PYTHONPATH:find("kept-python", 1, true), "lost PYTHONPATH")
+    assert(options.env.JUPYTER_CONFIG_PATH:find("kept-config", 1, true), "lost Jupyter config path")
+    assert(options.env.MPLBACKEND == "module://matplotlib_inline.backend_inline", "wrong Jupyter backend")
+    local handler, separator
+    for i, arg in ipairs(prepared) do
+      if arg == "--ZMQTerminalInteractiveShell.image_handler=callable" then handler = i end
+      if arg == "--" then separator = i end
+      assert(arg ~= "--ext=iron_image", "IPython extension was added to the frontend")
+    end
+    assert(handler and (not separator or handler < separator), "renderer option became a kernel argument")
+    vim.api.nvim_buf_delete(target, { force = true })
+  end
 end
 
 test_images(false, false, false) -- real Neovim 0.11 stderr path

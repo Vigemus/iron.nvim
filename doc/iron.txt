@@ -127,12 +127,39 @@ The transport adds no Python dependencies; install matplotlib or IPython only
 if using those features. No image.nvim, Kitty executable, Jupyter, or pynvim is
 needed. Existing PYTHONPATH entries and REPL environment settings are preserved.
 
+Jupyter-console also supports inline images:
+>lua
+  python = {
+    command = { "jupyter-console" },
+    format = require("iron.fts.common").bracketed_paste,
+    image = true,
+    block_dividers = { "# %%", "#%%" },
+  }
+<
+Install jupyter-console and ipykernel, plus matplotlib for plots. The built-in
+definition is require("iron.fts.python").jupyter. Supported launch forms include
+jupyter console, python -m jupyter_console, and python -m jupyter console.
+bracketed_paste_python also recognizes these commands, preserving blank lines
+and sending multiline cells as one paste. Do not use --simple-prompt for cells.
+
+A bundled Jupyter base config installs the PNG handler in the frontend. Existing
+JUPYTER_CONFIG_PATH entries and console config files (including --config) remain
+available. Do not replace callable_image_handler in your console config. New
+Python kernels receive Matplotlib's inline backend; no Iron kernel extension is
+needed. Existing/remote kernels can publish PNG MIME output through display():
+>lua
+  command = { "jupyter-console", "--existing", "/path/to/kernel.json" }
+<
+Run %matplotlib inline in an existing Python kernel to enable inline plots.
+Iron does not change that kernel's environment or backend. Use IPython.display
+in kernels where Iron's bundled Python modules are not available.
+
 Use image = { max_images = 200 } to change the default retention of 100 images
 (range 1-1000). Each PNG is limited to 12 MiB. Eviction releases old images;
 buffer deletion and Neovim exit release the remaining images. Placement sizes
 use up to 80 columns and 20 rows (at most half the terminal height) and are
 fixed when emitted; redisplay after resizing. Animated images, JPEG/SVG
-conversion, shell wrappers, remote kernels, and Python -I/-E are not supported.
+conversion, shell wrappers, and Python -I/-E are not supported.
 For tmux, enable allow-passthrough. Other REPLs keep their existing behavior.
 
 ===============================================================================

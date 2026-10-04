@@ -2,7 +2,7 @@
 
 Like pyrepl.nvim, images use Kitty virtual placements and Unicode placeholders.
 Iron forwards bounded OSC messages through Neovim's TermRequest event, avoiding
-an RPC client, a Jupyter kernel, temporary image files, or a Kitty executable.
+an RPC client, temporary image files, or a Kitty executable.
 """
 
 import base64
@@ -47,6 +47,12 @@ def display(image):
         raise ValueError("iron: expected PNG data")
     if not int.from_bytes(png[16:20], "big") or not int.from_bytes(png[20:24], "big"):
         raise ValueError("iron: PNG dimensions must be positive")
+    # A Jupyter kernel's stdout is a message stream, not the frontend terminal.
+    # Publish MIME data so the frontend allocates IDs and sizes the placement.
+    shell = getattr(sys.modules.get("IPython"), "get_ipython", lambda: None)()
+    if shell is not None and shell.__class__.__name__ == "ZMQInteractiveShell":
+        shell.display_pub.publish({"image/png": base64.b64encode(png).decode("ascii")})
+        return
     namespace = int(os.environ.get("IRON_IMAGE_NAMESPACE", "0"))
     if not 128 <= namespace <= 255:
         raise RuntimeError("iron: enable image = true in the Python REPL definition")
@@ -73,6 +79,23 @@ def display(image):
             cells = PLACEHOLDER + DIACRITICS[row] + DIACRITICS[0] + PLACEHOLDER * (cols - 1)
             out.write("\r" + padding + color + cells + "\x1b[39m\r\n")
         out.flush()
+
+
+def display_jupyter(data):
+    """Jupyter-console callable image handler; False preserves text fallback."""
+    png = data.get("image/png")
+    if png is None:
+        return False
+    try:
+        if isinstance(png, str):
+            if len(png) > 4 * ((MAX_PNG_BYTES + 2) // 3):
+                raise ValueError("iron: PNG exceeds the 12 MiB image limit")
+            png = base64.b64decode(png, validate=True)
+        display(png)
+    except (ValueError, TypeError, RuntimeError, OSError) as error:
+        print(str(error), file=sys.stderr)
+        return False
+    return True
 
 
 def load_ipython_extension(shell):

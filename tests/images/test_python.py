@@ -9,6 +9,8 @@ import struct
 import sys
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
+import tempfile
 import zlib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "python"))
@@ -97,6 +99,73 @@ class Images(unittest.TestCase):
             iron_image.unload_ipython_extension(shell)
         self.assertEqual(shell.display_formatter.active_types, old_types)
         self.assertEqual(shell.display_pub.publish, original)
+
+    def test_jupyter_png_mime_transport(self):
+        from jupyter_console.ptshell import ZMQTerminalInteractiveShell
+        from traitlets.config import Configurable
+        # Exercise the real console hook without starting its prompt or kernel.
+        shell = ZMQTerminalInteractiveShell.__new__(ZMQTerminalInteractiveShell)
+        Configurable.__init__(shell)
+        shell.image_handler = "callable"
+        shell.callable_image_handler = iron_image.display_jupyter
+        shell.mime_preference = ["image/png"]
+        output = self.capture(lambda: self.assertTrue(shell.handle_rich_data(
+            {"image/png": base64.b64encode(png_bytes()).decode("ascii")}
+        )))
+        self.assertIn("iron-image;", output)
+        self.assertIn(iron_image.PLACEHOLDER, output)
+        self.assertFalse(shell.handle_rich_data({"text/plain": "text survives"}))
+        self.assertFalse(shell.handle_rich_data({"image/jpeg": "unsupported"}))
+
+    def test_jupyter_base_config_preserves_default_and_explicit_config(self):
+        from jupyter_console.app import ZMQTerminalIPythonApp
+        from jupyter_core.application import JupyterApp
+        bundled = Path(iron_image.__file__).parent / "jupyter"
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "jupyter_console_config.py"
+            config.write_text("c = get_config()\nc.ZMQTerminalInteractiveShell.banner = 'USER_CONFIG'\n")
+            with patch.dict(os.environ, {
+                "JUPYTER_CONFIG_PATH": str(bundled) + os.pathsep + directory,
+                "JUPYTER_CONFIG_DIR": directory,
+                "JUPYTER_DATA_DIR": directory,
+                "JUPYTER_RUNTIME_DIR": directory,
+            }):
+                for extra in ([], ["--config=" + str(config)]):
+                    app = ZMQTerminalIPythonApp()
+                    try:
+                        # Load the actual app config without initializing ZMQ channels.
+                        JupyterApp.initialize(app, extra + [
+                            "--ZMQTerminalInteractiveShell.image_handler=callable",
+                            '--ZMQTerminalInteractiveShell.mime_preference=["image/png"]',
+                        ])
+                        settings = app.config.ZMQTerminalInteractiveShell
+                        self.assertIs(settings.callable_image_handler, iron_image.display_jupyter)
+                        self.assertEqual(settings.image_handler, "callable")
+                        self.assertEqual(settings.mime_preference, ["image/png"])
+                        self.assertEqual(settings.banner, "USER_CONFIG")
+                    finally:
+                        app.close_handlers()
+
+    def test_jupyter_text_and_invalid_images_fall_back(self):
+        self.assertFalse(iron_image.display_jupyter({"text/plain": "text survives"}))
+        output = io.StringIO()
+        errors = io.StringIO()
+        with redirect_stdout(output), patch("sys.stderr", errors):
+            self.assertFalse(iron_image.display_jupyter({"image/png": "invalid!"}))
+            self.assertFalse(iron_image.display_jupyter({"image/png": base64.b64encode(b"not PNG").decode()}))
+            with patch.object(iron_image, "MAX_PNG_BYTES", 3):
+                self.assertFalse(iron_image.display_jupyter({"image/png": "AAAAAAAA"}))
+        self.assertEqual(output.getvalue(), "")
+        self.assertIn("12 MiB", errors.getvalue())
+
+    def test_kernel_direct_display_publishes_mime_instead_of_terminal_ids(self):
+        shell = type("ZMQInteractiveShell", (), {})()
+        published = []
+        shell.display_pub = SimpleNamespace(publish=published.append)
+        with patch.dict(sys.modules, {"IPython": SimpleNamespace(get_ipython=lambda: shell)}):
+            output = self.capture(lambda: iron_image.display(png_bytes()))
+        self.assertEqual(output, "")
+        self.assertEqual(base64.b64decode(published[0]["image/png"]), png_bytes())
 
 
 if __name__ == "__main__":

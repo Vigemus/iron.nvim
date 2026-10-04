@@ -87,20 +87,40 @@ function M.prepare(ft, command, opts, bufnr, settings)
   end
   local name = vim.fn.fnamemodify(command[1], ":t"):lower():gsub("%.exe$", "")
   local ipython = name:match("^ipython[%d.]*$") ~= nil
-  if not ipython and not name:match("^python[%d.]*$") then
-    error("iron: image rendering requires a python or ipython executable")
+  local python = name:match("^python[%d.]*$") ~= nil
+  local jupyter = name == "jupyter-console" or (name == "jupyter" and command[2] == "console")
+  if not ipython and not python and not jupyter then
+    error("iron: image rendering requires a python, ipython, or jupyter-console executable")
   end
   local cmd = vim.list_extend({}, command)
-  -- python -m IPython is supported too; leave the interpreter flags in place.
-  for index, arg in ipairs(cmd) do
-    if arg == "-m" and cmd[index + 1] == "IPython" then ipython = true end
-    if arg == "-I" or arg == "-E" then
-      error("iron: image rendering requires Python to read PYTHONPATH (remove -I/-E)")
+  -- Leave interpreter flags in place for module-style launches.
+  if python then
+    for index = 2, #cmd do
+      local arg = cmd[index]
+      if arg == "-m" then
+        ipython = cmd[index + 1] == "IPython"
+        jupyter = cmd[index + 1] == "jupyter_console"
+          or (cmd[index + 1] == "jupyter" and cmd[index + 2] == "console")
+        break
+      end
+      if arg == "-I" or arg == "-E" then
+        error("iron: image rendering requires Python to read PYTHONPATH (remove -I/-E)")
+      end
     end
   end
   if ipython then table.insert(cmd, "--ext=iron_image") end
   local paths = vim.api.nvim_get_runtime_file("python/iron_image.py", false)
   if #paths == 0 then error("iron: bundled Python image module not found") end
+  local jupyter_paths
+  if jupyter then
+    jupyter_paths = vim.api.nvim_get_runtime_file("python/jupyter/jupyter_config.py", false)
+    if #jupyter_paths == 0 then error("iron: bundled Jupyter image config not found") end
+    -- CLI values override config files. Keep options ahead of the kernel's --.
+    local index = #cmd + 1
+    for i, arg in ipairs(cmd) do if arg == "--" then index = i; break end end
+    table.insert(cmd, index, '--ZMQTerminalInteractiveShell.mime_preference=["image/png"]')
+    table.insert(cmd, index, "--ZMQTerminalInteractiveShell.image_handler=callable")
+  end
   settings = type(settings) == "table" and settings or {}
   local max_images = settings.max_images or 100
   if type(max_images) ~= "number" or max_images < 1 or max_images > 1000 or max_images % 1 ~= 0 then
@@ -120,7 +140,15 @@ function M.prepare(ft, command, opts, bufnr, settings)
   local pythonpath = env.PYTHONPATH or vim.env.PYTHONPATH or ""
   local separator = package.config:sub(1, 1) == "\\" and ";" or ":"
   env.PYTHONPATH = vim.fn.fnamemodify(paths[1], ":h") .. (pythonpath ~= "" and separator .. pythonpath or "")
-  env.MPLBACKEND = "module://iron_image_backend"
+  if jupyter then
+    local configpath = env.JUPYTER_CONFIG_PATH or vim.env.JUPYTER_CONFIG_PATH or ""
+    env.JUPYTER_CONFIG_PATH = vim.fn.fnamemodify(jupyter_paths[1], ":h")
+      .. (configpath ~= "" and separator .. configpath or "")
+    -- Kernels publish PNG MIME data; the frontend owns IDs and terminal sizing.
+    env.MPLBACKEND = "module://matplotlib_inline.backend_inline"
+  else
+    env.MPLBACKEND = "module://iron_image_backend"
+  end
   env.IRON_IMAGE_NAMESPACE = tostring(namespace)
   env.PYTHON_BASIC_REPL = env.PYTHON_BASIC_REPL or "1"
   opts.env = env
