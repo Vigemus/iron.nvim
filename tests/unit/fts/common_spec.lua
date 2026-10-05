@@ -56,6 +56,10 @@ describe("iron.fts.common.format", function()
 end)
 
 describe("iron.fts.common.bracketed_paste", function()
+    it("handles an empty cell", function()
+        assert.are.same({ "\13" }, common.bracketed_paste({}))
+    end)
+
     it("formats a single line", function()
         assert.are.same(
             { "print(1)\13" },
@@ -81,6 +85,20 @@ describe("iron.fts.common.bracketed_paste", function()
 end)
 
 describe("iron.fts.common.bracketed_paste_python", function()
+    it("sends a Jupyter cell as one paste without stripping blank lines", function()
+        local lines = { "x = 1", "", "y = 2", "x + y" }
+        for _, command in ipairs({
+            { "jupyter-console" },
+            { "/venv/bin/jupyter-console" },
+            { "jupyter", "console", "--existing", "kernel.json" },
+            { "python3", "-m", "jupyter_console" },
+            { "python3", "-m", "jupyter", "console" },
+        }) do
+            assert.are.same(common.bracketed_paste(lines),
+                common.bracketed_paste_python(lines, { command = command }))
+        end
+    end)
+
     it("handles empty input", function()
         assert.are.same(
             { "\13" },
