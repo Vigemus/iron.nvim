@@ -71,9 +71,7 @@ common.format = function(repldef, lines)
 end
 
 common.bracketed_paste = function(lines)
-  if #lines == 0 then
-    return { cr }
-  elseif #lines == 1 then
+  if #lines == 1 then
     return { lines[1] .. cr }
   else
     local new = { open_code .. lines[1] }
@@ -97,22 +95,6 @@ common.bracketed_paste_python = function(lines, extras)
   local pseudo_meta = { current_buffer = vim.api.nvim_get_current_buf() }
   if type(cmd) == "function" then
     cmd = cmd(pseudo_meta)
-  end
-
-  local name = vim.fn.fnamemodify(cmd[1], ":t"):lower():gsub("%.exe$", "")
-  local jupyter = name == "jupyter-console"
-    or (name == "jupyter" and cmd[2] == "console")
-  if name:match("^python[%d.]*$") then
-    for index, arg in ipairs(cmd) do
-      if arg == "-m" then
-        jupyter = cmd[index + 1] == "jupyter_console"
-          or (cmd[index + 1] == "jupyter" and cmd[index + 2] == "console")
-        break
-      end
-    end
-  end
-  if jupyter then
-    return common.bracketed_paste(lines)
   end
 
   local windows = is_windows()

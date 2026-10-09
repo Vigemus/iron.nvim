@@ -20,9 +20,5 @@ python.ptipython = def({ "ptipython" })
 python.ipython = def({ "ipython", "--no-autoindent" })
 python.ptpython = def({ "ptpython" })
 python.python = def({ pyversion })
-python.jupyter = {
-  command = { "jupyter-console" },
-  format = require("iron.fts.common").bracketed_paste,
-}
 
 return python
