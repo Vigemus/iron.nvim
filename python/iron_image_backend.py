@@ -2,11 +2,10 @@
 
 import io
 
+from iron_image import display
+from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib._pylab_helpers import Gcf
-
-from iron_image import display
 
 
 class FigureManager(FigureManagerBase):

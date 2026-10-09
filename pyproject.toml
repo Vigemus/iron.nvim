@@ -1,0 +1,23 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 79
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E4", # Import and syntax-related style errors
+    "E7", # Multiple statements and comparison style
+    "E9", # Runtime and syntax errors
+    "I", # Import sorting (isort)
+]
+
+ignore = [
+    "E501", # Let the formatter handle line length
+]
+
+fixable = ["ALL"]
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "lf"
+docstring-code-format = true
