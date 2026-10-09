@@ -52,7 +52,6 @@ python.prepare = function(cmd, env)
   env.PYTHONPATH = helper_dir()
     .. (pythonpath ~= "" and sep .. pythonpath or "")
   env.MPLBACKEND = "module://iron_image_backend"
-  env.PYTHON_BASIC_REPL = env.PYTHON_BASIC_REPL or "1"
 
   return cmd, env
 end
