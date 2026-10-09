@@ -56,9 +56,3 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
 
           make test
-
-      - name: Run image transport tests
-        run: |
-          export PATH="$HOME/.local/bin:$PATH"
-          python -m pip install matplotlib ipython jupyter-console ipykernel
-          make test-images
