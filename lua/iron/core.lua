@@ -38,6 +38,10 @@ new_repl.create = function(ft, bufnr, current_bufnr, cleanup)
     error(repl)
   end
 
+  if repl.image then
+    repl = require("iron.image").attach(ft, repl, bufnr, current_bufnr)
+  end
+
   success, meta =
     pcall(ll.create_repl_on_current_window, ft, repl, bufnr, current_bufnr)
   if success then
@@ -49,7 +53,12 @@ new_repl.create = function(ft, bufnr, current_bufnr, cleanup)
     end
 
     return meta
-  elseif cleanup ~= nil then
+  end
+
+  if repl.image then
+    require("iron.image").detach(bufnr)
+  end
+  if cleanup ~= nil then
     cleanup()
   end
 
