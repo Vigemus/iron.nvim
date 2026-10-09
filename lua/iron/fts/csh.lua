@@ -1,11 +1,11 @@
 local csh = {}
 
 csh.csh = {
-  command = {"csh"},
+  command = { "csh" },
 }
 
 csh.tcsh = {
-  command = {"tch"},
+  command = { "tch" },
 }
 
 return csh

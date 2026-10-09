@@ -34,12 +34,7 @@ function Repl:command()
 end
 
 function Repl:contents()
-  return vim.api.nvim_buf_get_lines(
-    self:buffer(),
-    0,
-    -1,
-    false
-  )
+  return vim.api.nvim_buf_get_lines(self:buffer(), 0, -1, false)
 end
 
 function Repl:contains(text)
@@ -59,10 +54,7 @@ function Repl:wait_for(text, timeout_ms)
     return self:contains(text)
   end)
 
-  assert.is_true(
-    ok,
-    ("Timed out waiting for %q"):format(text)
-  )
+  assert.is_true(ok, ("Timed out waiting for %q"):format(text))
 end
 
 return Repl

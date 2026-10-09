@@ -3,8 +3,8 @@ local fns = {}
 
 fns.extend = function(...)
   local tbl = {}
-  local tbls = {n = select("#", ...), ...}
-  for ix=1, tbls.n do
+  local tbls = { n = select("#", ...), ... }
+  for ix = 1, tbls.n do
     local itm = tbls[ix]
     if itm ~= nil then
       if type(itm) == "table" then
@@ -17,6 +17,5 @@ fns.extend = function(...)
 
   return tbl
 end
-
 
 return fns

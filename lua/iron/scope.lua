@@ -20,7 +20,7 @@ scope.tab_based = {
     ensure_key(memory, ft)
     local tab = vim.fn.tabpagenr()
     return memory[ft]["tab_" .. tab]
-  end
+  end,
 }
 
 scope.path_based = {
@@ -33,7 +33,7 @@ scope.path_based = {
     ensure_key(memory, ft)
     local pwd = vim.fn.getcwd()
     return memory[ft]["pwd_" .. pwd]
-  end
+  end,
 }
 
 scope.singleton = {
@@ -45,7 +45,7 @@ scope.singleton = {
   get = function(memory, ft)
     ensure_key(memory, ft)
     return memory[ft]["singleton"]
-  end
+  end,
 }
 
 return scope

@@ -1,7 +1,7 @@
 local stata = {}
 
 stata.stata = {
-	command = { "stata", "-q" },
+  command = { "stata", "-q" },
 }
 
 return stata

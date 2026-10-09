@@ -1,7 +1,7 @@
 local janet = {}
 
 janet.janet = {
-  command = {"janet"},
+  command = { "janet" },
 }
 
 return janet

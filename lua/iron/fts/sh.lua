@@ -1,20 +1,20 @@
 local sh = {}
 
 sh.bash = {
-  command = {"bash"},
+  command = { "bash" },
 }
 
 sh.sh = {
   command = function(meta)
     local bufnr = meta.current_bufnr
     if vim.b[bufnr].is_posix == 1 then
-      return {"sh"}
+      return { "sh" }
     elseif vim.b[bufnr].is_bash == 1 then
-      return {"bash"}
+      return { "bash" }
     elseif vim.b[bufnr].is_kornshell == 1 then
-      return {"ksh"}
+      return { "ksh" }
     else
-      return {"sh"}
+      return { "sh" }
     end
   end,
 }

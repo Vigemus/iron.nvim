@@ -34,7 +34,7 @@ local fts = {
   tcl = require("iron.fts.tcl"),
   typescript = require("iron.fts.typescript"),
   zsh = require("iron.fts.zsh"),
-  fish = require("iron.fts.fish")
+  fish = require("iron.fts.fish"),
 }
 
 return fts

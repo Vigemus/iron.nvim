@@ -1,11 +1,11 @@
 local prolog = {}
 
 prolog.gprolog = {
-  command = {"gprolog"},
+  command = { "gprolog" },
 }
 
 prolog.swipl = {
-  command = {"swipl"},
+  command = { "swipl" },
 }
 
 return prolog
