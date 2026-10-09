@@ -22,3 +22,6 @@ class FigureCanvas(FigureCanvasAgg):
 def show(*, block=None):
     for manager in Gcf.get_all_fig_managers():
         manager.show()
+    # Shown figures are done, like matplotlib-inline; otherwise every later
+    # show() would render them again.
+    Gcf.destroy_all()
