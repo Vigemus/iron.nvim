@@ -585,6 +585,67 @@ core.attach = function(ft, target)
   vim.b[target].repl = meta
 end
 
+--- Finds the image to act on: the one under the cursor when in a repl
+-- buffer, otherwise the latest image of the current filetype's repl
+---@return string? path to the PNG
+local current_image = function()
+  local image = require("iron.image")
+  local bufnr = vim.api.nvim_get_current_buf()
+  if image.enabled(bufnr) then
+    return image.find(bufnr, vim.api.nvim_win_get_cursor(0)[1])
+  end
+
+  local meta = state.get_repl(ll.get_buffer_ft(0))
+  if ll.repl_exists(meta) and image.enabled(meta.bufnr) then
+    return image.find(meta.bufnr)
+  end
+end
+
+--- Saves the current repl image to a file
+-- Prompts for a path when none is given
+---@param path string? destination path
+core.image_save = function(path)
+  local source = current_image()
+  if not source then
+    vim.notify("iron: no image to save", vim.log.levels.WARN)
+    return
+  end
+
+  ---@param dest string?
+  local save = function(dest)
+    if not dest or dest == "" then
+      return
+    end
+    dest = vim.fn.fnamemodify(vim.fn.expand(dest), ":p")
+    local ok, err = vim.uv.fs_copyfile(source, dest)
+    if not ok then
+      vim.notify("iron: " .. tostring(err), vim.log.levels.ERROR)
+      return
+    end
+    vim.notify("iron: image saved to " .. dest)
+  end
+
+  if path and path ~= "" then
+    save(path)
+  else
+    vim.ui.input({
+      prompt = "Save image to: ",
+      default = os.date("iron-%Y%m%d-%H%M%S.png") --[[@as string]],
+      completion = "file",
+    }, save)
+  end
+end
+
+--- Opens the current repl image in the system viewer
+core.image_open = function()
+  local source = current_image()
+  if not source then
+    vim.notify("iron: no image to open", vim.log.levels.WARN)
+    return
+  end
+  vim.ui.open(source)
+end
+
 --- Provide filtered list of supported fts
 -- Auxiliary function to be used by commands to show the user which fts they have
 -- available to start repls with
@@ -728,6 +789,20 @@ local commands = {
     "IronRestart",
     function(_)
       core.repl_restart()
+    end,
+    { nargs = 0 },
+  },
+  {
+    "IronImageSave",
+    function(opts)
+      core.image_save(opts.fargs[1])
+    end,
+    { nargs = "?", complete = "file" },
+  },
+  {
+    "IronImageOpen",
+    function(_)
+      core.image_open()
     end,
     { nargs = 0 },
   },
