@@ -1,7 +1,7 @@
 local fish = {}
 
 fish.fish = {
-  command = {"fish"},
+  command = { "fish" },
 }
 
 return fish

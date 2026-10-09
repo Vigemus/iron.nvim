@@ -5,7 +5,7 @@ local view = {}
 local with_defaults = function(options)
   return vim.tbl_extend("keep", options or {}, {
     winfixwidth = true,
-    winfixheight = true
+    winfixheight = true,
   })
 end
 
@@ -16,7 +16,7 @@ local with_nested_metatable = function(tbl)
     __index = nested_modifier,
     __call = function(_, arg, options)
       return tbl:mode(arg, options)
-    end
+    end,
   })
 end
 
@@ -95,27 +95,31 @@ end
 -- @tparam number bufnr buffer handle
 -- @treturn number window id
 -- @treturn function the function that opens the window
-view.split = with_nested_metatable{ mode = function(data, size, options)
-  return function(bufnr)
-    local args = vim.list_slice(data, 1, #data)
-    local new_size = size_extractor(size, vim.tbl_contains(data, "vertical") or vim.tbl_contains(data, "vert"))
+view.split = with_nested_metatable({
+  mode = function(data, size, options)
+    return function(bufnr)
+      local args = vim.list_slice(data, 1, #data)
+      local new_size = size_extractor(
+        size,
+        vim.tbl_contains(data, "vertical") or vim.tbl_contains(data, "vert")
+      )
 
-    if size then
-      table.insert(args, tostring(new_size))
+      if size then
+        table.insert(args, tostring(new_size))
+      end
+      table.insert(args, "split")
+
+      vim.cmd(table.concat(args, " "))
+      vim.api.nvim_set_current_buf(bufnr)
+
+      local winid = vim.fn.bufwinid(bufnr)
+      for opt, val in pairs(with_defaults(options)) do
+        vim.api.nvim_set_option_value(opt, val, { win = winid })
+      end
+      return winid
     end
-    table.insert(args, "split")
-
-    vim.cmd(table.concat(args, " "))
-    vim.api.nvim_set_current_buf(bufnr)
-
-    local winid = vim.fn.bufwinid(bufnr)
-    for opt, val in pairs(with_defaults(options)) do
-      vim.api.nvim_set_option_value(opt, val, { win = winid })
-    end
-    return winid
-  end
-end
-}
+  end,
+})
 
 --- Used to open a float window
 -- @tparam table config parameters for the float window
@@ -124,7 +128,6 @@ end
 view.openfloat = function(config, buff)
   return vim.api.nvim_open_win(buff, false, config)
 end
-
 
 --- Opens a float at any point in the window
 -- @tparam table opts Options for calculating the repl size
@@ -146,7 +149,7 @@ view.offset = function(opts)
       width = new_w_size,
       height = new_h_size,
       row = new_h_offset,
-      col = new_w_offset
+      col = new_w_offset,
     }
   end
 end
@@ -155,28 +158,36 @@ end
 -- @tparam number|string|function size height of the window
 -- @treturn function
 view.top = function(size)
-  return view.offset{width = vim.o.columns, height = size}
+  return view.offset({ width = vim.o.columns, height = size })
 end
 
 --- Opens a float pinned to the bottom
 -- @tparam number|string|function size height of the window
 -- @treturn function
 view.bottom = function(size)
-  return view.offset{width = vim.o.columns, height = size, h_offset = view.helpers.flip(0)}
+  return view.offset({
+    width = vim.o.columns,
+    height = size,
+    h_offset = view.helpers.flip(0),
+  })
 end
 
 --- Opens a float pinned to the right
 -- @tparam number|string|function size width of the window
 -- @treturn function
 view.right = function(size)
-  return view.offset{width = size, height = vim.o.lines, w_offset = view.helpers.flip(0)}
+  return view.offset({
+    width = size,
+    height = vim.o.lines,
+    w_offset = view.helpers.flip(0),
+  })
 end
 
 --- Opens a float pinned to the left
 -- @tparam number|string|function size width of the window
 -- @treturn function
 view.left = function(size)
-  return view.offset{width = size, height = vim.o.lines}
+  return view.offset({ width = size, height = vim.o.lines })
 end
 
 --- Opens a repl in the middle of the screen
@@ -184,22 +195,22 @@ end
 -- @tparam number|string|function height height of the window. If null will use `width` for this size
 -- @treturn function
 view.center = function(width, height)
-  return view.offset{
+  return view.offset({
     width = width,
     height = height or width,
     w_offset = view.helpers.proportion(0.5),
-    h_offset = view.helpers.proportion(0.5)
-  }
+    h_offset = view.helpers.proportion(0.5),
+  })
 end
 
 view.curry = setmetatable({}, {
   __index = function(_, key)
-    if  view[key] == nil then
+    if view[key] == nil then
       error("Function `view." .. key .. "` does not exist.")
     end
     vim.deprecate("view.curry." .. key, "view." .. key, "3.2", "iron.nvim")
     return view[key]
-  end
+  end,
 })
 
 return view

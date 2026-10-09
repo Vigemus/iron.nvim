@@ -20,7 +20,7 @@ iron.setup({
         command = { "python3" },
         format = common.bracketed_paste_python,
         block_deviders = { "# %%", "#%%" },
-        env = { PYTHON_BASIC_REPL = "1" }
+        env = { PYTHON_BASIC_REPL = "1" },
       },
     },
 

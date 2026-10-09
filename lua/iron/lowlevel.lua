@@ -25,7 +25,7 @@ ll.get_buffer_ft = function(bufnr)
   if ft == nil or ft == "" then
     error("Empty filetype")
   elseif fts[ft] == nil and config.repl_definition[ft] == nil then
-    error("There's no REPL definition for current filetype "..ft)
+    error("There's no REPL definition for current filetype " .. ft)
   end
   return ft
 end
@@ -44,7 +44,13 @@ end
 -- @param opts Options passed through to the terminal
 -- @warning changes current window's buffer to bufnr
 -- @return unsaved metadata about created repl
-ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts)
+ll.create_repl_on_current_window = function(
+  ft,
+  repl,
+  bufnr,
+  current_bufnr,
+  opts
+)
   vim.api.nvim_win_set_buf(0, bufnr)
   -- TODO Move this out of this function
   -- Checking config should be done on an upper layer.
@@ -66,7 +72,7 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
   end
 
   local cmd = repl.command
-  if type(repl.command) == 'function' then
+  if type(repl.command) == "function" then
     local meta = {
       current_bufnr = current_bufnr,
     }
@@ -83,7 +89,9 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
 
   local ok, job_id = pcall(vim.fn.termopen, cmd, opts)
   if not ok or job_id <= 0 then
-    if repl.image then require("iron.image").detach(bufnr) end
+    if repl.image then
+      require("iron.image").detach(bufnr)
+    end
     error("Failed to start REPL: " .. tostring(job_id))
   end
 
@@ -91,7 +99,7 @@ ll.create_repl_on_current_window = function(ft, repl, bufnr, current_bufnr, opts
     ft = ft,
     bufnr = bufnr,
     job = job_id,
-    repldef = repl
+    repldef = repl,
   }
 end
 
@@ -157,21 +165,24 @@ end
 -- @warning changes cursor position if window is visible
 ll.send_to_repl = function(meta, data)
   local dt = data
-  
+
   if data == string.char(12) then
-    vim.fn.chansend(meta.job, {string.char(12)})
+    vim.fn.chansend(meta.job, { string.char(12) })
     return
   end
 
   if type(data) == "string" then
-    dt = vim.split(data, '\n')
+    dt = vim.split(data, "\n")
   end
 
   dt = format(meta.repldef, dt)
 
   local window = vim.fn.bufwinid(meta.bufnr)
   if window ~= -1 then
-    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
+    vim.api.nvim_win_set_cursor(
+      window,
+      { vim.api.nvim_buf_line_count(meta.bufnr), 0 }
+    )
   end
 
   --TODO check vim.api.nvim_chan_send
@@ -183,10 +194,12 @@ ll.send_to_repl = function(meta, data)
   end
 
   if window ~= -1 then
-    vim.api.nvim_win_set_cursor(window, {vim.api.nvim_buf_line_count(meta.bufnr), 0})
+    vim.api.nvim_win_set_cursor(
+      window,
+      { vim.api.nvim_buf_line_count(meta.bufnr), 0 }
+    )
   end
 end
-
 
 --- Reshapes the repl window according to a preset config described in views
 -- @tparam table meta metadata for the repl
@@ -215,7 +228,7 @@ end
 -- @tparam int bufnr number of the buffer being checked
 -- @treturn string filetype of the buffer's repl (or nil if it doesn't have a repl associated)
 ll.get_repl_ft_for_bufnr = function(bufnr)
-  for _, values  in pairs(state.repls) do
+  for _, values in pairs(state.repls) do
     for _, meta in pairs(values) do
       if meta.bufnr == bufnr then
         return meta.ft

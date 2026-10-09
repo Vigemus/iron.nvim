@@ -1,7 +1,7 @@
 local hy = {}
 
 hy.hy = {
-  command = {"hy"}
+  command = { "hy" },
 }
 
 return hy

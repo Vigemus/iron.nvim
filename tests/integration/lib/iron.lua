@@ -23,7 +23,7 @@ function M.create_repl(ft)
 end
 
 function M.send(repl, text)
-    core.send(repl:filetype(), text)
+  core.send(repl:filetype(), text)
 end
 
 return M

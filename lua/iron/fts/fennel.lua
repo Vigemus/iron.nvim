@@ -1,7 +1,7 @@
 local fennel = {}
 
 fennel.fennel = {
-  command = {"fennel"},
+  command = { "fennel" },
 }
 
 return fennel

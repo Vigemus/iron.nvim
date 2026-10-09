@@ -6,7 +6,6 @@ local cr = "\13"
 
 local common = {}
 
-
 ---@param table table table of strings
 ---@param substring string
 --- Checks in any sting in the table contains the substring
@@ -18,7 +17,6 @@ local contains = function(table, substring)
   end
   return false
 end
-
 
 ---@param lines table
 -- Removes empty lines. On unix this includes lines only with whitespaces.
@@ -34,7 +32,6 @@ local function remove_empty_lines(lines)
   return newlines
 end
 
-
 ---@param s string
 --- A helper function using in bracked_paste_python.
 -- Checks in a string starts with any of the exceptions.
@@ -49,7 +46,6 @@ local function python_close_indent_exceptions(s)
   end
   return false
 end
-
 
 common.format = function(repldef, lines)
   assert(type(lines) == "table", "Supplied lines is not a table")
@@ -74,7 +70,6 @@ common.format = function(repldef, lines)
   return new
 end
 
-
 common.bracketed_paste = function(lines)
   if #lines == 0 then
     return { cr }
@@ -92,7 +87,6 @@ common.bracketed_paste = function(lines)
   end
 end
 
-
 --- @param lines table  "each item of the table is a new line to send to the repl"
 --- @return table  "returns the table of lines to be sent the the repl with
 -- the return carriage added"
@@ -100,13 +94,14 @@ common.bracketed_paste_python = function(lines, extras)
   local result = {}
 
   local cmd = extras["command"]
-  local pseudo_meta = { current_buffer = vim.api.nvim_get_current_buf()}
+  local pseudo_meta = { current_buffer = vim.api.nvim_get_current_buf() }
   if type(cmd) == "function" then
     cmd = cmd(pseudo_meta)
   end
 
   local name = vim.fn.fnamemodify(cmd[1], ":t"):lower():gsub("%.exe$", "")
-  local jupyter = name == "jupyter-console" or (name == "jupyter" and cmd[2] == "console")
+  local jupyter = name == "jupyter-console"
+    or (name == "jupyter" and cmd[2] == "console")
   if name:match("^python[%d.]*$") then
     for index, arg in ipairs(cmd) do
       if arg == "-m" then
@@ -116,7 +111,9 @@ common.bracketed_paste_python = function(lines, extras)
       end
     end
   end
-  if jupyter then return common.bracketed_paste(lines) end
+  if jupyter then
+    return common.bracketed_paste(lines)
+  end
 
   local windows = is_windows()
   local python = false
@@ -142,7 +139,11 @@ common.bracketed_paste_python = function(lines, extras)
     table.insert(result, line)
 
     if windows and python or not windows then
-      if i < #lines and indent_open and string.match(lines[i + 1], "^%s") == nil then
+      if
+        i < #lines
+        and indent_open
+        and string.match(lines[i + 1], "^%s") == nil
+      then
         if not python_close_indent_exceptions(lines[i + 1]) then
           indent_open = false
           table.insert(result, cr)
@@ -152,7 +153,7 @@ common.bracketed_paste_python = function(lines, extras)
   end
 
   local newline = windows and "\r\n" or cr
-  if #result == 0 then  -- handle sending blank lines
+  if #result == 0 then -- handle sending blank lines
     table.insert(result, cr)
   elseif #result > 0 and result[#result]:sub(1, 1) == " " then
     -- Since the last line of code is indented, the Python REPL
@@ -172,6 +173,5 @@ common.bracketed_paste_python = function(lines, extras)
 
   return result
 end
-
 
 return common

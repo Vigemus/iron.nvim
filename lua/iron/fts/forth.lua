@@ -1,7 +1,7 @@
 local forth = {}
 
 forth.gforth = {
-  command = {"gforth"}
+  command = { "gforth" },
 }
 
 return forth

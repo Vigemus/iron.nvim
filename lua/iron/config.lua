@@ -20,9 +20,14 @@ local values = {
   close_window_on_exit = true,
   preferred = setmetatable({}, {
     __newindex = function(tbl, k, v)
-      vim.deprecate("config.preferred", "config.repl_definition", "3.1", "iron.nvim")
+      vim.deprecate(
+        "config.preferred",
+        "config.repl_definition",
+        "3.1",
+        "iron.nvim"
+      )
       rawset(tbl, k, v)
-    end
+    end,
   }),
   repl_definition = setmetatable({}, {
     __index = function(tbl, key)
@@ -40,7 +45,7 @@ local values = {
         rawset(tbl, key, repl_def)
         return repl_def
       end
-    end
+    end,
   }),
   repl_filetype = function(bufnr, ft)
     return "iron"
@@ -49,7 +54,7 @@ local values = {
   repl_open_cmd = view.split.botright(40),
   current_view = 1,
   views = {
-    view.bottom(40)
+    view.bottom(40),
   },
   mark = { -- Arbitrary numbers
     save_pos = 20,
