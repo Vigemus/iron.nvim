@@ -120,11 +120,17 @@ local free_namespace = function()
   end
 end
 
+--- Frees an image and every file saved for it (<id>.png, <id>.pickle, ...)
 ---@param session iron.image.Session
 ---@param entry iron.image.Entry
 local forget = function(session, entry)
   pcall(session.protocol.delete, entry.id)
-  os.remove(entry.path)
+  local stem = entry.id .. "."
+  for name in vim.fs.dir(session.dir) do
+    if name:sub(1, #stem) == stem then
+      os.remove(session.dir .. "/" .. name)
+    end
+  end
 end
 
 --- Saves a PNG to the session dir and draws it
@@ -132,7 +138,6 @@ end
 ---@param pending iron.image.Pending
 ---@param png string
 local store = function(session, pending, png)
-  vim.fn.mkdir(session.dir, "p")
   local path = ("%s/%d.png"):format(session.dir, pending.id)
   local file = assert(io.open(path, "wb"))
   file:write(png)
@@ -294,7 +299,6 @@ image.attach = function(ft, repl, bufnr, current_bufnr)
     warn("images disabled, " .. tostring(prepared_cmd))
     return repl
   end
-  prepared_env.IRON_IMAGE_NAMESPACE = tostring(namespace)
 
   ---@type iron.image.Session
   local session = {
@@ -308,6 +312,11 @@ image.attach = function(ft, repl, bufnr, current_bufnr)
       .. bufnr,
   }
   sessions[bufnr] = session
+  -- The repl writes its own files (e.g. <id>.pickle) here, so it must exist
+  -- before the repl starts
+  vim.fn.mkdir(session.dir, "p")
+  prepared_env.IRON_IMAGE_NAMESPACE = tostring(namespace)
+  prepared_env.IRON_IMAGE_DIR = session.dir
 
   vim.api.nvim_create_autocmd("TermRequest", {
     group = group,
