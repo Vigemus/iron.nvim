@@ -21,3 +21,6 @@ fixable = ["ALL"]
 indent-style = "space"
 line-ending = "lf"
 docstring-code-format = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]

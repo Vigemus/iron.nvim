@@ -6,7 +6,5 @@ test:
 		-u NONE \
 		-l tests/init.lua
 
-PYTHON ?= python3
-
 test-python:
-	$(PYTHON) -m unittest discover -s tests/python -v
+	pytest tests/python

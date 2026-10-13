@@ -1,19 +1,15 @@
 """Tests for iron_image._loader, the import hook that installs integrations.
 
-Each test runs in a fresh Python process: the hook changes sys.meta_path for
-the whole process. A fake library ``fakelib`` and a fake integration for it
-are written to a temporary directory.
+A fake library ``fakelib`` and a fake integration for it are written to a
+temporary directory; ``otherlib`` has no integration.
 """
 
-import os
-import subprocess
-import sys
-import tempfile
 import textwrap
-import unittest
+from collections.abc import Callable
 from pathlib import Path
 
-PYTHON_DIR = Path(__file__).resolve().parents[2] / "python"
+import pytest
+from conftest import Iron, Result
 
 LIBRARY = {
     "fakelib/__init__.py": "VALUE = 1\n",
@@ -35,189 +31,192 @@ integrations.INTEGRATIONS = ("fakelib",)
 from iron_image import _loader
 """
 
+Run = Callable[..., Result]
 
-def run(code: str, integration: str = INTEGRATION, library=LIBRARY):
-    """Runs code after the prelude; returns (stdout, stderr, returncode)."""
-    with tempfile.TemporaryDirectory() as tmp:
-        root = Path(tmp)
+
+@pytest.fixture
+def run(iron: Iron, tmp_path: Path) -> Run:
+    """Runs code after the prelude, with fakelib and its integration."""
+
+    def run(
+        code: str,
+        integration: str = INTEGRATION,
+        library: dict[str, str] = LIBRARY,
+    ) -> Result:
         for name, text in library.items():
-            path = root / "lib" / name
+            path = tmp_path / "lib" / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text)
-        (root / "integrations").mkdir()
-        (root / "integrations" / "fakelib.py").write_text(
-            textwrap.dedent(integration)
-        )
-        script = PRELUDE.format(integrations=str(root / "integrations"))
-        env = {
-            **os.environ,
-            "PYTHONPATH": os.pathsep.join(
-                [str(PYTHON_DIR), str(root / "lib")]
-            ),
-        }
-        result = subprocess.run(
-            [sys.executable, "-c", script + textwrap.dedent(code)],
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=60,
-        )
-        return result.stdout, result.stderr, result.returncode
-
-
-class LoaderTest(unittest.TestCase):
-    def test_installs_after_import(self):
-        out, err, code = run("""
-            _loader.activate("python")
-            import fakelib
-            print("imported", fakelib.VALUE)
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(
-            out.split("\n")[:2], ["install_python 1", "imported 1"]
+        integrations = tmp_path / "integrations"
+        integrations.mkdir(exist_ok=True)
+        (integrations / "fakelib.py").write_text(textwrap.dedent(integration))
+        prelude = PRELUDE.format(integrations=str(integrations))
+        return iron.python(
+            prelude + textwrap.dedent(code), pythonpath=[tmp_path / "lib"]
         )
 
-    def test_installs_once(self):
-        out, err, code = run("""
-            _loader.activate("python")
+    return run
+
+
+def test_installs_after_import(run: Run):
+    result = run("""
+        _loader.activate("python")
+        import fakelib
+        print("imported", fakelib.VALUE)
+    """)
+    assert result.code == 0, result.err
+    assert result.out.split("\n")[:2] == ["install_python 1", "imported 1"]
+
+
+def test_installs_once(run: Run):
+    result = run("""
+        _loader.activate("python")
+        import fakelib
+        import importlib
+        importlib.reload(fakelib)
+        import fakelib
+    """)
+    assert result.code == 0, result.err
+    assert result.out.count("install_python") == 1
+
+
+def test_submodule_import_installs_parent(run: Run):
+    result = run("""
+        _loader.activate("python")
+        import fakelib.sub
+        print("sub", fakelib.sub.SUB)
+    """)
+    assert result.code == 0, result.err
+    assert result.out.split("\n")[:2] == ["install_python 1", "sub 2"]
+
+
+def test_unlisted_package_untouched(run: Run):
+    result = run("""
+        _loader.activate("python")
+        import otherlib
+        print("ok")
+    """)
+    assert (result.code, result.out, result.err) == (0, "ok\n", "")
+
+
+def test_nothing_before_activate(run: Run):
+    result = run("""
+        import fakelib
+        print("imported")
+    """)
+    assert (result.code, result.out) == (0, "imported\n"), result.err
+
+
+def test_already_imported_installs_on_activate(run: Run):
+    result = run("""
+        import fakelib
+        print("before")
+        _loader.activate("python")
+    """)
+    assert result.code == 0, result.err
+    assert result.out == "before\ninstall_python 1\n"
+
+
+def test_repl_without_install_function_gets_nothing(run: Run):
+    result = run("""
+        _loader.activate("ipython")
+        import fakelib
+        print("imported")
+    """)
+    assert (result.code, result.out, result.err) == (0, "imported\n", "")
+
+
+def test_failing_install_warns_and_import_succeeds(run: Run):
+    result = run(
+        """
+        _loader.activate("python")
+        import fakelib
+        print("imported", fakelib.VALUE)
+        """,
+        integration="""
+        def install_python():
+            raise RuntimeError("boom")
+        """,
+    )
+    assert (result.code, result.out) == (0, "imported 1\n"), result.err
+    assert "iron: fakelib integration failed: boom" in result.err
+
+
+def test_broken_integration_module_warns(run: Run):
+    result = run(
+        """
+        _loader.activate("python")
+        import fakelib
+        print("imported")
+        """,
+        integration="raise ImportError('missing dependency')\n",
+    )
+    assert (result.code, result.out) == (0, "imported\n"), result.err
+    assert "missing dependency" in result.err
+
+
+def test_misnamed_install_function_warns(run: Run):
+    result = run(
+        """
+        _loader.activate("python")
+        import fakelib
+        """,
+        integration="""
+        def install_python():
+            pass
+
+        def install_Ipython():
+            pass
+        """,
+    )
+    assert result.code == 0, result.err
+    assert "install_Ipython() matches no REPL" in result.err
+
+
+def test_library_import_error_propagates_and_retries(run: Run):
+    broken = (
+        "import os\n"
+        "if not os.environ.get('OK'):\n"
+        "    raise ImportError('broken')\n"
+        "VALUE = 1\n"
+    )
+    result = run(
+        """
+        import os
+        _loader.activate("python")
+        try:
             import fakelib
-            import importlib
-            importlib.reload(fakelib)
-            import fakelib
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(out.count("install_python"), 1)
-
-    def test_submodule_import_installs_parent(self):
-        out, err, code = run("""
-            _loader.activate("python")
-            import fakelib.sub
-            print("sub", fakelib.sub.SUB)
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(out.split("\n")[:2], ["install_python 1", "sub 2"])
-
-    def test_unlisted_package_untouched(self):
-        out, err, code = run("""
-            _loader.activate("python")
-            import otherlib
-            print("ok")
-        """)
-        self.assertEqual((code, out, err), (0, "ok\n", ""))
-
-    def test_nothing_before_activate(self):
-        out, err, code = run("""
-            import fakelib
-            print("imported")
-        """)
-        self.assertEqual((code, out), (0, "imported\n"), err)
-
-    def test_already_imported_installs_on_activate(self):
-        out, err, code = run("""
-            import fakelib
-            print("before")
-            _loader.activate("python")
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(out, "before\ninstall_python 1\n")
-
-    def test_repl_without_install_function_gets_nothing(self):
-        out, err, code = run("""
-            _loader.activate("ipython")
-            import fakelib
-            print("imported")
-        """)
-        self.assertEqual((code, out, err), (0, "imported\n", ""))
-
-    def test_failing_install_warns_and_import_succeeds(self):
-        out, err, code = run(
-            """
-            _loader.activate("python")
-            import fakelib
-            print("imported", fakelib.VALUE)
-            """,
-            integration="""
-            def install_python():
-                raise RuntimeError("boom")
-            """,
-        )
-        self.assertEqual((code, out), (0, "imported 1\n"), err)
-        self.assertIn("iron: fakelib integration failed: boom", err)
-
-    def test_broken_integration_module_warns(self):
-        out, err, code = run(
-            """
-            _loader.activate("python")
-            import fakelib
-            print("imported")
-            """,
-            integration="raise ImportError('missing dependency')\n",
-        )
-        self.assertEqual((code, out), (0, "imported\n"), err)
-        self.assertIn("missing dependency", err)
-
-    def test_misnamed_install_function_warns(self):
-        _, err, code = run(
-            """
-            _loader.activate("python")
-            import fakelib
-            """,
-            integration="""
-            def install_python():
-                pass
-
-            def install_Ipython():
-                pass
-            """,
-        )
-        self.assertEqual(code, 0, err)
-        self.assertIn("install_Ipython() matches no REPL", err)
-
-    def test_library_import_error_propagates_and_retries(self):
-        library = {
-            **LIBRARY,
-            "fakelib/__init__.py": "import os\nif not os.environ.get('OK'):\n    raise ImportError('broken')\nVALUE = 1\n",
-        }
-        out, err, code = run(
-            """
-            import os
-            _loader.activate("python")
-            try:
-                import fakelib
-            except ImportError as error:
-                print("failed", error)
-            os.environ["OK"] = "1"
-            import fakelib
-            print("imported", fakelib.VALUE)
-            """,
-            library=library,
-        )
-        self.assertEqual(code, 0, err)
-        self.assertEqual(out, "failed broken\ninstall_python 1\nimported 1\n")
-
-    def test_package_keeps_its_own_loader(self):
-        out, err, code = run("""
-            _loader.activate("python")
-            import fakelib
-            print(type(fakelib.__loader__).__name__)
-            print(type(fakelib.__spec__.loader).__name__)
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(
-            out.split("\n")[1:3], ["SourceFileLoader", "SourceFileLoader"]
-        )
-
-    def test_activate_twice_is_harmless(self):
-        out, err, code = run("""
-            import sys
-            _loader.activate("python")
-            _loader.activate("ipython")
-            import fakelib
-            print(sum(type(f).__name__ == "_Finder" for f in sys.meta_path))
-        """)
-        self.assertEqual(code, 0, err)
-        self.assertEqual(out, "install_python 1\n1\n")
+        except ImportError as error:
+            print("failed", error)
+        os.environ["OK"] = "1"
+        import fakelib
+        print("imported", fakelib.VALUE)
+        """,
+        library={**LIBRARY, "fakelib/__init__.py": broken},
+    )
+    assert result.code == 0, result.err
+    assert result.out == "failed broken\ninstall_python 1\nimported 1\n"
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_package_keeps_its_own_loader(run: Run):
+    result = run("""
+        _loader.activate("python")
+        import fakelib
+        print(type(fakelib.__loader__).__name__)
+        print(type(fakelib.__spec__.loader).__name__)
+    """)
+    assert result.code == 0, result.err
+    loaders = result.out.split("\n")[1:3]
+    assert loaders == ["SourceFileLoader", "SourceFileLoader"]
+
+
+def test_activate_twice_is_harmless(run: Run):
+    result = run("""
+        import sys
+        _loader.activate("python")
+        _loader.activate("ipython")
+        import fakelib
+        print(sum(type(f).__name__ == "_Finder" for f in sys.meta_path))
+    """)
+    assert result.code == 0, result.err
+    assert result.out == "install_python 1\n1\n"
