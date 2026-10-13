@@ -2,17 +2,18 @@
 
 import io
 
-from iron_image import display
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import FigureManagerBase
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+from .._core import show as show_png
 
 
 class FigureManager(FigureManagerBase):
     def show(self) -> None:
         output = io.BytesIO()
         self.canvas.figure.savefig(output, format="png")
-        display(output.getvalue())
+        show_png(output.getvalue())
 
 
 class FigureCanvas(FigureCanvasAgg):

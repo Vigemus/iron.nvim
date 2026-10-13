@@ -1,19 +1,20 @@
 -- luacheck: globals vim
---- Loads iron's Python helper (python/iron_image.py) into python and
+--- Loads iron's Python helper (python/iron_image/) into python and
 -- ipython REPLs and routes matplotlib through it.
 local is_windows = require("iron.util.os").is_windows
 
 ---@class iron.image.PythonLang : iron.image.Lang
 local python = {}
 
---- Directory holding the bundled Python helper
+--- Directory holding the bundled Python helper package
 ---@return string
 local helper_dir = function()
-  local paths = vim.api.nvim_get_runtime_file("python/iron_image.py", false)
+  local paths =
+    vim.api.nvim_get_runtime_file("python/iron_image/__init__.py", false)
   if #paths == 0 then
-    error("python/iron_image.py not found in runtimepath", 0)
+    error("python/iron_image/__init__.py not found in runtimepath", 0)
   end
-  return vim.fn.fnamemodify(paths[1], ":h")
+  return vim.fn.fnamemodify(paths[1], ":h:h")
 end
 
 --- Whether cmd runs ipython; errors for commands that can't load the helper
@@ -51,7 +52,7 @@ python.prepare = function(cmd, env)
   local sep = is_windows() and ";" or ":"
   env.PYTHONPATH = helper_dir()
     .. (pythonpath ~= "" and sep .. pythonpath or "")
-  env.MPLBACKEND = "module://iron_image_backend"
+  env.MPLBACKEND = "module://iron_image.integrations.mpl_backend"
 
   return cmd, env
 end
