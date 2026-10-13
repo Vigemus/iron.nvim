@@ -19,4 +19,4 @@ code's functions or add methods to its classes. If it raises, the loader
 prints a warning and the REPL carries on without the integration.
 """
 
-INTEGRATIONS: tuple[str, ...] = ()
+INTEGRATIONS: tuple[str, ...] = ("matplotlib",)

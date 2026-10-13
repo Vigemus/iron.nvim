@@ -1,4 +1,10 @@
-"""Matplotlib Agg backend that shows figures inline in an iron REPL."""
+"""matplotlib: plt.show() draws figures inline; :IronImageOpen reopens them
+in an interactive window.
+
+The install functions select this module as matplotlib's backend: an Agg
+backend whose show() sends each figure to iron_image.show() as a PNG, with a
+pickle of the figure as its interactive file (opened by iron_image.viewer).
+"""
 
 import io
 import pickle
@@ -43,3 +49,17 @@ def show(*, block: bool | None = None) -> None:
     # Shown figures are done, like matplotlib-inline; otherwise every later
     # show() would render them again.
     Gcf.destroy_all()
+
+
+def install_python() -> None:
+    _use_inline_backend()
+
+
+def install_ipython() -> None:
+    _use_inline_backend()
+
+
+def _use_inline_backend() -> None:
+    import matplotlib
+
+    matplotlib.use(f"module://{__name__}")

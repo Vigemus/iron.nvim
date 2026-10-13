@@ -58,7 +58,7 @@ python.prepare = function(cmd, env)
   end
 
   env.PYTHONPATH = with_helper(env.PYTHONPATH or vim.env.PYTHONPATH)
-  env.MPLBACKEND = "module://iron_image.integrations.mpl_backend"
+  env.MPLBACKEND = "module://iron_image.integrations.matplotlib"
 
   return cmd, env
 end
