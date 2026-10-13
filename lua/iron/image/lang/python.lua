@@ -1,6 +1,7 @@
 -- luacheck: globals vim
 --- Loads iron's Python helper (python/iron_image/) into python and
--- ipython REPLs and routes matplotlib through it.
+-- ipython REPLs through the REPL's startup module (iron_image/startup/),
+-- which then installs library integrations as they get imported.
 local is_windows = require("iron.util.os").is_windows
 
 ---@class iron.image.PythonLang : iron.image.Lang
@@ -54,11 +55,18 @@ end
 ---@return table<string, string> env
 python.prepare = function(cmd, env)
   if is_ipython(cmd) then
-    table.insert(cmd, "--ext=iron_image")
+    table.insert(cmd, "--ext=iron_image.startup.ipython")
+  else
+    -- Python runs a single PYTHONSTARTUP file: ours, which then runs the
+    -- user's own one
+    local user_startup = env.PYTHONSTARTUP or vim.env.PYTHONSTARTUP
+    if user_startup and user_startup ~= "" then
+      env.IRON_PYTHONSTARTUP = user_startup
+    end
+    env.PYTHONSTARTUP = helper_dir() .. "/iron_image/startup/python.py"
   end
 
   env.PYTHONPATH = with_helper(env.PYTHONPATH or vim.env.PYTHONPATH)
-  env.MPLBACKEND = "module://iron_image.integrations.matplotlib"
 
   return cmd, env
 end

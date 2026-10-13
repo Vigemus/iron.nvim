@@ -7,7 +7,6 @@ the figure. It exits 0 when the window is closed and 1 with a message on
 stderr when the figure can't be shown.
 """
 
-import os
 import pickle
 import sys
 
@@ -18,11 +17,6 @@ def main(argv: list[str]) -> int:
             "usage: python -m iron_image.viewer <file.pickle>", file=sys.stderr
         )
         return 1
-    # The REPL's inline backend would only draw the figure back into the
-    # terminal; without it matplotlib picks the user's interactive backend.
-    if "iron_image" in os.environ.get("MPLBACKEND", ""):
-        del os.environ["MPLBACKEND"]
-
     import matplotlib.pyplot as plt
 
     try:
