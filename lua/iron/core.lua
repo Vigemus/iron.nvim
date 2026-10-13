@@ -587,17 +587,18 @@ end
 
 --- Finds the image to act on: the one under the cursor when in a repl
 -- buffer, otherwise the latest image of the current filetype's repl
----@return string? path to the PNG
+---@return integer? bufnr repl buffer
+---@return integer? row 1-indexed line, nil for the latest image
 local current_image = function()
   local image = require("iron.image")
   local bufnr = vim.api.nvim_get_current_buf()
   if image.enabled(bufnr) then
-    return image.find(bufnr, vim.api.nvim_win_get_cursor(0)[1])
+    return bufnr, vim.api.nvim_win_get_cursor(0)[1]
   end
 
   local meta = state.get_repl(ll.get_buffer_ft(0))
   if ll.repl_exists(meta) and image.enabled(meta.bufnr) then
-    return image.find(meta.bufnr)
+    return meta.bufnr, nil
   end
 end
 
@@ -605,7 +606,8 @@ end
 -- Prompts for a path when none is given
 ---@param path string? destination path
 core.image_save = function(path)
-  local source = current_image()
+  local bufnr, row = current_image()
+  local source = bufnr and require("iron.image").find(bufnr, row)
   if not source then
     vim.notify("iron: no image to save", vim.log.levels.WARN)
     return
@@ -636,14 +638,13 @@ core.image_save = function(path)
   end
 end
 
---- Opens the current repl image in the system viewer
+--- Opens the current repl image: its interactive version when it has one
+-- (e.g. a matplotlib window), else the PNG in the system viewer
 core.image_open = function()
-  local source = current_image()
-  if not source then
+  local bufnr, row = current_image()
+  if not bufnr or not require("iron.image").open(bufnr, row) then
     vim.notify("iron: no image to open", vim.log.levels.WARN)
-    return
   end
-  vim.ui.open(source)
 end
 
 --- Provide filtered list of supported fts

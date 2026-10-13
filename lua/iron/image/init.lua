@@ -11,6 +11,10 @@
 
 ---@class iron.image.Lang
 ---@field prepare fun(cmd: string[], env: table<string, string>): string[], table<string, string>
+--- Opens an interactive file the repl saved next to a PNG. Returns false
+--- when it doesn't handle that kind of file; calls fallback(reason) when
+--- it can't open it after all.
+---@field open? fun(path: string, dir: string, fallback: fun(reason: string)): boolean
 
 ---@class iron.image.Protocol
 ---@field detect fun(): boolean
@@ -36,6 +40,7 @@
 ---@field chunks string[]
 
 ---@class iron.image.Session
+---@field lang iron.image.Lang
 ---@field namespace integer
 ---@field protocol iron.image.Protocol
 ---@field max_images integer
@@ -302,6 +307,7 @@ image.attach = function(ft, repl, bufnr, current_bufnr)
 
   ---@type iron.image.Session
   local session = {
+    lang = lang,
     namespace = namespace,
     protocol = protocol,
     max_images = settings.max_images,
@@ -364,23 +370,71 @@ image.enabled = function(bufnr)
   return sessions[bufnr] ~= nil
 end
 
+--- The image covering a buffer line, or the latest one
+---@param session iron.image.Session
+---@param row integer? 1-indexed buffer line
+---@return iron.image.Entry?
+local find_entry = function(session, row)
+  if row then
+    for _, entry in ipairs(session.images) do
+      if entry.row and row >= entry.row and row < entry.row + entry.rows then
+        return entry
+      end
+    end
+  end
+  return session.images[#session.images]
+end
+
+--- The interactive file the repl saved for an image, e.g. <id>.pickle
+---@param session iron.image.Session
+---@param entry iron.image.Entry
+---@return string? path
+local interactive_file = function(session, entry)
+  local stem = entry.id .. "."
+  for name in vim.fs.dir(session.dir) do
+    if name:sub(1, #stem) == stem and name ~= stem .. "png" then
+      return session.dir .. "/" .. name
+    end
+  end
+end
+
 --- Finds the image covering a buffer line, or the latest one
 ---@param bufnr integer repl buffer
 ---@param row integer? 1-indexed buffer line
 ---@return string? path to the PNG
 image.find = function(bufnr, row)
   local session = sessions[bufnr]
-  if not session or #session.images == 0 then
-    return nil
+  local entry = session and find_entry(session, row)
+  return entry and entry.path
+end
+
+--- Opens an image's interactive version when it has one, else the PNG
+---@param bufnr integer repl buffer
+---@param row integer? 1-indexed buffer line
+---@return boolean found whether there was an image to open
+image.open = function(bufnr, row)
+  local session = sessions[bufnr]
+  local entry = session and find_entry(session, row)
+  if not entry then
+    return false
   end
-  if row then
-    for _, entry in ipairs(session.images) do
-      if entry.row and row >= entry.row and row < entry.row + entry.rows then
-        return entry.path
-      end
-    end
+
+  local path = interactive_file(session, entry)
+  if not path then
+    vim.ui.open(entry.path)
+    return true
   end
-  return session.images[#session.images].path
+
+  local fallback = function(reason)
+    warn("interactive view failed, " .. reason)
+    vim.ui.open(entry.path)
+  end
+  if session.lang.open and session.lang.open(path, session.dir, fallback) then
+    return true
+  end
+  -- HTML opens in a browser whatever the language
+  vim.ui.open(vim.endswith(path, ".html") and path or entry.path)
+  return true
 end
 
 return image
