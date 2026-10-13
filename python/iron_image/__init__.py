@@ -12,13 +12,14 @@ Only the standard library is needed. The limits in this package must match
 lua/iron/image/init.lua.
 """
 
-from ._core import display, show
+from ._core import InteractiveFile, display, show
 from .integrations.ipython import (
     load_ipython_extension,
     unload_ipython_extension,
 )
 
 __all__ = [
+    "InteractiveFile",
     "display",
     "load_ipython_extension",
     "show",
