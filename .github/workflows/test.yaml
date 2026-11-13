@@ -12,35 +12,47 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Neovim release lines (quoted so YAML keeps them as strings).
-        # Each line resolves to the newest patch bundled in fast-nvim-release.
         nvim:
-          - "0.11"
-          - "0.12"
+          - v0.11.4
+          - v0.12.2
+
+    env:
+      NVIM_TAG: ${{ matrix.nvim }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - name: Install Neovim
         run: |
-          set -eux
-          # Pinned for reproducibility. Bumping this version updates the
-          # Neovim patch release used for each line in the matrix.
-          python -m pip install fast-nvim-release==0.3.0
-          fast-nvim-release setup "${{ matrix.nvim }}" --prefix "$HOME/.local"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          bash .github/workflows/install_nvim.sh
 
       - name: Show environment
         run: |
           set -eux
+
+          export PATH="$HOME/.local/bin:$PATH"
+
+          echo "Working directory:"
+          pwd
+
+          echo
+          echo "Repository contents:"
+          ls -la
+
+          echo
+          echo "Makefile:"
+          cat Makefile
+
+          echo
+          echo "Neovim:"
           which nvim
           nvim --version
 
       - name: Run tests
-        run: make test
+        run: |
+          set -eux
+
+          export PATH="$HOME/.local/bin:$PATH"
+
+          make test
